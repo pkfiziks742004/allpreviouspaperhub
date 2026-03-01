@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Rating = require("../models/Rating");
+const Rating = require("../models/rating");
 const { verifyAdmin, verifyPermission } = require("../middleware/auth");
 
 // Get average rating
@@ -67,3 +67,4 @@ router.delete("/:id", verifyAdmin, verifyPermission("ratings"), async (req, res)
 });
 
 module.exports = router;
+
