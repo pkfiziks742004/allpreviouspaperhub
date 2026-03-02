@@ -32,7 +32,7 @@ const allowedOrigins = parseOrigins(process.env.FRONTEND_ORIGINS);
 if (process.env.NODE_ENV === "production" && allowedOrigins.length === 0) {
   throw new Error("FRONTEND_ORIGINS is required in production");
 }
-const isTrustedProductionOrigin = origin => {
+const isTrustedPublicOrigin = origin => {
   if (!origin) return false;
   try {
     const u = new URL(origin);
@@ -49,7 +49,7 @@ const corsOptions = {
     const normalizedOrigin = String(origin).trim().replace(/\/+$/, "");
     const isAllowed =
       allowedOrigins.includes(normalizedOrigin) ||
-      (process.env.NODE_ENV === "production" && isTrustedProductionOrigin(normalizedOrigin)) ||
+      isTrustedPublicOrigin(normalizedOrigin) ||
       (process.env.NODE_ENV !== "production" &&
         (normalizedOrigin === "http://localhost:3000" || normalizedOrigin === "http://localhost:3001"));
     if (isAllowed) {
