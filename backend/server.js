@@ -25,23 +25,37 @@ if (String(process.env.JWT_SECRET).includes("change_this_to_a_long_random_secret
 const parseOrigins = value =>
   String(value || "")
     .split(",")
-    .map(v => v.trim())
+    .map(v => v.trim().replace(/\/+$/, ""))
     .filter(Boolean);
 
 const allowedOrigins = parseOrigins(process.env.FRONTEND_ORIGINS);
 if (process.env.NODE_ENV === "production" && allowedOrigins.length === 0) {
   throw new Error("FRONTEND_ORIGINS is required in production");
 }
+const isTrustedProductionOrigin = origin => {
+  if (!origin) return false;
+  try {
+    const u = new URL(origin);
+    const host = String(u.hostname || "").toLowerCase();
+    return host === "allpreviouspaperhub.in" || host.endsWith(".allpreviouspaperhub.in");
+  } catch {
+    return false;
+  }
+};
+
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
+    const normalizedOrigin = String(origin).trim().replace(/\/+$/, "");
     const isAllowed =
-      allowedOrigins.includes(origin) ||
+      allowedOrigins.includes(normalizedOrigin) ||
+      (process.env.NODE_ENV === "production" && isTrustedProductionOrigin(normalizedOrigin)) ||
       (process.env.NODE_ENV !== "production" &&
-        (origin === "http://localhost:3000" || origin === "http://localhost:3001"));
+        (normalizedOrigin === "http://localhost:3000" || normalizedOrigin === "http://localhost:3001"));
     if (isAllowed) {
       return callback(null, true);
     }
+    console.warn("CORS blocked origin:", normalizedOrigin);
     return callback(new Error("CORS blocked"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -266,4 +280,5 @@ supabaseAdmin
     }
     console.log("Supabase Connected");
   });
+
 
