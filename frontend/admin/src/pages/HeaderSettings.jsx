@@ -31,6 +31,8 @@ export default function HeaderSettings() {
   const [headerLinkColor, setHeaderLinkColor] = useState("#ffffff");
   const [headerLinkHoverColor, setHeaderLinkHoverColor] = useState("#fbbf24");
   const [headerMenuIconColor, setHeaderMenuIconColor] = useState("#ffffff");
+  const [headerMenuBgColor, setHeaderMenuBgColor] = useState("#0f172a");
+  const [headerMenuTextColor, setHeaderMenuTextColor] = useState("#f8fafc");
   const [pages, setPages] = useState([]);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -65,6 +67,8 @@ export default function HeaderSettings() {
       setHeaderLinkColor(res.data.headerLinkColor || "#ffffff");
       setHeaderLinkHoverColor(res.data.headerLinkHoverColor || "#fbbf24");
       setHeaderMenuIconColor(res.data.headerMenuIconColor || "#ffffff");
+      setHeaderMenuBgColor(res.data.headerMenuBgColor || "#0f172a");
+      setHeaderMenuTextColor(res.data.headerMenuTextColor || res.data.headerLinkColor || "#f8fafc");
     });
     axios
       .get(`${API}/api/pages`, headers)
@@ -127,7 +131,9 @@ export default function HeaderSettings() {
           headerLinks,
           headerLinkColor,
           headerLinkHoverColor,
-          headerMenuIconColor
+          headerMenuIconColor,
+          headerMenuBgColor,
+          headerMenuTextColor
         },
         headers
       );
@@ -422,6 +428,24 @@ export default function HeaderSettings() {
                 className="form-control form-control-color"
                 value={headerMenuIconColor}
                 onChange={e => setHeaderMenuIconColor(e.target.value)}
+              />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">Mobile Menu Text</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={headerMenuTextColor}
+                onChange={e => setHeaderMenuTextColor(e.target.value)}
+              />
+            </div>
+            <div className="col-md-3 mt-2">
+              <label className="form-label">Mobile Menu Background</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={headerMenuBgColor}
+                onChange={e => setHeaderMenuBgColor(e.target.value)}
               />
             </div>
           </div>

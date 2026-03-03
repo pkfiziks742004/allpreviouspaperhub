@@ -96,6 +96,8 @@ const defaults = {
   headerLinkColor: "#ffffff",
   headerLinkHoverColor: "#fbbf24",
   headerMenuIconColor: "#ffffff",
+  headerMenuBgColor: "#0f172a",
+  headerMenuTextColor: "#f8fafc",
   cardStyles: {
     university: {
       bgColor: "#ffffff",
@@ -301,6 +303,8 @@ const updateSettings = async (req, res) => {
       headerLinkColor: req.body.headerLinkColor,
       headerLinkHoverColor: req.body.headerLinkHoverColor,
       headerMenuIconColor: req.body.headerMenuIconColor,
+      headerMenuBgColor: req.body.headerMenuBgColor,
+      headerMenuTextColor: req.body.headerMenuTextColor,
       cardStyles: req.body.cardStyles,
       headerColor: req.body.headerColor,
       adminHeaderColor: req.body.adminHeaderColor,
@@ -426,6 +430,8 @@ const updateSettings = async (req, res) => {
       if (payload.headerLinkColor !== undefined) settings.headerLinkColor = payload.headerLinkColor;
       if (payload.headerLinkHoverColor !== undefined) settings.headerLinkHoverColor = payload.headerLinkHoverColor;
       if (payload.headerMenuIconColor !== undefined) settings.headerMenuIconColor = payload.headerMenuIconColor;
+      if (payload.headerMenuBgColor !== undefined) settings.headerMenuBgColor = payload.headerMenuBgColor;
+      if (payload.headerMenuTextColor !== undefined) settings.headerMenuTextColor = payload.headerMenuTextColor;
       if (payload.cardStyles !== undefined) {
         const previous = settings.cardStyles || {};
         const incoming = payload.cardStyles || {};

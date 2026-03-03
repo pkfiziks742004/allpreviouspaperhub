@@ -17,6 +17,8 @@ function Navbar() {
   const [headerLinkColor, setHeaderLinkColor] = useState("#ffffff");
   const [headerLinkHoverColor, setHeaderLinkHoverColor] = useState("#fbbf24");
   const [headerMenuIconColor, setHeaderMenuIconColor] = useState("#ffffff");
+  const [headerMenuBgColor, setHeaderMenuBgColor] = useState("#0f172a");
+  const [headerMenuTextColor, setHeaderMenuTextColor] = useState("#f8fafc");
   const [alertEnabled, setAlertEnabled] = useState(false);
   const [alertText, setAlertText] = useState("");
   const [alertColor, setAlertColor] = useState("#fff3cd");
@@ -61,6 +63,8 @@ function Navbar() {
         setHeaderLinkColor(res.data.headerLinkColor || "#ffffff");
         setHeaderLinkHoverColor(res.data.headerLinkHoverColor || "#fbbf24");
         setHeaderMenuIconColor(res.data.headerMenuIconColor || "#ffffff");
+        setHeaderMenuBgColor(res.data.headerMenuBgColor || "#0f172a");
+        setHeaderMenuTextColor(res.data.headerMenuTextColor || res.data.headerLinkColor || "#f8fafc");
         setAlertEnabled(!!res.data.alertEnabled);
         setAlertText(res.data.alertText || "");
         setAlertColor(res.data.alertColor || "#fff3cd");
@@ -163,7 +167,9 @@ function Navbar() {
         style={{
           "--header-link-color": headerLinkColor,
           "--header-link-hover": headerLinkHoverColor,
-          "--header-menu-icon-color": headerMenuIconColor
+          "--header-menu-icon-color": headerMenuIconColor,
+          "--header-menu-bg": headerMenuBgColor,
+          "--header-menu-text": headerMenuTextColor
         }}
       >
         <nav
