@@ -193,6 +193,25 @@ app.get("/ads.txt", async (req, res) => {
   }
 });
 
+// Open Graph image resolver (public)
+app.get("/og-image", async (req, res) => {
+  try {
+    const Setting = require("./models/Setting");
+    const settings = await Setting.findOne();
+    const candidate =
+      String(settings?.ogImage || "").trim() ||
+      String(settings?.logoUrl || "").trim() ||
+      (Array.isArray(settings?.bannerImages) ? String(settings.bannerImages[0] || "").trim() : "");
+
+    if (!candidate) return res.status(404).json("OG image not configured");
+
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return res.redirect(302, candidate);
+  } catch (err) {
+    return res.status(500).json("Failed to resolve OG image");
+  }
+});
+
 const PORT = Number(process.env.PORT || 5000);
 app.listen(PORT, ()=>{
   console.log(`Server Running on ${PORT}`);
