@@ -26,7 +26,7 @@
     "preview": "vite preview --port 3001 --host"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": "20.x"
   },
   "browserslist": [
     ">0.2%",
