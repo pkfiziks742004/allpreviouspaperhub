@@ -10,6 +10,19 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react({ include: /\.(js|jsx|ts|tsx)$/ })],
     envPrefix: ["VITE_", "REACT_APP_"],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (id.includes("@tiptap")) return "tiptap";
+            if (id.includes("react-router")) return "router";
+            if (id.includes("react") || id.includes("scheduler")) return "react-vendor";
+            return "vendor";
+          }
+        }
+      }
+    },
     optimizeDeps: {
       esbuildOptions: {
         loader: {
