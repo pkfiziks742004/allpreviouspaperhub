@@ -27,10 +27,27 @@
       (function () {
         try {
           var cachedTitle = localStorage.getItem("user_page_title_cache");
+          var cachedDescription = localStorage.getItem("user_seo_description_cache");
           if (cachedTitle && cachedTitle.trim()) {
             document.title = cachedTitle.trim();
             var mobileTitle = document.getElementById("dynamic-mobile-title");
             if (mobileTitle) mobileTitle.setAttribute("content", cachedTitle.trim());
+          }
+          if (cachedDescription && cachedDescription.trim()) {
+            var keys = [
+              { selector: "meta[name='description']", attr: "name", key: "description" },
+              { selector: "meta[property='og:description']", attr: "property", key: "og:description" },
+              { selector: "meta[name='twitter:description']", attr: "name", key: "twitter:description" }
+            ];
+            keys.forEach(function (entry) {
+              var tag = document.querySelector(entry.selector);
+              if (!tag) {
+                tag = document.createElement("meta");
+                tag.setAttribute(entry.attr, entry.key);
+                document.head.appendChild(tag);
+              }
+              tag.setAttribute("content", cachedDescription.trim());
+            });
           }
         } catch (e) {}
       })();
