@@ -49,11 +49,7 @@ function App() {
     const applySettings = async () => {
       try {
         const res = await axios.get(`${API_BASE}/api/settings`, {
-          params: { _ts: Date.now() },
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache"
-          }
+          params: { _ts: Date.now() }
         });
         if (res.data && res.data.adminPageTitle) {
           document.title = res.data.adminPageTitle;

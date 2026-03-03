@@ -151,12 +151,7 @@ export default function Layout({ children }) {
         const [settingsRes, meRes] = await Promise.all([
           axios.get(`${API_BASE}/api/settings`, {
             ...authHeaders,
-            params: { _ts: Date.now() },
-            headers: {
-              ...(authHeaders.headers || {}),
-              "Cache-Control": "no-cache",
-              Pragma: "no-cache"
-            }
+            params: { _ts: Date.now() }
           }),
           axios.get(`${API_BASE}/api/auth/me`, authHeaders)
         ]);
