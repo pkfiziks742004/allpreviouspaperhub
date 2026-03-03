@@ -232,7 +232,7 @@ body {
 }
 
 .semester-card .card-body {
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   text-align: center;
@@ -270,7 +270,9 @@ body {
 }
 
 .semester-view-btn {
-  width: 100%;
+  width: auto;
+  align-self: center;
+  min-width: clamp(120px, 60%, 180px);
   min-height: 42px;
   border-radius: 12px;
   font-weight: 700;
@@ -366,6 +368,7 @@ body {
 
   .semester-view-btn {
     min-height: 38px;
+    min-width: clamp(108px, 78%, 150px);
     font-size: 12px !important;
   }
 
