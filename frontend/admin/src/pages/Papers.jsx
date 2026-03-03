@@ -273,7 +273,7 @@ export default function Papers() {
       <div className="row mb-3 g-2">
         <div className="col-md-2">
           <select className="form-control" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-            <option value="">All Categories</option>
+            <option value="">All Types</option>
             {categories.map(value => (
               <option key={value} value={value}>
                 {value}
@@ -340,11 +340,11 @@ export default function Papers() {
         <thead>
           <tr>
             <th>#</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>University</th>
-            <th>Course</th>
+            <th>Course Name</th>
+            <th>University/Board</th>
+            <th>Type</th>
             <th>Semester</th>
+            <th>Paper Title</th>
             <th>Year</th>
             <th>File</th>
             <th>Action</th>
@@ -355,11 +355,11 @@ export default function Papers() {
           {filteredList.map((p, i) => (
             <tr key={p._id}>
               <td>{i + 1}</td>
-              <td>{p.title}</td>
-              <td>{p.category || "-"}</td>
-              <td>{p.universityName || p.courseId?.universityId?.name || "-"}</td>
               <td>{p.courseName || p.courseId?.name || "-"}</td>
+              <td>{p.universityName || p.courseId?.universityId?.name || "-"}</td>
+              <td>{p.category || "-"}</td>
               <td>{p.semesterName || p.semId?.name || "-"}</td>
+              <td>{p.title}</td>
               <td>{p.year || "-"}</td>
               <td>
                 <a href={resolvePaperFileUrl(p.file)} target="_blank" rel="noreferrer">
