@@ -105,7 +105,13 @@ function App() {
 
     const applySettings = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/settings`);
+        const res = await axios.get(`${API_BASE}/api/settings`, {
+          params: { _ts: Date.now() },
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache"
+          }
+        });
         if (res.data) {
           setMaintenanceEnabled(!!res.data.maintenanceEnabled);
           setMaintenanceMessage(

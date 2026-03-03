@@ -49,7 +49,12 @@ const SETTINGS_PERMISSIONS = [
 ];
 
 // Public: get settings
-router.get("/", getSettings);
+router.get("/", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  return getSettings(req, res, next);
+});
 
 // Public: realtime settings events (SSE)
 router.get("/stream", (req, res) => {
