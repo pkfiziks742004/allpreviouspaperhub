@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
 function Navbar() {
+  const location = useLocation();
   const headerRef = useRef(null);
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
   const [siteName, setSiteName] = useState("Study Portal");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoHeight, setLogoHeight] = useState(32);
@@ -95,6 +98,36 @@ function Navbar() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onPointerDown = event => {
+      const target = event.target;
+      if (!target) return;
+      if (menuRef.current && menuRef.current.contains(target)) return;
+      if (toggleRef.current && toggleRef.current.contains(target)) return;
+      setMenuOpen(false);
+    };
+
+    const onEscape = event => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown, { passive: true });
+    document.addEventListener("keydown", onEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [menuOpen]);
+
   const nameStyle = {
     color: siteNameStyle.color || "#ffffff",
     fontWeight: siteNameStyle.bold ? "700" : "normal",
@@ -137,11 +170,12 @@ function Navbar() {
           className="navbar navbar-dark px-3 user-navbar"
           style={{ backgroundColor: headerColor, minHeight: `${headerHeight}px` }}
         >
-          <Link className="navbar-brand" to="/" style={nameStyle}>
+          <Link className="navbar-brand user-navbar-brand" to="/" style={nameStyle}>
             {logoUrl ? (
               <img
                 src={resolveUrl(logoUrl)}
                 alt={siteName}
+                className="user-navbar-logo"
                 style={{ height: `${logoHeight}px`, width: "auto" }}
               />
             ) : useSplitColor ? (
@@ -163,6 +197,7 @@ function Navbar() {
           </Link>
 
           <button
+            ref={toggleRef}
             type="button"
             className="header-toggle-btn"
             aria-label="Toggle menu"
@@ -171,7 +206,7 @@ function Navbar() {
             &#8801;
           </button>
 
-        <div className={`header-links${menuOpen ? " open" : ""}`}>
+        <div ref={menuRef} className={`header-links${menuOpen ? " open" : ""}`}>
           {visibleHeaderLinks.length > 0 ? (
             visibleHeaderLinks.map((link, idx) => {
               const isExternal = (link.url || "").startsWith("http");
@@ -210,6 +245,12 @@ function Navbar() {
           )}
         </div>
         </nav>
+        <button
+          type="button"
+          aria-label="Close menu"
+          className={`header-menu-backdrop${menuOpen ? " open" : ""}`}
+          onClick={() => setMenuOpen(false)}
+        />
 
         {alertEnabled && alertText && (
           <div

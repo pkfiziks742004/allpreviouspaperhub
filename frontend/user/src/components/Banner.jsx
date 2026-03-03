@@ -38,8 +38,8 @@ export default function Banner() {
   if (!ready || images.length === 0) return null;
 
   return (
-    <div style={{ margin: `${bannerMargin}px` }}>
-      <div style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
+    <div className="banner-shell" style={{ margin: `${bannerMargin}px` }}>
+      <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
         <Carousel interval={3000} pause={false}>
           {images.map((src, i) => (
             <Carousel.Item key={src + i}>
