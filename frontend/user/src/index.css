@@ -200,6 +200,49 @@ body {
   margin-top: 10px;
 }
 
+.semester-card .card-body {
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 14px;
+  text-align: left;
+}
+
+.semester-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.semester-card-head h1,
+.semester-card-head h2,
+.semester-card-head h3,
+.semester-card-head h4,
+.semester-card-head h5,
+.semester-card-head h6,
+.semester-card-head p,
+.semester-card-head span {
+  margin: 0;
+}
+
+.semester-year-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.semester-view-btn {
+  width: 100%;
+  min-height: 40px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
 .home-section .col-lg-3,
 .home-section .col-md-4,
 .home-section .col-sm-6 {

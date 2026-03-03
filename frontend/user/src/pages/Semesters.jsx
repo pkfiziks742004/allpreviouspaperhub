@@ -70,27 +70,46 @@ export default function Semesters(){
 
   const getYearLabel = semesterName => {
     const raw = String(semesterName || "").toLowerCase().trim();
-    const numMatch = raw.match(/\d+/);
-    if (numMatch) {
-      const semNo = Number(numMatch[0]);
-      if (semNo > 0) {
-        const yearNo = Math.ceil(semNo / 2);
-        const suffix =
-          yearNo % 10 === 1 && yearNo % 100 !== 11
-            ? "st"
-            : yearNo % 10 === 2 && yearNo % 100 !== 12
-              ? "nd"
-              : yearNo % 10 === 3 && yearNo % 100 !== 13
-                ? "rd"
-                : "th";
-        return `${yearNo}${suffix} Year`;
-      }
+    const semesterPattern = /\b(?:sem(?:ester)?|s)\s*[-:/]?\s*(\d{1,2})\b/i;
+    const reverseSemesterPattern = /\b(\d{1,2})(?:st|nd|rd|th)?\s*(?:sem(?:ester)?|s)\b/i;
+    const yearPattern = /\byear\s*[-:/]?\s*(\d{1,2})\b/i;
+    const ordinals = [
+      { test: /\bfirst\b|\b1st\b/i, value: 1 },
+      { test: /\bsecond\b|\b2nd\b/i, value: 2 },
+      { test: /\bthird\b|\b3rd\b/i, value: 3 },
+      { test: /\bfourth\b|\b4th\b/i, value: 4 }
+    ];
+
+    const toOrdinalYear = n => {
+      if (!n || n < 1 || n > 12) return "";
+      const suffix =
+        n % 10 === 1 && n % 100 !== 11
+          ? "st"
+          : n % 10 === 2 && n % 100 !== 12
+            ? "nd"
+            : n % 10 === 3 && n % 100 !== 13
+              ? "rd"
+              : "th";
+      return `${n}${suffix} Year`;
+    };
+
+    const semMatch = raw.match(semesterPattern);
+    if (semMatch) {
+      const semNo = Number(semMatch[1]);
+      if (semNo >= 1 && semNo <= 24) return toOrdinalYear(Math.ceil(semNo / 2));
+    }
+    const reverseSemMatch = raw.match(reverseSemesterPattern);
+    if (reverseSemMatch) {
+      const semNo = Number(reverseSemMatch[1]);
+      if (semNo >= 1 && semNo <= 24) return toOrdinalYear(Math.ceil(semNo / 2));
     }
 
-    if (raw.includes("first") || raw.includes("1st")) return "1st Year";
-    if (raw.includes("second") || raw.includes("2nd")) return "2nd Year";
-    if (raw.includes("third") || raw.includes("3rd")) return "3rd Year";
-    if (raw.includes("fourth") || raw.includes("4th")) return "4th Year";
+    const yearMatch = raw.match(yearPattern);
+    if (yearMatch) return toOrdinalYear(Number(yearMatch[1]));
+
+    for (const item of ordinals) {
+      if (item.test.test(raw)) return toOrdinalYear(item.value);
+    }
 
     return "";
   };
@@ -113,48 +132,44 @@ export default function Semesters(){
             <div className="cards-grid-item" key={s._id}>
 
               <div
-                className="card modern-card h-100 text-center p-3"
+                className="card modern-card semester-card h-100"
                 style={{
                   background: cardBg,
                   minHeight: cardStyle.minHeight ? `${cardStyle.minHeight}px` : undefined,
                   maxWidth: cardStyle.maxWidth ? `${cardStyle.maxWidth}px` : undefined
                 }}
               >
+                <div className="card-body">
+                  <div className="semester-card-head">
+                    {(() => {
+                      const Tag = semesterNameStyle.variant || "h6";
+                      return <Tag style={cardTextStyle}>{s.name}</Tag>;
+                    })()}
+                    {getYearLabel(s.name) && (
+                      <span className="semester-year-chip" style={{ color: cardStyle.textColor || "#334155" }}>
+                        {getYearLabel(s.name)}
+                      </span>
+                    )}
+                  </div>
 
-                {(() => {
-                  const Tag = semesterNameStyle.variant || "h6";
-                  return <Tag style={cardTextStyle}>{s.name}</Tag>;
-                })()}
-                {getYearLabel(s.name) && (
-                  <div
-                    style={{
-                      marginTop: "4px",
-                      color: cardStyle.textColor || "#64748b",
-                      fontSize: "13px",
-                      textAlign: semesterNameStyle.align || "center"
+                  <Link
+                    to={`/papers/${s._id}`}
+                    className="btn btn-outline-primary btn-sm mt-2 semester-view-btn"
+                    style={semesterBtnStyle}
+                    onMouseEnter={e => {
+                      if (buttonStyle.hoverColor) {
+                        e.currentTarget.style.backgroundColor = buttonStyle.hoverColor;
+                        e.currentTarget.style.borderColor = buttonStyle.hoverColor;
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor = buttonStyle.bgColor || "";
+                      e.currentTarget.style.borderColor = buttonStyle.bgColor || "";
                     }}
                   >
-                    {getYearLabel(s.name)}
-                  </div>
-                )}
-
-                <Link
-                  to={`/papers/${s._id}`}
-                  className="btn btn-outline-primary btn-sm mt-2"
-                  style={semesterBtnStyle}
-                  onMouseEnter={e => {
-                    if (buttonStyle.hoverColor) {
-                      e.currentTarget.style.backgroundColor = buttonStyle.hoverColor;
-                      e.currentTarget.style.borderColor = buttonStyle.hoverColor;
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = buttonStyle.bgColor || "";
-                    e.currentTarget.style.borderColor = buttonStyle.bgColor || "";
-                  }}
-                >
-                  View Papers
-                </Link>
+                    View Papers
+                  </Link>
+                </div>
 
               </div>
 
