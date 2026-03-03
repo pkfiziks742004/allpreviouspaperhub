@@ -72,6 +72,24 @@ router.post("/", verifyAdmin, verifyPermission("semesters"), async (req, res) =>
     res.status(500).json(err.message);
   }
 });
+
+// ✅ UPDATE Semester
+router.put("/:id", verifyAdmin, verifyPermission("semesters"), async (req, res) => {
+  try {
+    const semester = await Semester.findById(req.params.id);
+    if (!semester) return res.status(404).json({ message: "Not Found" });
+
+    if (req.body.name !== undefined) semester.name = req.body.name;
+    if (req.body.courseId !== undefined) semester.courseId = req.body.courseId;
+
+    await semester.save();
+    const enriched = await enrichSemesters([semester]);
+    res.json(enriched[0] || semester);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
 // ✅ DELETE Semester
 router.delete("/:id", verifyAdmin, verifyPermission("semesters"), async (req, res) => {
   try {

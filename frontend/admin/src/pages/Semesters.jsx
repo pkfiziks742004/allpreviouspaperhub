@@ -12,6 +12,7 @@ export default function Semesters(){
   const [name,setName] = useState("");
   const [universityId,setUniversityId] = useState("");
   const [courseId,setCourseId] = useState("");
+  const [editingId, setEditingId] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterUniversityId, setFilterUniversityId] = useState("");
   const [filterCourseId, setFilterCourseId] = useState("");
@@ -142,16 +143,43 @@ export default function Semesters(){
       return alert("Fill all fields");
     }
 
-    await axios.post(
-      `${API}/api/semesters`,
-      {name,courseId},
-      headers
-    );
+    if (editingId) {
+      await axios.put(
+        `${API}/api/semesters/${editingId}`,
+        { name, courseId },
+        headers
+      );
+    } else {
+      await axios.post(
+        `${API}/api/semesters`,
+        {name,courseId},
+        headers
+      );
+    }
 
+    setEditingId("");
     setName("");
+    setUniversityId("");
     setCourseId("");
 
     load();
+  };
+
+  const startEdit = s => {
+    const selectedCourseId = s?.courseId?._id || s?.courseId || "";
+    const selectedCourse = courseMap.get(String(selectedCourseId));
+    const selectedUniversityId = selectedCourse?.universityId?._id || selectedCourse?.universityId || "";
+    setEditingId(String(s?._id || ""));
+    setUniversityId(String(selectedUniversityId || ""));
+    setCourseId(String(selectedCourseId || ""));
+    setName(String(s?.name || ""));
+  };
+
+  const cancelEdit = () => {
+    setEditingId("");
+    setName("");
+    setUniversityId("");
+    setCourseId("");
   };
 
 
@@ -233,12 +261,19 @@ export default function Semesters(){
             onClick={add}
             className="btn btn-primary w-100"
           >
-            Add Semester
+            {editingId ? "Update Semester" : "Add Semester"}
           </button>
 
         </div>
 
       </div>
+      {editingId && (
+        <div className="mb-3">
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={cancelEdit}>
+            Cancel Edit
+          </button>
+        </div>
+      )}
 
       <div className="row mb-3 g-2">
         <div className="col-md-2">
@@ -329,6 +364,12 @@ export default function Semesters(){
               <td>{s.name}</td>
 
               <td>
+                <button
+                  onClick={() => startEdit(s)}
+                  className="btn btn-warning btn-sm me-2"
+                >
+                  Update
+                </button>
 
                 <button
                   onClick={()=>del(s._id)}
