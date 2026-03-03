@@ -126,6 +126,11 @@ function App() {
 
         if (res.data && res.data.userPageTitle) {
           document.title = res.data.userPageTitle;
+          try {
+            localStorage.setItem("user_page_title_cache", String(res.data.userPageTitle || "").trim());
+          } catch (e) {
+            // ignore storage errors
+          }
           let appTitleMeta = document.querySelector("meta[name='apple-mobile-web-app-title']");
           if (!appTitleMeta) {
             appTitleMeta = document.createElement("meta");
@@ -135,6 +140,11 @@ function App() {
           appTitleMeta.setAttribute("content", res.data.userPageTitle);
         } else if (res.data && res.data.seoTitle) {
           document.title = res.data.seoTitle;
+          try {
+            localStorage.setItem("user_page_title_cache", String(res.data.seoTitle || "").trim());
+          } catch (e) {
+            // ignore storage errors
+          }
           let appTitleMeta = document.querySelector("meta[name='apple-mobile-web-app-title']");
           if (!appTitleMeta) {
             appTitleMeta = document.createElement("meta");
@@ -159,8 +169,12 @@ function App() {
         ensureMeta("keywords", res.data?.seoKeywords || "");
         ensureMeta("og:title", res.data?.seoTitle || "", "property");
         ensureMeta("og:description", res.data?.seoDescription || "", "property");
+        ensureMeta("og:site_name", res.data?.userPageTitle || res.data?.seoTitle || "All Previous Paper Hub", "property");
+        ensureMeta("twitter:title", res.data?.seoTitle || res.data?.userPageTitle || "");
+        ensureMeta("twitter:description", res.data?.seoDescription || "");
         if (res.data?.ogImage) {
           ensureMeta("og:image", resolveApiUrl(res.data.ogImage), "property");
+          ensureMeta("twitter:image", resolveApiUrl(res.data.ogImage));
         }
 
         if (res.data?.canonicalUrl) {
@@ -171,6 +185,7 @@ function App() {
             document.head.appendChild(link);
           }
           link.setAttribute("href", res.data.canonicalUrl);
+          ensureMeta("og:url", res.data.canonicalUrl, "property");
         }
 
         if (res.data?.analyticsHeadScript) {

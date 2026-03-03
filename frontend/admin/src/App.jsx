@@ -53,6 +53,11 @@ function App() {
         });
         if (res.data && res.data.adminPageTitle) {
           document.title = res.data.adminPageTitle;
+          try {
+            localStorage.setItem("admin_page_title_cache", String(res.data.adminPageTitle || "").trim());
+          } catch (e) {
+            // ignore storage errors
+          }
           let appTitleMeta = document.querySelector("meta[name='apple-mobile-web-app-title']");
           if (!appTitleMeta) {
             appTitleMeta = document.createElement("meta");

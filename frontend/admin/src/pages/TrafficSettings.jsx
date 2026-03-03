@@ -75,6 +75,11 @@ export default function TrafficSettings() {
         },
         headers
       );
+      try {
+        localStorage.setItem("admin_page_title_cache", String(adminPageTitle || "").trim());
+      } catch (e) {
+        // ignore storage errors
+      }
       alert("Traffic/SEO settings saved");
     } catch (err) {
       const msg = err?.response?.data || err?.message || "Save failed";
