@@ -39,6 +39,7 @@ const DEFAULT_ABOUT_INFO_BLOCKS = [
 
 export default function AboutUs() {
   const [managedAbout, setManagedAbout] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const resolveUrl = url => resolveApiUrl(url);
   const normalizeContentHtml = html => {
@@ -82,6 +83,7 @@ export default function AboutUs() {
     };
 
     const applySeo = async () => {
+      setLoading(true);
       try {
         const [settingsRes, aboutRes] = await Promise.all([
           axios.get(`${API_BASE}/api/settings`),
@@ -104,6 +106,8 @@ export default function AboutUs() {
         ensureMeta("description", FALLBACK_SEO.description);
         ensureMeta("keywords", FALLBACK_SEO.keywords);
         ensureCanonical(`${window.location.origin}/about`);
+      } finally {
+        if (mounted) setLoading(false);
       }
     };
 
@@ -117,7 +121,16 @@ export default function AboutUs() {
     <div className="page-shell">
       <Navbar />
       <div className="page-content">
-        {managedAbout ? (
+        {loading ? (
+          <section className="about-page py-5">
+            <div className="container">
+              <div className="about-hero mb-4">
+                <p className="about-eyebrow">Loading</p>
+                <h1 className="about-title">Please wait...</h1>
+              </div>
+            </div>
+          </section>
+        ) : managedAbout ? (
           <section className="about-page py-5" style={{ backgroundColor: managedAbout?.bgColor || "" }}>
             <div className="container">
               {managedAbout?.bannerUrl && (
@@ -165,7 +178,7 @@ export default function AboutUs() {
               ) : null}
 
               <div className="row g-3 g-md-4 mb-4">
-                {(managedAbout.extra.highlights || DEFAULT_ABOUT_HIGHLIGHTS).slice(0, 4).map((item, idx) => (
+                {(managedAbout?.extra?.highlights || DEFAULT_ABOUT_HIGHLIGHTS).slice(0, 4).map((item, idx) => (
                   <div className="col-6 col-lg-3" key={`about-highlight-${idx}`}>
                     <div className="about-stat">
                       <span className="about-stat-value">{item?.value || `${idx + 1}`}</span>
@@ -176,7 +189,7 @@ export default function AboutUs() {
               </div>
 
               <div className="row g-4">
-                {(managedAbout.extra.infoBlocks || DEFAULT_ABOUT_INFO_BLOCKS).slice(0, 4).map((item, idx) => (
+                {(managedAbout?.extra?.infoBlocks || DEFAULT_ABOUT_INFO_BLOCKS).slice(0, 4).map((item, idx) => (
                   <div className="col-md-6" key={`about-info-${idx}`}>
                     <div className="about-block h-100">
                       <h5>{item?.title || `Section ${idx + 1}`}</h5>

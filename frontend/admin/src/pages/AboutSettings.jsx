@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -49,6 +49,50 @@ const textToHtml = text => {
     .map(l => l.trim())
     .filter(Boolean);
   return lines.map(l => `<p>${escapeHtml(l)}</p>`).join("");
+};
+
+const normalizeAssetUrl = value => String(value || "").trim().split("?")[0];
+
+const extractContentImageUrls = html => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html || ""), "text/html");
+  const urls = [];
+  doc.querySelectorAll("img[src]").forEach(img => {
+    const src = String(img.getAttribute("src") || "").trim();
+    if (!src) return;
+    if (!urls.includes(src)) urls.push(src);
+  });
+  return urls;
+};
+
+const appendImageToHtml = (html, src, altText) => {
+  const current = String(html || "").trim();
+  const safeSrc = String(src || "").trim();
+  if (!safeSrc) return current;
+  const escapedAlt = String(altText || "Content image").replace(/"/g, "&quot;");
+  const imageBlock = `<p><img src="${safeSrc}" alt="${escapedAlt}" loading="lazy"></p>`;
+  return current ? `${current}${imageBlock}` : imageBlock;
+};
+
+const removeImageFromHtml = (html, srcToRemove) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(String(html || ""), "text/html");
+  const target = normalizeAssetUrl(srcToRemove);
+  doc.querySelectorAll("img[src]").forEach(img => {
+    const src = normalizeAssetUrl(img.getAttribute("src"));
+    if (src !== target) return;
+    const parent = img.parentElement;
+    img.remove();
+    if (
+      parent &&
+      parent.tagName === "P" &&
+      !parent.querySelector("img") &&
+      !String(parent.textContent || "").trim()
+    ) {
+      parent.remove();
+    }
+  });
+  return doc.body.innerHTML;
 };
 
 export default function AboutSettings() {
@@ -105,6 +149,7 @@ export default function AboutSettings() {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAuthorImage, setUploadingAuthorImage] = useState(false);
   const [uploadingContentImage, setUploadingContentImage] = useState(false);
+  const syncFromEditorRef = useRef(false);
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -114,12 +159,20 @@ export default function AboutSettings() {
     extensions: [StarterKit, Image],
     content: contentHtml || "",
     onUpdate: ({ editor: ed }) => {
+      syncFromEditorRef.current = true;
       setContentHtml(ed.getHTML());
     }
   });
 
+  const contentImages = useMemo(() => extractContentImageUrls(contentHtml), [contentHtml]);
+
   useEffect(() => {
-    if (editorMode === "rich" && editor) {
+    if (!editor || editorMode !== "rich") return;
+    if (syncFromEditorRef.current) {
+      syncFromEditorRef.current = false;
+      return;
+    }
+    if (editor.getHTML() !== (contentHtml || "")) {
       editor.commands.setContent(contentHtml || "", false);
     }
   }, [editorMode, editor, contentHtml]);
@@ -210,8 +263,10 @@ export default function AboutSettings() {
       const url = resolveApiUrl(res.data.url || "");
       if (!url) return;
       if (editorMode === "rich" && editor) {
-        editor.chain().focus().setImage({ src: url }).run();
-        setContentHtml(editor.getHTML());
+        const nextHtml = appendImageToHtml(editor.getHTML(), url, file.name || "Content image");
+        editor.commands.setContent(nextHtml, false);
+        setContentHtml(nextHtml);
+        setContentText(htmlToText(nextHtml));
       } else {
         const next = `${contentText}\n${url}`.trim();
         setContentText(next);
@@ -228,6 +283,23 @@ export default function AboutSettings() {
   const onSimpleChange = value => {
     setContentText(value);
     setContentHtml(textToHtml(value));
+  };
+
+  const removeContentImage = async url => {
+    const nextHtml = removeImageFromHtml(contentHtml, url);
+    setContentHtml(nextHtml);
+    setContentText(htmlToText(nextHtml));
+    if (editor) {
+      editor.commands.setContent(nextHtml, false);
+    }
+    try {
+      await axios.delete(`${API_BASE}/api/pages/media/content-image`, {
+        ...headers,
+        data: { url }
+      });
+    } catch (err) {
+      // UI already updated; save action will persist editor state.
+    }
   };
 
   const save = async () => {
@@ -476,6 +548,25 @@ export default function AboutSettings() {
               </label>
             </div>
           </div>
+          {contentImages.length > 0 && (
+            <div className="mb-3">
+              <div className="small text-muted mb-2">Uploaded Content Images (Remove option available)</div>
+              <div className="d-flex flex-wrap gap-2">
+                {contentImages.map((url, idx) => (
+                  <div key={`${url}-${idx}`} className="border rounded p-2 d-flex align-items-center gap-2">
+                    <img
+                      src={resolveUrl(url)}
+                      alt={`Content ${idx + 1}`}
+                      style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "6px" }}
+                    />
+                    <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeContentImage(url)}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {editorMode === "rich" && (
             <div>

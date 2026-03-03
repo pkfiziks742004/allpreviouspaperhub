@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const sanitizeHtml = require("sanitize-html");
 const Page = require("../models/Page");
-const { uploadBufferToCloudinary } = require("../utils/uploadFile");
+const { uploadBufferToCloudinary, removeUploadByUrl } = require("../utils/uploadFile");
 const { verifyAdmin, verifyPermission } = require("../middleware/auth");
 
 const router = express.Router();
@@ -110,6 +110,19 @@ const cleanOptionalUrl = value => {
   return "";
 };
 
+const extractImageUrlsFromHtml = html => {
+  const urls = new Set();
+  const source = String(html || "");
+  const regex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  let match = regex.exec(source);
+  while (match) {
+    const url = String(match[1] || "").trim();
+    if (url) urls.add(url);
+    match = regex.exec(source);
+  }
+  return [...urls];
+};
+
 // Public: list published pages
 router.get("/public", async (req, res) => {
   try {
@@ -127,6 +140,7 @@ router.get("/slug/:slug", async (req, res) => {
     const slug = req.params.slug;
     const page = await Page.findOne({ slug, published: true });
     if (!page) return res.status(404).json("Page not found");
+    res.set("Cache-Control", "no-store");
     res.json(page);
   } catch (err) {
     res.status(500).json(err.message);
@@ -176,6 +190,9 @@ router.put("/:id", verifyAdmin, verifyPermission("pages"), async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
     if (!page) return res.status(404).json("Page not found");
+    const previousContentHtml = String(page.contentHtml || "");
+    const previousBannerUrl = String(page.bannerUrl || "");
+    const previousExtraAuthorImage = String(page.extra?.author?.image || "");
     if (req.body.title !== undefined) {
       const title = String(req.body.title || "").trim();
       if (!title) return res.status(400).json("Title is required");
@@ -200,6 +217,26 @@ router.put("/:id", verifyAdmin, verifyPermission("pages"), async (req, res) => {
     }
     if (typeof req.body.published === "boolean") page.published = req.body.published;
     await page.save();
+    const removedFiles = [];
+
+    const currentContentHtml = String(page.contentHtml || "");
+    const previousImages = extractImageUrlsFromHtml(previousContentHtml);
+    const currentImages = new Set(extractImageUrlsFromHtml(currentContentHtml));
+    previousImages
+      .filter(url => !currentImages.has(url))
+      .forEach(url => removedFiles.push(url));
+
+    const currentBannerUrl = String(page.bannerUrl || "");
+    if (previousBannerUrl && previousBannerUrl !== currentBannerUrl) {
+      removedFiles.push(previousBannerUrl);
+    }
+
+    const currentExtraAuthorImage = String(page.extra?.author?.image || "");
+    if (previousExtraAuthorImage && previousExtraAuthorImage !== currentExtraAuthorImage) {
+      removedFiles.push(previousExtraAuthorImage);
+    }
+
+    await Promise.all([...new Set(removedFiles)].map(removeUploadByUrl));
     res.json(page);
   } catch (err) {
     res.status(500).json(err.message);
@@ -209,7 +246,15 @@ router.put("/:id", verifyAdmin, verifyPermission("pages"), async (req, res) => {
 // Admin: delete page
 router.delete("/:id", verifyAdmin, verifyPermission("pages"), async (req, res) => {
   try {
-    await Page.findByIdAndDelete(req.params.id);
+    const page = await Page.findById(req.params.id);
+    if (!page) return res.status(404).json("Page not found");
+    const removedFiles = [
+      ...extractImageUrlsFromHtml(page.contentHtml),
+      page.bannerUrl,
+      page.extra?.author?.image
+    ].filter(Boolean);
+    await page.deleteOne();
+    await Promise.all([...new Set(removedFiles)].map(removeUploadByUrl));
     res.json("Page deleted");
   } catch (err) {
     res.status(500).json(err.message);
@@ -243,6 +288,18 @@ router.post("/content-image", verifyAdmin, verifyPermission("pages"), upload.sin
       resourceType: "image"
     });
     res.json({ url: uploaded.secure_url });
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
+// Admin: delete uploaded content image by url
+router.delete("/media/content-image", verifyAdmin, verifyPermission("pages"), async (req, res) => {
+  try {
+    const url = String(req.body?.url || "").trim();
+    if (!url) return res.status(400).json("Image url is required");
+    await removeUploadByUrl(url);
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json(err.message);
   }
