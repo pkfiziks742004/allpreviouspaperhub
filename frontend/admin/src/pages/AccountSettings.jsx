@@ -3,7 +3,7 @@ import axios from "axios";
 import Layout from "../components/Layout";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 export default function AccountSettings() {
   const [accountName, setAccountName] = useState("");

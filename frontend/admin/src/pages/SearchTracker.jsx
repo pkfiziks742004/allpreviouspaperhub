@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 export default function SearchTracker() {
   const [keywords, setKeywords] = useState([]);

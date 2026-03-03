@@ -3,7 +3,7 @@ import axios from "axios";
 import Layout from "../components/Layout";
 import { ADMIN_PERMISSIONS } from "../config/permissions";
 
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
 const PAGE_SIZE = 5;
 
 const blankForm = {

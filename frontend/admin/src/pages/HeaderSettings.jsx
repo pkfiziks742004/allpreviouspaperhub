@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
 
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
 const ALIGN_OPTIONS = ["left", "center", "right", "justify"];
 const VARIANT_OPTIONS = ["span", "p", "h1", "h2", "h3", "h4", "h5", "h6"];
 
