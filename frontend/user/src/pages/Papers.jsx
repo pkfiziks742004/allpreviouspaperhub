@@ -116,8 +116,8 @@ export default function Papers(){
           <h3 style={titleStyle}>{questionPapersSectionTitle}</h3>
 
           <div className="papers-search-panel mb-3">
-            <div className="row g-2 align-items-end">
-              <div className="col-8 col-md-8">
+            <div className="papers-filters">
+              <div className="papers-filter-item">
                 <input
                   type="text"
                   placeholder="Search Paper..."
@@ -127,7 +127,7 @@ export default function Papers(){
                 />
               </div>
 
-              <div className="col-4 col-md-4 col-lg-3">
+              <div className="papers-filter-item papers-filter-year">
                 <input
                   type="number"
                   placeholder="Year"
@@ -144,19 +144,21 @@ export default function Papers(){
             {filteredPapers.map(p => (
               <div
                 key={p._id}
-                className="card shadow-sm p-3 mb-2 d-flex flex-row justify-content-between align-items-center"
+                className="card shadow-sm paper-row-card mb-2"
                 style={{
                   background: cardBackground,
                   minHeight: questionPaperCardStyle.minHeight ? `${questionPaperCardStyle.minHeight}px` : undefined
                 }}
               >
-                {renderPaperTitle(p)}
+                <div className="paper-row-title">
+                  {renderPaperTitle(p)}
+                </div>
 
                 <a
                   href={`/paper-open/${p._id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary btn-sm paper-open-btn"
                   style={btnStyle}
                   onMouseEnter={e => {
                     if (questionPaperButtonStyle.hoverColor) {
@@ -176,6 +178,11 @@ export default function Papers(){
                 </a>
               </div>
             ))}
+            {filteredPapers.length === 0 && (
+              <div className="papers-empty-state">
+                Koi paper match nahi mila. Search ya year filter change karke dekhein.
+              </div>
+            )}
           </div>
         </div>
         <AdSlot className="mt-3" label="Sponsored" />
