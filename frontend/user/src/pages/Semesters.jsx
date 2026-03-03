@@ -68,6 +68,9 @@ export default function Semesters(){
     borderColor: buttonStyle.bgColor || undefined
   };
 
+  const parsedMaxWidth = Number(cardStyle.maxWidth || 0);
+  const safeCardMaxWidth = parsedMaxWidth >= 260 ? `${parsedMaxWidth}px` : undefined;
+
   const getYearLabel = semesterName => {
     const raw = String(semesterName || "").toLowerCase().trim();
     const semesterPattern = /\b(?:sem(?:ester)?|s)\s*[-:/]?\s*(\d{1,2})\b/i;
@@ -126,19 +129,20 @@ export default function Semesters(){
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
           <h3 style={titleTextStyle}>{title}</h3>
 
-        <div className="cards-grid cards-grid-4-6">
+        <div className="cards-grid cards-grid-4-6 semesters-grid">
 
           {list.map(s=>(
             <div className="cards-grid-item" key={s._id}>
 
-              <div
-                className="card modern-card semester-card h-100"
-                style={{
-                  background: cardBg,
-                  minHeight: cardStyle.minHeight ? `${cardStyle.minHeight}px` : undefined,
-                  maxWidth: cardStyle.maxWidth ? `${cardStyle.maxWidth}px` : undefined
-                }}
-              >
+                <div
+                  className="card modern-card semester-card h-100"
+                  style={{
+                    background: cardBg,
+                    minHeight: cardStyle.minHeight ? `${cardStyle.minHeight}px` : undefined,
+                    maxWidth: safeCardMaxWidth,
+                    width: "100%"
+                  }}
+                >
                 <div className="card-body">
                   <div className="semester-card-head">
                     {(() => {

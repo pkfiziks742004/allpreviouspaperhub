@@ -233,16 +233,18 @@ body {
 
 .semester-card .card-body {
   justify-content: space-between;
-  align-items: stretch;
-  gap: 14px;
-  text-align: left;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 18px 16px;
 }
 
 .semester-card-head {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
 }
 
 .semester-card-head h1,
@@ -260,7 +262,7 @@ body {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 5px 11px;
   font-size: 12px;
   font-weight: 600;
   background: rgba(15, 23, 42, 0.06);
@@ -269,9 +271,18 @@ body {
 
 .semester-view-btn {
   width: 100%;
-  min-height: 40px;
-  border-radius: 10px;
-  font-weight: 600;
+  min-height: 42px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.semesters-grid .cards-grid-item {
+  display: flex;
+}
+
+.semesters-grid .cards-grid-item > .semester-card {
+  flex: 1 1 auto;
 }
 
 .home-section .col-lg-3,
@@ -339,6 +350,25 @@ body {
 }
 
 @media (max-width: 576px) {
+  .semesters-grid .cards-grid-item > .semester-card {
+    max-width: none !important;
+  }
+
+  .semester-card .card-body {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .semester-year-chip {
+    font-size: 11px;
+    padding: 4px 9px;
+  }
+
+  .semester-view-btn {
+    min-height: 38px;
+    font-size: 12px !important;
+  }
+
   .cards-grid-4-6 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
