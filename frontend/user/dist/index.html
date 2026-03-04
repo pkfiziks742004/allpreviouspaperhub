@@ -3,15 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta id="dynamic-mobile-title" name="apple-mobile-web-app-title" content="Study Portal" />
+    <meta id="dynamic-mobile-title" name="apple-mobile-web-app-title" content="All Previous Paper Hub" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Study portal" />
+    <meta name="description" content="All Previous Paper Hub - Previous year papers, notes, syllabus, and exam resources." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="All Previous Paper Hub" />
+    <meta property="og:title" content="All Previous Paper Hub" />
+    <meta property="og:description" content="Previous year papers, notes, syllabus, and exam resources." />
+    <meta property="og:url" content="https://www.allpreviouspaperhub.in/" />
+    <meta property="og:image" content="https://api.allpreviouspaperhub.in/og-image" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="All Previous Paper Hub" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="All Previous Paper Hub" />
+    <meta name="twitter:description" content="Previous year papers, notes, syllabus, and exam resources." />
+    <meta name="twitter:image" content="https://api.allpreviouspaperhub.in/og-image" />
+    <link rel="canonical" href="https://www.allpreviouspaperhub.in/" />
     <link id="dynamic-favicon" rel="icon" href="/favicon.ico" />
     <link id="dynamic-shortcut-icon" rel="shortcut icon" href="/favicon.ico" />
     <link id="dynamic-apple-touch-icon" rel="apple-touch-icon" href="/favicon.ico" />
-    <title>Study Portal</title>
-    <script type="module" crossorigin src="/assets/index-DgbBgv4x.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-D_LwwQOl.css">
+    <script>
+      (function () {
+        try {
+          var cachedTitle = localStorage.getItem("user_page_title_cache");
+          var cachedDescription = localStorage.getItem("user_seo_description_cache");
+          if (cachedTitle && cachedTitle.trim()) {
+            document.title = cachedTitle.trim();
+            var mobileTitle = document.getElementById("dynamic-mobile-title");
+            if (mobileTitle) mobileTitle.setAttribute("content", cachedTitle.trim());
+          }
+          if (cachedDescription && cachedDescription.trim()) {
+            var keys = [
+              { selector: "meta[name='description']", attr: "name", key: "description" },
+              { selector: "meta[property='og:description']", attr: "property", key: "og:description" },
+              { selector: "meta[name='twitter:description']", attr: "name", key: "twitter:description" }
+            ];
+            keys.forEach(function (entry) {
+              var tag = document.querySelector(entry.selector);
+              if (!tag) {
+                tag = document.createElement("meta");
+                tag.setAttribute(entry.attr, entry.key);
+                document.head.appendChild(tag);
+              }
+              tag.setAttribute("content", cachedDescription.trim());
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <title>All Previous Paper Hub</title>
+    <script type="module" crossorigin src="/assets/index-vuDvj1vI.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CkygH3YQ.css">
   </head>
   <body>
     <div id="root"></div>

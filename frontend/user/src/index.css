@@ -150,62 +150,77 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--header-search-surface, rgba(255, 255, 255, 0.12));
+  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
   border-radius: 999px;
-  padding: 6px 8px;
-  backdrop-filter: blur(2px);
+  padding: 5px 7px;
+  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 10px rgba(2, 8, 23, 0.12);
 }
 
 .header-search-input {
   width: clamp(220px, 24vw, 340px);
-  border: 0;
+  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
   outline: 0;
-  background: transparent;
-  color: #ffffff;
+  background: var(--header-search-input-bg, rgba(255, 255, 255, 0.08));
+  color: var(--header-search-text, #ffffff);
   font-size: 14px;
-  padding: 0 6px;
+  padding: 0 12px;
+  border-radius: 999px;
+  min-height: 34px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--header-search-placeholder, rgba(255, 255, 255, 0.8));
 }
 
 .header-search-type {
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(15, 23, 42, 0.35);
-  color: #ffffff;
+  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.28));
+  background: var(--header-search-select-bg, rgba(15, 23, 42, 0.35));
+  color: var(--header-search-text, #ffffff);
   border-radius: 999px;
-  height: 32px;
-  padding: 0 10px;
+  height: 34px;
+  padding: 0 12px;
   font-size: 13px;
   outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-search-btn,
 .header-search-clear-btn {
   border: 0;
   border-radius: 999px;
-  min-height: 32px;
-  padding: 0 14px;
+  min-height: 34px;
+  padding: 0 15px;
   font-size: 13px;
   font-weight: 600;
 }
 
 .header-search-btn {
-  background: #f59e0b;
-  color: #111827;
+  background: var(--header-search-btn-bg, #f59e0b);
+  color: var(--header-search-btn-text, #111827);
+}
+
+.header-search-btn:hover {
+  background: var(--header-search-btn-hover, #fbbf24);
 }
 
 .header-search-clear-btn {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+  background: var(--header-search-clear-bg, rgba(255, 255, 255, 0.16));
+  color: var(--header-search-clear-text, #ffffff);
 }
 
 .header-search-mobile-actions {
   display: flex;
   gap: 8px;
   width: 100%;
+}
+
+.header-search-input:focus,
+.header-search-type:focus {
+  border-color: rgba(59, 130, 246, 0.65);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .banner-shell {

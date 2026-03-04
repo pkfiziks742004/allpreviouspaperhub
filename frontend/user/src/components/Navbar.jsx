@@ -41,6 +41,40 @@ function Navbar() {
     return resolveApiUrl(url);
   };
 
+  const parseColorToRgb = color => {
+    const value = String(color || "").trim();
+    if (!value) return null;
+    if (value.startsWith("#")) {
+      const hex = value.slice(1);
+      if (hex.length === 3) {
+        const r = parseInt(hex[0] + hex[0], 16);
+        const g = parseInt(hex[1] + hex[1], 16);
+        const b = parseInt(hex[2] + hex[2], 16);
+        if ([r, g, b].every(Number.isFinite)) return { r, g, b };
+      }
+      if (hex.length === 6) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        if ([r, g, b].every(Number.isFinite)) return { r, g, b };
+      }
+      return null;
+    }
+    const rgbMatch = value.match(/^rgba?\(([^)]+)\)$/i);
+    if (!rgbMatch) return null;
+    const parts = rgbMatch[1].split(",").map(v => Number(v.trim()));
+    if (parts.length < 3) return null;
+    const [r, g, b] = parts;
+    if ([r, g, b].every(Number.isFinite)) return { r, g, b };
+    return null;
+  };
+
+  const rgb = parseColorToRgb(headerColor);
+  const luminance = rgb
+    ? (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255
+    : 0.25;
+  const isLightHeader = luminance > 0.62;
+
   useEffect(() => {
     axios
       .get(`${API_BASE}/api/settings`)
@@ -197,7 +231,18 @@ function Navbar() {
           "--header-link-hover": headerLinkHoverColor,
           "--header-menu-icon-color": headerMenuIconColor,
           "--header-menu-bg": headerMenuBgColor,
-          "--header-menu-text": headerMenuTextColor
+          "--header-menu-text": headerMenuTextColor,
+          "--header-search-text": isLightHeader ? "#0f172a" : "#ffffff",
+          "--header-search-placeholder": isLightHeader ? "rgba(15, 23, 42, 0.58)" : "rgba(255, 255, 255, 0.82)",
+          "--header-search-surface": isLightHeader ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.12)",
+          "--header-search-input-bg": isLightHeader ? "rgba(255, 255, 255, 0.88)" : "rgba(255, 255, 255, 0.08)",
+          "--header-search-border": isLightHeader ? "rgba(15, 23, 42, 0.18)" : "rgba(255, 255, 255, 0.22)",
+          "--header-search-select-bg": isLightHeader ? "rgba(15, 23, 42, 0.08)" : "rgba(15, 23, 42, 0.35)",
+          "--header-search-btn-bg": "#f59e0b",
+          "--header-search-btn-text": "#111827",
+          "--header-search-btn-hover": "#fbbf24",
+          "--header-search-clear-bg": isLightHeader ? "rgba(15, 23, 42, 0.12)" : "rgba(255, 255, 255, 0.16)",
+          "--header-search-clear-text": isLightHeader ? "#0f172a" : "#ffffff"
         }}
       >
         <nav
