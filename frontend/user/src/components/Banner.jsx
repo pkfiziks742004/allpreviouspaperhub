@@ -38,9 +38,20 @@ export default function Banner() {
 
   if (!ready || images.length === 0) return null;
 
+  const bannerShellStyle =
+    safeMargin > 0
+      ? {
+          margin: `${safeMargin}px`,
+          width: `calc(100% - ${safeMargin * 2}px)`
+        }
+      : {
+          margin: "0 auto",
+          width: "100%"
+        };
+
   if (images.length === 1) {
     return (
-      <div className="banner-shell" style={{ margin: `${safeMargin}px auto` }}>
+      <div className="banner-shell" style={bannerShellStyle}>
         <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
           <img
             className="d-block w-100 banner-img"
@@ -54,7 +65,7 @@ export default function Banner() {
   }
 
   return (
-    <div className="banner-shell" style={{ margin: `${safeMargin}px auto` }}>
+    <div className="banner-shell" style={bannerShellStyle}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
         <Carousel interval={3000} pause={false} indicators={images.length > 1} controls={images.length > 1}>
           {images.map((src, i) => (
