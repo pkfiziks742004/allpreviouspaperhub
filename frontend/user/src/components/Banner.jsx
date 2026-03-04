@@ -8,6 +8,7 @@ export default function Banner() {
   const [ready, setReady] = useState(false);
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
+  const safeMargin = Math.max(0, Number(bannerMargin || 0));
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -39,7 +40,7 @@ export default function Banner() {
 
   if (images.length === 1) {
     return (
-      <div className="banner-shell" style={{ margin: `${bannerMargin}px` }}>
+      <div className="banner-shell" style={{ margin: `${safeMargin}px auto` }}>
         <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
           <img
             className="d-block w-100 banner-img"
@@ -53,7 +54,7 @@ export default function Banner() {
   }
 
   return (
-    <div className="banner-shell" style={{ margin: `${bannerMargin}px` }}>
+    <div className="banner-shell" style={{ margin: `${safeMargin}px auto` }}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
         <Carousel interval={3000} pause={false} indicators={images.length > 1} controls={images.length > 1}>
           {images.map((src, i) => (
