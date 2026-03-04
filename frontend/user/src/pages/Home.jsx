@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
 import Navbar from "../components/Navbar";
@@ -10,6 +10,7 @@ import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
 
 export default function Home() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
@@ -147,6 +148,38 @@ export default function Home() {
   };
 
   const courseMap = new Map(courses.map(c => [c._id, c]));
+  const queryParams = new URLSearchParams(location.search || "");
+  const searchQuery = String(queryParams.get("q") || "").trim().toLowerCase();
+  const searchType = String(queryParams.get("type") || "all").trim().toLowerCase();
+
+  const normalizeType = value => {
+    const t = String(value || "").toLowerCase();
+    if (t.includes("university")) return "university";
+    if (t.includes("college")) return "college";
+    if (t.includes("school")) return "school";
+    if (t.includes("entrance") || t.includes("exam")) return "other";
+    return "other";
+  };
+
+  const filteredUniversities = universities.filter(u => {
+    const matchesText =
+      !searchQuery ||
+      String(u.name || "").toLowerCase().includes(searchQuery) ||
+      String(u.type || "").toLowerCase().includes(searchQuery);
+    const uniType = normalizeType(u.type || "");
+    const matchesType = searchType === "all" || uniType === searchType;
+    return matchesText && matchesType;
+  });
+
+  useEffect(() => {
+    if (!filteredUniversities.length) {
+      setActiveUniversityId("");
+      return;
+    }
+    const exists = filteredUniversities.some(u => String(u._id) === String(activeUniversityId));
+    if (!exists) setActiveUniversityId(filteredUniversities[0]._id);
+  }, [filteredUniversities, activeUniversityId]);
+
   const visibleCourses = activeUniversityId
     ? courses.filter(c => String(c.universityId || "") === String(activeUniversityId))
     : courses;
@@ -284,7 +317,7 @@ export default function Home() {
           </div>
 
           <div className="cards-grid cards-grid-4-6">
-            {universities.map(u => (
+            {filteredUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
                   className={`card modern-card modern-card--large h-100 text-center ${activeUniversityId === u._id ? "border-primary" : ""}`}
@@ -318,9 +351,9 @@ export default function Home() {
               </div>
             ))}
 
-            {universities.length === 0 && (
+            {filteredUniversities.length === 0 && (
               <div className="col-12 text-muted">
-                No universities added.
+                No matching results. Try another search or change filter.
               </div>
             )}
           </div>

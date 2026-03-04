@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
 function Navbar() {
+  const navigate = useNavigate();
   const location = useLocation();
   const headerRef = useRef(null);
   const menuRef = useRef(null);
@@ -33,6 +34,8 @@ function Navbar() {
   const [siteNamePart2Color, setSiteNamePart2Color] = useState("#fbbf24");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState("");
+  const [headerType, setHeaderType] = useState("all");
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -107,6 +110,12 @@ function Navbar() {
   }, [location.pathname]);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search || "");
+    setHeaderSearch(params.get("q") || "");
+    setHeaderType((params.get("type") || "all").toLowerCase());
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     if (!menuOpen) return;
 
     const onPointerDown = event => {
@@ -152,6 +161,25 @@ function Navbar() {
   if (!ready) {
     return <div className="site-header-spacer" />;
   }
+
+  const runSearch = event => {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    const q = String(headerSearch || "").trim();
+    const type = String(headerType || "all").toLowerCase();
+    if (q) params.set("q", q);
+    if (type && type !== "all") params.set("type", type);
+    const query = params.toString();
+    navigate(query ? `/?${query}` : "/");
+    setMenuOpen(false);
+  };
+
+  const clearSearch = () => {
+    setHeaderSearch("");
+    setHeaderType("all");
+    navigate("/");
+    setMenuOpen(false);
+  };
 
   const visibleHeaderLinks = headerLinks.filter(link => {
     const url = String(link?.url || "").trim().toLowerCase();
@@ -215,7 +243,53 @@ function Navbar() {
             &#8801;
           </button>
 
+          <form className="header-search-form d-none d-lg-flex" onSubmit={runSearch}>
+            <input
+              className="header-search-input"
+              type="search"
+              placeholder="Search university, school, college..."
+              value={headerSearch}
+              onChange={e => setHeaderSearch(e.target.value)}
+            />
+            <select
+              className="header-search-type"
+              value={headerType}
+              onChange={e => setHeaderType(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="university">University</option>
+              <option value="college">College</option>
+              <option value="school">School</option>
+              <option value="other">Other</option>
+            </select>
+            <button type="submit" className="header-search-btn">Search</button>
+          </form>
+
         <div ref={menuRef} className={`header-links${menuOpen ? " open" : ""}`}>
+          <form className="header-search-form header-search-form-mobile d-lg-none" onSubmit={runSearch}>
+            <input
+              className="header-search-input"
+              type="search"
+              placeholder="Search..."
+              value={headerSearch}
+              onChange={e => setHeaderSearch(e.target.value)}
+            />
+            <select
+              className="header-search-type"
+              value={headerType}
+              onChange={e => setHeaderType(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="university">University</option>
+              <option value="college">College</option>
+              <option value="school">School</option>
+              <option value="other">Other</option>
+            </select>
+            <div className="header-search-mobile-actions">
+              <button type="submit" className="header-search-btn">Search</button>
+              <button type="button" className="header-search-clear-btn" onClick={clearSearch}>Clear</button>
+            </div>
+          </form>
           {visibleHeaderLinks.length > 0 ? (
             visibleHeaderLinks.map((link, idx) => {
               const isExternal = (link.url || "").startsWith("http");
