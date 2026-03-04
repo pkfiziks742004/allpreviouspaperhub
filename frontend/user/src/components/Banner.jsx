@@ -37,10 +37,25 @@ export default function Banner() {
 
   if (!ready || images.length === 0) return null;
 
+  if (images.length === 1) {
+    return (
+      <div className="banner-shell" style={{ margin: `${bannerMargin}px` }}>
+        <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
+          <img
+            className="d-block w-100 banner-img"
+            src={resolveUrl(images[0])}
+            alt="Banner"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="banner-shell" style={{ margin: `${bannerMargin}px` }}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
-        <Carousel interval={3000} pause={false}>
+        <Carousel interval={3000} pause={false} indicators={images.length > 1} controls={images.length > 1}>
           {images.map((src, i) => (
             <Carousel.Item key={src + i}>
               <img
