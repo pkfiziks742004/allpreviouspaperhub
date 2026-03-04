@@ -137,7 +137,7 @@ function Navbar() {
     fontWeight: siteNameStyle.bold ? "700" : "normal",
     fontStyle: siteNameStyle.italic ? "italic" : "normal",
     textAlign: siteNameStyle.align || "left",
-    display: "inline"
+    display: "inline-block"
   };
 
   const alertTextStyle = {
@@ -182,13 +182,16 @@ function Navbar() {
                 src={resolveUrl(logoUrl)}
                 alt={siteName}
                 className="user-navbar-logo"
-                style={{ height: `${logoHeight}px`, width: "auto" }}
+                style={{ "--logo-height": `${logoHeight}px` }}
               />
             ) : useSplitColor ? (
               (() => {
                 const NameTag = siteNameStyle.variant || "span";
                 return (
-                  <NameTag style={{...nameStyle, fontWeight: siteNameStyle.bold ? "700" : "normal", fontStyle: siteNameStyle.italic ? "italic" : "normal"}}>
+                  <NameTag
+                    className="user-brand-text"
+                    style={{...nameStyle, fontWeight: siteNameStyle.bold ? "700" : "normal", fontStyle: siteNameStyle.italic ? "italic" : "normal"}}
+                  >
                     <span style={{ color: siteNamePart1Color }}>{siteNamePart1}</span>
                     <span style={{ color: siteNamePart2Color }}>{siteNamePart2}</span>
                   </NameTag>
@@ -197,7 +200,7 @@ function Navbar() {
             ) : (
               (() => {
                 const NameTag = siteNameStyle.variant || "span";
-                return <NameTag style={nameStyle}>{siteName}</NameTag>;
+                return <NameTag className="user-brand-text" style={nameStyle}>{siteName}</NameTag>;
               })()
             )}
           </Link>

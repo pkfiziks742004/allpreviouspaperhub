@@ -110,19 +110,33 @@ body {
 }
 
 .user-navbar-brand {
-  max-width: min(72vw, 420px);
+  max-width: min(72vw, 520px);
   display: inline-flex;
   align-items: center;
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
 }
 
 .user-navbar-brand > * {
   min-width: 0;
 }
 
-.user-navbar-logo {
+.user-brand-text {
+  display: inline-block;
   max-width: 100%;
-  width: auto;
+  font-size: clamp(1.05rem, 2vw, 2rem);
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-navbar-logo {
+  --logo-height: 32px;
+  height: min(var(--logo-height), clamp(28px, 4vw, 54px));
+  max-width: 100%;
+  width: auto !important;
   object-fit: contain;
 }
 
@@ -964,7 +978,11 @@ a:hover {
   }
 
   .user-navbar-logo {
-    max-height: 34px;
+    height: min(var(--logo-height), clamp(26px, 8vw, 36px));
+  }
+
+  .user-brand-text {
+    font-size: clamp(0.95rem, 6vw, 1.9rem);
   }
 
   .banner-img,
