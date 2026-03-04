@@ -970,7 +970,6 @@ a:hover {
   .banner-img,
   .carousel-item .banner-img {
     height: auto !important;
-    clip-path: inset(0 0 3px 0);
   }
 
   .banner-frame {

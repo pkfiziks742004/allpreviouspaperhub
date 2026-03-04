@@ -67,7 +67,7 @@ export default function Banner() {
   return (
     <div className="banner-shell" style={bannerShellStyle}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
-        <Carousel interval={3000} pause={false} indicators={images.length > 1} controls={images.length > 1}>
+        <Carousel interval={3000} pause={false} indicators={false} controls={images.length > 1}>
           {images.map((src, i) => (
             <Carousel.Item key={src + i}>
               <img
