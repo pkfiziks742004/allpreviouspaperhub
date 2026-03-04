@@ -125,59 +125,38 @@ begin
 end;
 $$;
 
-drop trigger if exists trg_users_set_updated_at on users;
-create trigger trg_users_set_updated_at
-before update on users
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_universities_set_updated_at on universities;
-create trigger trg_universities_set_updated_at
-before update on universities
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_courses_set_updated_at on courses;
-create trigger trg_courses_set_updated_at
-before update on courses
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_semesters_set_updated_at on semesters;
-create trigger trg_semesters_set_updated_at
-before update on semesters
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_papers_set_updated_at on papers;
-create trigger trg_papers_set_updated_at
-before update on papers
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_settings_set_updated_at on settings;
-create trigger trg_settings_set_updated_at
-before update on settings
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_ads_settings_set_updated_at on ads_settings;
-create trigger trg_ads_settings_set_updated_at
-before update on ads_settings
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_pages_set_updated_at on pages;
-create trigger trg_pages_set_updated_at
-before update on pages
-for each row
-execute function set_updated_at();
-
-drop trigger if exists trg_ratings_set_updated_at on ratings;
-create trigger trg_ratings_set_updated_at
-before update on ratings
-for each row
-execute function set_updated_at();
+do $$
+declare
+  tbl text;
+  trg text;
+  table_names text[] := array[
+    'users',
+    'universities',
+    'courses',
+    'semesters',
+    'papers',
+    'settings',
+    'ads_settings',
+    'pages',
+    'ratings'
+  ];
+begin
+  foreach tbl in array table_names loop
+    trg := format('trg_%s_set_updated_at', tbl);
+    if not exists (
+      select 1
+      from pg_trigger
+      where tgname = trg
+        and tgrelid = format('public.%I', tbl)::regclass
+    ) then
+      execute format(
+        'create trigger %I before update on %I for each row execute function set_updated_at()',
+        trg,
+        tbl
+      );
+    end if;
+  end loop;
+end $$;
 
 do $$
 declare
