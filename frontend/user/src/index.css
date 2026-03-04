@@ -131,7 +131,8 @@ body {
 }
 
 .banner-shell {
-  width: min(100%, 1300px);
+  width: 100%;
+  max-width: none;
   margin-inline: auto;
 }
 
