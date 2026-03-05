@@ -109,12 +109,6 @@ const getBadgeShapeStyle = (shape, radius) => {
   return { borderRadius: "0", clipPath: BADGE_SHAPE_CLIP_PATH[shape] || "none" };
 };
 
-const responsivePx = (value, minPx, viewportFactor) => {
-  const safe = Math.max(Number(value || 0), minPx);
-  const vf = Math.max(Number(viewportFactor || 0), 0);
-  return `clamp(${minPx}px, ${vf}vw, ${safe}px)`;
-};
-
 export default function Banner() {
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
@@ -220,28 +214,27 @@ export default function Banner() {
           <span
             className="banner-badge"
             style={{
-              top: responsivePx(item.badgeTop, 6, 2.6),
-              left: responsivePx(item.badgeLeft, 6, 2.6),
+              top: `clamp(4px, ${Number(item.badgeTop || 0)}px, calc(100% - 24px))`,
+              left: `clamp(4px, ${Number(item.badgeLeft || 0)}px, calc(100% - 24px))`,
               background: item.badgeBgColor,
               color: item.badgeTextColor,
-              fontSize: responsivePx(item.badgeFontSize, 10, 2.4),
+              fontSize: `${Math.max(10, Number(item.badgeFontSize || 14))}px`,
               ...getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius),
-              padding: `${responsivePx(item.badgePaddingY, 4, 1.3)} ${responsivePx(
-                item.badgePaddingX,
+              padding: `${Math.max(4, Number(item.badgePaddingY || 6))}px ${Math.max(
                 6,
-                1.8
-              )}`,
+                Number(item.badgePaddingX || 10)
+              )}px`,
               width:
                 item.badgeWidth > 0
-                  ? responsivePx(item.badgeWidth, 44, 18)
+                  ? `${Math.max(18, Number(item.badgeWidth))}px`
                   : fallbackWidth > 0
-                    ? responsivePx(fallbackWidth, 52, 13)
+                    ? `${fallbackWidth}px`
                     : "auto",
               minHeight:
                 item.badgeHeight > 0
-                  ? responsivePx(item.badgeHeight, 24, 8)
+                  ? `${Math.max(14, Number(item.badgeHeight))}px`
                   : fallbackHeight > 0
-                    ? responsivePx(fallbackHeight, 28, 7)
+                    ? `${fallbackHeight}px`
                     : "auto",
               display: "inline-flex",
               alignItems: "center",
@@ -260,8 +253,8 @@ export default function Banner() {
                 src={resolveUrl(item.badgeImageUrl)}
                 alt="badge"
                 style={{
-                  width: responsivePx(item.badgeImageSize || 18, 10, 2.2),
-                  height: responsivePx(item.badgeImageSize || 18, 10, 2.2),
+                  width: `${Math.max(10, Number(item.badgeImageSize || 18))}px`,
+                  height: `${Math.max(10, Number(item.badgeImageSize || 18))}px`,
                   objectFit: "contain",
                   marginRight: item.badgeText ? "6px" : "0"
                 }}
