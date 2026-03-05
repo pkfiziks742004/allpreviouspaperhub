@@ -11,7 +11,8 @@ const {
   uploadFooterBg,
   uploadFooterIcons,
   uploadFavicon,
-  uploadOgImage
+  uploadOgImage,
+  uploadBadgeImage
 } = require("../controllers/settingController");
 const { subscribeSettingsEvents } = require("../utils/settingsEvents");
 
@@ -100,5 +101,8 @@ router.post("/favicon", verifyAdmin, verifyPermission("headerSettings"), upload.
 
 // Admin: upload OG image
 router.post("/og-image", verifyAdmin, verifyPermission("trafficSettings"), upload.single("ogImage"), uploadOgImage);
+
+// Admin: upload badge image (PNG)
+router.post("/badge-image", verifyAdmin, verifyPermission("bannerSettings"), upload.single("badgeImage"), uploadBadgeImage);
 
 module.exports = router;

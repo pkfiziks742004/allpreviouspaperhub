@@ -18,8 +18,22 @@ const BADGE_SHAPES = [
   ["cut-corners", "Cut Corners"], ["slant-top", "Slant Top"], ["slant-bottom", "Slant Bottom"], ["wave-top", "Wave Top"],
   ["wave-bottom", "Wave Bottom"], ["blob-1", "Blob 1"], ["blob-2", "Blob 2"]
 ].map(([value, label]) => ({ value, label }));
+const SHAPE_3D_BASES = [
+  ["pill", "Pill"], ["square", "Square"], ["diamond", "Diamond"], ["hexagon", "Hexagon"], ["octagon", "Octagon"],
+  ["tag-right", "Tag Right"], ["tag-left", "Tag Left"], ["message", "Message"], ["shield", "Shield"], ["star-5", "Star"]
+];
+const SHAPE_3D_VARIANTS = [
+  ["1", "Soft"], ["2", "Glass"], ["3", "Metal"], ["4", "Neon"], ["5", "Deep"]
+];
+const BADGE_3D_SHAPES = SHAPE_3D_BASES.flatMap(([base, label]) =>
+  SHAPE_3D_VARIANTS.map(([variant, vLabel]) => ({
+    value: `3d-${base}-${variant}`,
+    label: `3D ${label} ${vLabel}`
+  }))
+);
+const ALL_BADGE_SHAPES = [...BADGE_SHAPES, ...BADGE_3D_SHAPES];
 
-const BADGE_SHAPE_SET = new Set(BADGE_SHAPES.map(item => item.value));
+const BADGE_SHAPE_SET = new Set(ALL_BADGE_SHAPES.map(item => item.value));
 const BADGE_SHAPE_CLIP_PATH = {
   notch: "polygon(0 0, 86% 0, 100% 50%, 86% 100%, 0 100%, 8% 50%)",
   "chevron-right": "polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%, 10% 50%)",
@@ -73,7 +87,30 @@ const BADGE_SHAPE_CLIP_PATH = {
   "blob-2": "polygon(10% 26%, 30% 6%, 64% 2%, 90% 20%, 98% 54%, 82% 84%, 50% 98%, 20% 90%, 2% 62%)"
 };
 
+const BADGE_3D_STYLE_PRESETS = {
+  "1": { backgroundImage: "linear-gradient(165deg, #ffffff55, #00000020)", filter: "saturate(1.06)" },
+  "2": { backgroundImage: "linear-gradient(160deg, #ffffff88, #ffffff22 35%, #00000038)", filter: "contrast(1.05)" },
+  "3": { backgroundImage: "linear-gradient(170deg, #f8fafc66, #94a3b833 46%, #0f172a55)", filter: "saturate(0.92)" },
+  "4": { backgroundImage: "linear-gradient(170deg, #ffffff66, #67e8f933 45%, #0ea5e94d)", filter: "brightness(1.05)" },
+  "5": { backgroundImage: "linear-gradient(175deg, #00000000, #0000004f 68%, #00000077)", filter: "contrast(1.06)" }
+};
+
+const parse3dShape = shape => {
+  const match = String(shape || "").match(/^3d-([a-z0-9-]+)-([1-5])$/);
+  if (!match) return null;
+  return { baseShape: match[1], variant: match[2] };
+};
+
 const getBadgeShapeStyle = (shape, radius) => {
+  const parsed3d = parse3dShape(shape);
+  if (parsed3d) {
+    const baseStyle = getBadgeShapeStyle(parsed3d.baseShape, radius);
+    return {
+      ...baseStyle,
+      ...(BADGE_3D_STYLE_PRESETS[parsed3d.variant] || BADGE_3D_STYLE_PRESETS["1"]),
+      borderColor: "#ffffff55"
+    };
+  }
   if (shape === "pill") return { borderRadius: 999 };
   if (shape === "square") return { borderRadius: 4 };
   if (shape === "rounded-square") return { borderRadius: 16 };
@@ -99,7 +136,18 @@ const createDefaultBannerItem = url => ({
   badgePaddingY: 6,
   badgeShape: "custom",
   badgeWidth: 0,
-  badgeHeight: 0
+  badgeHeight: 0,
+  badgeUseImage: false,
+  badgeImageUrl: "",
+  badgeImageSize: 18,
+  badgeBorderWidth: 0,
+  badgeBorderColor: "#ffffff",
+  badgeOutlineWidth: 0,
+  badgeOutlineColor: "#1e293b",
+  badgeShadowX: 0,
+  badgeShadowY: 6,
+  badgeShadowBlur: 14,
+  badgeShadowColor: "#0f172a66"
 });
 
 const normalizeBannerItem = item => ({
@@ -124,7 +172,18 @@ const normalizeBannerItem = item => ({
     ? String(item.badgeShape).toLowerCase()
     : "custom",
   badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
-  badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
+  badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0,
+  badgeUseImage: !!item?.badgeUseImage,
+  badgeImageUrl: String(item?.badgeImageUrl || ""),
+  badgeImageSize: Number.isFinite(Number(item?.badgeImageSize)) ? Number(item.badgeImageSize) : 18,
+  badgeBorderWidth: Number.isFinite(Number(item?.badgeBorderWidth)) ? Number(item.badgeBorderWidth) : 0,
+  badgeBorderColor: item?.badgeBorderColor || "#ffffff",
+  badgeOutlineWidth: Number.isFinite(Number(item?.badgeOutlineWidth)) ? Number(item.badgeOutlineWidth) : 0,
+  badgeOutlineColor: item?.badgeOutlineColor || "#1e293b",
+  badgeShadowX: Number.isFinite(Number(item?.badgeShadowX)) ? Number(item.badgeShadowX) : 0,
+  badgeShadowY: Number.isFinite(Number(item?.badgeShadowY)) ? Number(item.badgeShadowY) : 6,
+  badgeShadowBlur: Number.isFinite(Number(item?.badgeShadowBlur)) ? Number(item.badgeShadowBlur) : 14,
+  badgeShadowColor: item?.badgeShadowColor || "#0f172a66"
 });
 
 export default function BannerSettings() {
@@ -271,6 +330,34 @@ export default function BannerSettings() {
       alert("Banner image updated");
     } catch (err) {
       const msg = err?.response?.data || err?.message || "Banner replace failed";
+      alert(msg);
+    } finally {
+      setUploadingBanner(false);
+      event.target.value = "";
+    }
+  };
+
+  const uploadBadgeImage = async (idx, event) => {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    if (!String(file.type || "").toLowerCase().includes("png")) {
+      alert("Only PNG badge image allowed.");
+      event.target.value = "";
+      return;
+    }
+    setUploadingBanner(true);
+    try {
+      const fd = new FormData();
+      fd.append("badgeImage", file);
+      const res = await axios.post(`${API}/api/settings/badge-image`, fd, headers);
+      const url = String(res?.data?.url || "").trim();
+      if (url) {
+        setBannerItems(prev => prev.map((item, i) => (
+          i === idx ? { ...item, badgeUseImage: true, badgeImageUrl: url } : item
+        )));
+      }
+    } catch (err) {
+      const msg = err?.response?.data || err?.message || "Badge image upload failed";
       alert(msg);
     } finally {
       setUploadingBanner(false);
@@ -449,10 +536,24 @@ export default function BannerSettings() {
                               cursor: draggingBadgeIndex === i ? "grabbing" : "grab",
                               userSelect: "none",
                               touchAction: "none",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.22)"
+                              border: `${Number(item.badgeBorderWidth || 0)}px solid ${item.badgeBorderColor || "#ffffff"}`,
+                              outline: `${Number(item.badgeOutlineWidth || 0)}px solid ${item.badgeOutlineColor || "#1e293b"}`,
+                              boxShadow: `${Number(item.badgeShadowX || 0)}px ${Number(item.badgeShadowY || 0)}px ${Number(item.badgeShadowBlur || 0)}px ${item.badgeShadowColor || "#0f172a66"}`
                             }}
                             title="Drag to move badge"
                           >
+                            {item.badgeUseImage && item.badgeImageUrl ? (
+                              <img
+                                src={resolveUrl(item.badgeImageUrl)}
+                                alt="badge"
+                                style={{
+                                  width: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
+                                  height: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
+                                  objectFit: "contain",
+                                  marginRight: item.badgeText ? "6px" : "0"
+                                }}
+                              />
+                            ) : null}
                             {item.badgeText}
                           </span>
                         )}
@@ -512,6 +613,40 @@ export default function BannerSettings() {
                             onChange={e => updateBannerItem(i, "badgeText", e.target.value)}
                             placeholder="Badge text"
                           />
+                          <div className="form-check form-switch mb-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`badgeUseImage-${i}`}
+                              checked={!!item.badgeUseImage}
+                              onChange={e => updateBannerItem(i, "badgeUseImage", e.target.checked)}
+                            />
+                            <label className="form-check-label small" htmlFor={`badgeUseImage-${i}`}>
+                              Use custom PNG image
+                            </label>
+                          </div>
+                          <div className="row g-2 mb-2">
+                            <div className="col-8">
+                              <input
+                                className="form-control form-control-sm"
+                                value={item.badgeImageUrl || ""}
+                                onChange={e => updateBannerItem(i, "badgeImageUrl", e.target.value)}
+                                placeholder="Badge PNG URL"
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="btn btn-sm btn-outline-secondary w-100 mb-0">
+                                PNG Upload
+                                <input
+                                  type="file"
+                                  accept="image/png"
+                                  hidden
+                                  onChange={e => uploadBadgeImage(i, e)}
+                                  disabled={uploadingBanner}
+                                />
+                              </label>
+                            </div>
+                          </div>
                           <div className="form-text mb-2">Tip: Preview badge ko drag karke exact position set karein.</div>
                           <div className="row g-2">
                             <div className="col-6">
@@ -593,7 +728,7 @@ export default function BannerSettings() {
                                 value={item.badgeShape || "custom"}
                                 onChange={e => updateBannerItem(i, "badgeShape", e.target.value)}
                               >
-                                {BADGE_SHAPES.map(shape => (
+                                {ALL_BADGE_SHAPES.map(shape => (
                                   <option key={shape.value} value={shape.value}>{shape.label}</option>
                                 ))}
                               </select>
@@ -616,6 +751,91 @@ export default function BannerSettings() {
                                 value={Number(item.badgeHeight || 0)}
                                 onChange={e => updateBannerItem(i, "badgeHeight", Number(e.target.value || 0))}
                                 placeholder="Auto"
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Img Size</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeImageSize || 18)}
+                                onChange={e => updateBannerItem(i, "badgeImageSize", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Border</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeBorderWidth || 0)}
+                                onChange={e => updateBannerItem(i, "badgeBorderWidth", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Border Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color form-control-sm"
+                                value={item.badgeBorderColor || "#ffffff"}
+                                onChange={e => updateBannerItem(i, "badgeBorderColor", e.target.value)}
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Outline</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeOutlineWidth || 0)}
+                                onChange={e => updateBannerItem(i, "badgeOutlineWidth", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Outline Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color form-control-sm"
+                                value={item.badgeOutlineColor || "#1e293b"}
+                                onChange={e => updateBannerItem(i, "badgeOutlineColor", e.target.value)}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Shadow X</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeShadowX || 0)}
+                                onChange={e => updateBannerItem(i, "badgeShadowX", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Shadow Y</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeShadowY || 6)}
+                                onChange={e => updateBannerItem(i, "badgeShadowY", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Shadow Blur</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeShadowBlur || 14)}
+                                onChange={e => updateBannerItem(i, "badgeShadowBlur", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Shadow Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color form-control-sm"
+                                value={
+                                  /^#[0-9A-Fa-f]{6}$/.test(String(item.badgeShadowColor || ""))
+                                    ? item.badgeShadowColor
+                                    : "#334155"
+                                }
+                                onChange={e => updateBannerItem(i, "badgeShadowColor", e.target.value)}
                               />
                             </div>
                           </div>

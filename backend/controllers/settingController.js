@@ -18,6 +18,10 @@ const ALLOWED_BADGE_SHAPES = new Set([
   "x-shape", "trapezoid", "frame", "bevel", "cut-corners", "slant-top",
   "slant-bottom", "wave-top", "wave-bottom", "blob-1", "blob-2"
 ]);
+const ALLOWED_3D_BADGE_BASES = new Set([
+  "pill", "square", "diamond", "hexagon", "octagon", "tag-right", "tag-left",
+  "message", "shield", "star-5"
+]);
 
 const getImageSizeFromBuffer = buffer => {
   if (!buffer || buffer.length < 10) return null;
@@ -95,13 +99,21 @@ const validateBannerImageRatio = async file => {
   }
 };
 
+const isValidBadgeShape = value => {
+  const shape = String(value || "custom").toLowerCase().trim();
+  if (ALLOWED_BADGE_SHAPES.has(shape)) return true;
+  const match = shape.match(/^3d-([a-z0-9-]+)-([1-5])$/);
+  if (!match) return false;
+  return ALLOWED_3D_BADGE_BASES.has(match[1]);
+};
+
 const normalizeBannerItem = item => {
   const imageUrl = String(item?.imageUrl || item?.src || "").trim();
   if (!imageUrl) return null;
   const fitModeRaw = String(item?.fitMode || "cover").toLowerCase();
   const fitMode = ["cover", "contain", "fill"].includes(fitModeRaw) ? fitModeRaw : "cover";
   const badgeShapeRaw = String(item?.badgeShape || "custom").toLowerCase();
-  const badgeShape = ALLOWED_BADGE_SHAPES.has(badgeShapeRaw) ? badgeShapeRaw : "custom";
+  const badgeShape = isValidBadgeShape(badgeShapeRaw) ? badgeShapeRaw : "custom";
   const badgeEnabled = item?.badgeEnabled !== undefined
     ? !!item.badgeEnabled
     : !!String(item?.badgeText || "").trim();
@@ -122,7 +134,18 @@ const normalizeBannerItem = item => {
     badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
     badgeShape,
     badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
-    badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
+    badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0,
+    badgeUseImage: !!item?.badgeUseImage,
+    badgeImageUrl: String(item?.badgeImageUrl || "").trim(),
+    badgeImageSize: Number.isFinite(Number(item?.badgeImageSize)) ? Number(item.badgeImageSize) : 18,
+    badgeBorderWidth: Number.isFinite(Number(item?.badgeBorderWidth)) ? Number(item.badgeBorderWidth) : 0,
+    badgeBorderColor: String(item?.badgeBorderColor || "#ffffff"),
+    badgeOutlineWidth: Number.isFinite(Number(item?.badgeOutlineWidth)) ? Number(item.badgeOutlineWidth) : 0,
+    badgeOutlineColor: String(item?.badgeOutlineColor || "#1e293b"),
+    badgeShadowX: Number.isFinite(Number(item?.badgeShadowX)) ? Number(item.badgeShadowX) : 0,
+    badgeShadowY: Number.isFinite(Number(item?.badgeShadowY)) ? Number(item.badgeShadowY) : 6,
+    badgeShadowBlur: Number.isFinite(Number(item?.badgeShadowBlur)) ? Number(item.badgeShadowBlur) : 14,
+    badgeShadowColor: String(item?.badgeShadowColor || "#0f172a66")
   };
 };
 
@@ -926,6 +949,24 @@ const uploadOgImage = async (req, res) => {
   }
 };
 
+const uploadBadgeImage = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json("No file");
+    if (!String(req.file.mimetype || "").toLowerCase().includes("png")) {
+      return res.status(400).json("Only PNG badge image allowed");
+    }
+    const uploaded = await uploadBufferToCloudinary({
+      buffer: req.file.buffer,
+      mimeType: req.file.mimetype,
+      folder: "study-portal/settings/badge-image",
+      resourceType: "image"
+    });
+    return res.json({ url: uploaded.secure_url });
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
+};
+
 module.exports = {
   getSettings,
   updateSettings,
@@ -935,5 +976,6 @@ module.exports = {
   uploadFooterBg,
   uploadFooterIcons,
   uploadFavicon,
-  uploadOgImage
+  uploadOgImage,
+  uploadBadgeImage
 };

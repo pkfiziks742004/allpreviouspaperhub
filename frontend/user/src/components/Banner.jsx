@@ -14,6 +14,9 @@ const BADGE_SHAPE_SET = new Set([
   "x-shape", "trapezoid", "frame", "bevel", "cut-corners", "slant-top",
   "slant-bottom", "wave-top", "wave-bottom", "blob-1", "blob-2"
 ]);
+const SHAPE_3D_BASES = new Set([
+  "pill", "square", "diamond", "hexagon", "octagon", "tag-right", "tag-left", "message", "shield", "star-5"
+]);
 
 const BADGE_SHAPE_CLIP_PATH = {
   notch: "polygon(0 0, 86% 0, 100% 50%, 86% 100%, 0 100%, 8% 50%)",
@@ -68,7 +71,36 @@ const BADGE_SHAPE_CLIP_PATH = {
   "blob-2": "polygon(10% 26%, 30% 6%, 64% 2%, 90% 20%, 98% 54%, 82% 84%, 50% 98%, 20% 90%, 2% 62%)"
 };
 
+const BADGE_3D_STYLE_PRESETS = {
+  "1": { backgroundImage: "linear-gradient(165deg, #ffffff55, #00000020)", filter: "saturate(1.06)" },
+  "2": { backgroundImage: "linear-gradient(160deg, #ffffff88, #ffffff22 35%, #00000038)", filter: "contrast(1.05)" },
+  "3": { backgroundImage: "linear-gradient(170deg, #f8fafc66, #94a3b833 46%, #0f172a55)", filter: "saturate(0.92)" },
+  "4": { backgroundImage: "linear-gradient(170deg, #ffffff66, #67e8f933 45%, #0ea5e94d)", filter: "brightness(1.05)" },
+  "5": { backgroundImage: "linear-gradient(175deg, #00000000, #0000004f 68%, #00000077)", filter: "contrast(1.06)" }
+};
+
+const parse3dShape = shape => {
+  const match = String(shape || "").match(/^3d-([a-z0-9-]+)-([1-5])$/);
+  if (!match) return null;
+  if (!SHAPE_3D_BASES.has(match[1])) return null;
+  return { baseShape: match[1], variant: match[2] };
+};
+
+const isValidBadgeShape = shape => {
+  const normalized = String(shape || "").toLowerCase().trim();
+  return BADGE_SHAPE_SET.has(normalized) || !!parse3dShape(normalized);
+};
+
 const getBadgeShapeStyle = (shape, radius) => {
+  const parsed3d = parse3dShape(shape);
+  if (parsed3d) {
+    const baseStyle = getBadgeShapeStyle(parsed3d.baseShape, radius);
+    return {
+      ...baseStyle,
+      ...(BADGE_3D_STYLE_PRESETS[parsed3d.variant] || BADGE_3D_STYLE_PRESETS["1"]),
+      borderColor: "#ffffff55"
+    };
+  }
   if (shape === "pill") return { borderRadius: "999px" };
   if (shape === "square") return { borderRadius: "4px" };
   if (shape === "rounded-square") return { borderRadius: "16px" };
@@ -117,11 +149,22 @@ export default function Banner() {
               badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
               badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
               badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
-              badgeShape: BADGE_SHAPE_SET.has(String(item?.badgeShape || "").toLowerCase())
+              badgeShape: isValidBadgeShape(String(item?.badgeShape || "").toLowerCase())
                 ? String(item.badgeShape).toLowerCase()
                 : "custom",
               badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
-              badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
+              badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0,
+              badgeUseImage: !!item?.badgeUseImage,
+              badgeImageUrl: String(item?.badgeImageUrl || "").trim(),
+              badgeImageSize: Number.isFinite(Number(item?.badgeImageSize)) ? Number(item.badgeImageSize) : 18,
+              badgeBorderWidth: Number.isFinite(Number(item?.badgeBorderWidth)) ? Number(item.badgeBorderWidth) : 0,
+              badgeBorderColor: item?.badgeBorderColor || "#ffffff",
+              badgeOutlineWidth: Number.isFinite(Number(item?.badgeOutlineWidth)) ? Number(item.badgeOutlineWidth) : 0,
+              badgeOutlineColor: item?.badgeOutlineColor || "#1e293b",
+              badgeShadowX: Number.isFinite(Number(item?.badgeShadowX)) ? Number(item.badgeShadowX) : 0,
+              badgeShadowY: Number.isFinite(Number(item?.badgeShadowY)) ? Number(item.badgeShadowY) : 6,
+              badgeShadowBlur: Number.isFinite(Number(item?.badgeShadowBlur)) ? Number(item.badgeShadowBlur) : 14,
+              badgeShadowColor: item?.badgeShadowColor || "#0f172a66"
             };
           })
           .filter(Boolean);
@@ -162,7 +205,7 @@ export default function Banner() {
           loading="lazy"
           style={{ objectFit: item.fitMode || "cover" }}
         />
-        {item.badgeEnabled && item.badgeText && (
+        {item.badgeEnabled && (item.badgeText || (item.badgeUseImage && item.badgeImageUrl)) && (
           <span
             className="banner-badge"
             style={{
@@ -187,9 +230,24 @@ export default function Banner() {
                     : "auto",
               display: "inline-flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              border: `${Number(item.badgeBorderWidth || 0)}px solid ${item.badgeBorderColor || "#ffffff"}`,
+              outline: `${Number(item.badgeOutlineWidth || 0)}px solid ${item.badgeOutlineColor || "#1e293b"}`,
+              boxShadow: `${Number(item.badgeShadowX || 0)}px ${Number(item.badgeShadowY || 0)}px ${Number(item.badgeShadowBlur || 0)}px ${item.badgeShadowColor || "#0f172a66"}`
             }}
           >
+            {item.badgeUseImage && item.badgeImageUrl ? (
+              <img
+                src={resolveUrl(item.badgeImageUrl)}
+                alt="badge"
+                style={{
+                  width: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
+                  height: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
+                  objectFit: "contain",
+                  marginRight: item.badgeText ? "6px" : "0"
+                }}
+              />
+            ) : null}
             {item.badgeText}
           </span>
         )}
