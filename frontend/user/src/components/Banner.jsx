@@ -42,7 +42,12 @@ export default function Banner() {
               badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
               badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
               badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
-              badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6
+              badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
+              badgeShape: ["custom", "pill", "square"].includes(String(item?.badgeShape || "").toLowerCase())
+                ? String(item.badgeShape).toLowerCase()
+                : "custom",
+              badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
+              badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
             };
           })
           .filter(Boolean);
@@ -92,8 +97,16 @@ export default function Banner() {
               background: item.badgeBgColor,
               color: item.badgeTextColor,
               fontSize: `${item.badgeFontSize}px`,
-              borderRadius: `${item.badgeRadius}px`,
-              padding: `${item.badgePaddingY}px ${item.badgePaddingX}px`
+              borderRadius:
+                item.badgeShape === "pill" ? "999px" :
+                  item.badgeShape === "square" ? "4px" :
+                    `${item.badgeRadius}px`,
+              padding: `${item.badgePaddingY}px ${item.badgePaddingX}px`,
+              width: item.badgeWidth > 0 ? `${item.badgeWidth}px` : "auto",
+              minHeight: item.badgeHeight > 0 ? `${item.badgeHeight}px` : "auto",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center"
             }}
           >
             {item.badgeText}

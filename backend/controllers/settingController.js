@@ -89,6 +89,8 @@ const normalizeBannerItem = item => {
   if (!imageUrl) return null;
   const fitModeRaw = String(item?.fitMode || "cover").toLowerCase();
   const fitMode = ["cover", "contain", "fill"].includes(fitModeRaw) ? fitModeRaw : "cover";
+  const badgeShapeRaw = String(item?.badgeShape || "custom").toLowerCase();
+  const badgeShape = ["custom", "pill", "square"].includes(badgeShapeRaw) ? badgeShapeRaw : "custom";
   const badgeEnabled = item?.badgeEnabled !== undefined
     ? !!item.badgeEnabled
     : !!String(item?.badgeText || "").trim();
@@ -106,7 +108,10 @@ const normalizeBannerItem = item => {
     badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
     badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
     badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
-    badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6
+    badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
+    badgeShape,
+    badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
+    badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
   };
 };
 
@@ -705,6 +710,11 @@ const uploadBanners = async (req, res) => {
   try {
     const files = req.files || [];
     if (files.length === 0) return res.status(400).json("No files");
+    const replaceIndex = Number.parseInt(req.body?.replaceIndex, 10);
+    const isReplaceMode = Number.isInteger(replaceIndex) && replaceIndex >= 0;
+    if (isReplaceMode && files.length !== 1) {
+      return res.status(400).json("Replace mode allows only one banner image.");
+    }
 
     const invalidFiles = [];
     for (const file of files) {
@@ -736,18 +746,38 @@ const uploadBanners = async (req, res) => {
     const newItems = newImages.map(url => normalizeBannerItem({ imageUrl: url }));
     let settings = await Setting.findOne();
     if (!settings) {
+      if (isReplaceMode) {
+        return res.status(400).json("Cannot replace banner before initial banners exist.");
+      }
       settings = await Setting.create({
         ...defaults,
         bannerImages: newImages,
         bannerItems: newItems
       });
     } else {
-      const currentItems = Array.isArray(settings.bannerItems)
+      const currentItems = Array.isArray(settings.bannerItems) && settings.bannerItems.length > 0
         ? settings.bannerItems.map(normalizeBannerItem).filter(Boolean)
-        : [];
-      settings.bannerItems = [...currentItems, ...newItems];
-      settings.bannerImages = settings.bannerItems.map(item => item.imageUrl);
-      await settings.save();
+        : (Array.isArray(settings.bannerImages) ? settings.bannerImages.map(url => normalizeBannerItem({ imageUrl: url })).filter(Boolean) : []);
+      if (isReplaceMode) {
+        if (replaceIndex >= currentItems.length) {
+          return res.status(400).json("Invalid banner index for replace.");
+        }
+        const oldUrl = currentItems[replaceIndex]?.imageUrl;
+        currentItems[replaceIndex] = {
+          ...currentItems[replaceIndex],
+          imageUrl: newImages[0]
+        };
+        settings.bannerItems = currentItems;
+        settings.bannerImages = currentItems.map(item => item.imageUrl);
+        await settings.save();
+        if (oldUrl && oldUrl !== newImages[0]) {
+          await removeUploadByUrl(oldUrl);
+        }
+      } else {
+        settings.bannerItems = [...currentItems, ...newItems];
+        settings.bannerImages = settings.bannerItems.map(item => item.imageUrl);
+        await settings.save();
+      }
     }
     emitSettingsChanged();
     res.json(settings);

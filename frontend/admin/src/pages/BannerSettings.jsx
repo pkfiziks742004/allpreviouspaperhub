@@ -3,6 +3,50 @@ import axios from "axios";
 import Layout from "../components/Layout";
 
 const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
+const createDefaultBannerItem = url => ({
+  imageUrl: url || "",
+  linkUrl: "",
+  openInNewTab: false,
+  fitMode: "cover",
+  badgeEnabled: false,
+  badgeText: "",
+  badgeTop: 16,
+  badgeLeft: 16,
+  badgeBgColor: "#ef4444",
+  badgeTextColor: "#ffffff",
+  badgeFontSize: 14,
+  badgeRadius: 8,
+  badgePaddingX: 10,
+  badgePaddingY: 6,
+  badgeShape: "custom",
+  badgeWidth: 0,
+  badgeHeight: 0
+});
+
+const normalizeBannerItem = item => ({
+  ...createDefaultBannerItem(item?.imageUrl || item?.src || ""),
+  ...(item || {}),
+  imageUrl: String(item?.imageUrl || item?.src || "").trim(),
+  linkUrl: String(item?.linkUrl || "").trim(),
+  fitMode: ["cover", "contain", "fill"].includes(String(item?.fitMode || "").toLowerCase())
+    ? String(item.fitMode).toLowerCase()
+    : "cover",
+  badgeEnabled: item?.badgeEnabled !== undefined ? !!item.badgeEnabled : !!String(item?.badgeText || "").trim(),
+  badgeText: String(item?.badgeText || ""),
+  badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
+  badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+  badgeBgColor: item?.badgeBgColor || "#ef4444",
+  badgeTextColor: item?.badgeTextColor || "#ffffff",
+  badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
+  badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
+  badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
+  badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
+  badgeShape: ["custom", "pill", "square"].includes(String(item?.badgeShape || "").toLowerCase())
+    ? String(item.badgeShape).toLowerCase()
+    : "custom",
+  badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
+  badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0
+});
 
 export default function BannerSettings() {
   const [bannerMargin, setBannerMargin] = useState(0);
@@ -28,44 +72,10 @@ export default function BannerSettings() {
       setBannerMargin(Number(res.data.bannerMargin || 0));
       setBannerRadius(Number(res.data.bannerRadius || 0));
       if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
-        setBannerItems(
-          res.data.bannerItems.map(item => ({
-            imageUrl: item.imageUrl || "",
-            linkUrl: item.linkUrl || "",
-            openInNewTab: !!item.openInNewTab,
-            fitMode: item.fitMode || "cover",
-            badgeEnabled: item.badgeEnabled !== false,
-            badgeText: item.badgeText || "",
-            badgeTop: Number(item.badgeTop || 16),
-            badgeLeft: Number(item.badgeLeft || 16),
-            badgeBgColor: item.badgeBgColor || "#ef4444",
-            badgeTextColor: item.badgeTextColor || "#ffffff",
-            badgeFontSize: Number(item.badgeFontSize || 14),
-            badgeRadius: Number(item.badgeRadius || 8),
-            badgePaddingX: Number(item.badgePaddingX || 10),
-            badgePaddingY: Number(item.badgePaddingY || 6)
-          }))
-        );
+        setBannerItems(res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl));
       } else {
         const fallbackImages = Array.isArray(res.data.bannerImages) ? res.data.bannerImages : [];
-        setBannerItems(
-          fallbackImages.map(url => ({
-            imageUrl: url,
-            linkUrl: "",
-            openInNewTab: false,
-            fitMode: "cover",
-            badgeEnabled: false,
-            badgeText: "",
-            badgeTop: 16,
-            badgeLeft: 16,
-            badgeBgColor: "#ef4444",
-            badgeTextColor: "#ffffff",
-            badgeFontSize: 14,
-            badgeRadius: 8,
-            badgePaddingX: 10,
-            badgePaddingY: 6
-          }))
-        );
+        setBannerItems(fallbackImages.map(url => createDefaultBannerItem(url)));
       }
     });
   }, []);
@@ -116,26 +126,9 @@ export default function BannerSettings() {
       files.forEach(f => fd.append("banners", f));
       const res = await axios.post(`${API}/api/settings/banners`, fd, headers);
       if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
-        setBannerItems(res.data.bannerItems);
+        setBannerItems(res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl));
       } else {
-        setBannerItems(
-          (Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => ({
-            imageUrl: url,
-            linkUrl: "",
-            openInNewTab: false,
-            fitMode: "cover",
-            badgeEnabled: false,
-            badgeText: "",
-            badgeTop: 16,
-            badgeLeft: 16,
-            badgeBgColor: "#ef4444",
-            badgeTextColor: "#ffffff",
-            badgeFontSize: 14,
-            badgeRadius: 8,
-            badgePaddingX: 10,
-            badgePaddingY: 6
-          }))
-        );
+        setBannerItems((Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url)));
       }
       alert("Banners uploaded");
     } catch (err) {
@@ -155,6 +148,36 @@ export default function BannerSettings() {
     setBannerItems(prev =>
       prev.map((item, i) => (i === idx ? { ...item, [key]: value } : item))
     );
+  };
+
+  const replaceBannerImage = async (idx, event) => {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    const isValid = await isBannerRatioValid(file);
+    if (!isValid) {
+      alert("Only 16:5 or 16:9 banner image is allowed.");
+      event.target.value = "";
+      return;
+    }
+    setUploadingBanner(true);
+    try {
+      const fd = new FormData();
+      fd.append("banners", file);
+      fd.append("replaceIndex", String(idx));
+      const res = await axios.post(`${API}/api/settings/banners`, fd, headers);
+      if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
+        setBannerItems(res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl));
+      } else {
+        setBannerItems((Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url)));
+      }
+      alert("Banner image updated");
+    } catch (err) {
+      const msg = err?.response?.data || err?.message || "Banner replace failed";
+      alert(msg);
+    } finally {
+      setUploadingBanner(false);
+      event.target.value = "";
+    }
   };
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -228,7 +251,7 @@ export default function BannerSettings() {
   return (
     <Layout>
 
-      <div className="card p-4 shadow" style={{ maxWidth: "900px" }}>
+      <div className="card p-4 shadow banner-settings-card" style={{ maxWidth: "980px" }}>
         <div className="mb-3">
           <label className="form-label">Banner Margin (px)</label>
           <input
@@ -266,8 +289,8 @@ export default function BannerSettings() {
             <div className="mt-3">
               <div className="row">
                 {bannerItems.map((item, i) => (
-                  <div key={`${item.imageUrl}-${i}`} className="col-md-6 mb-3">
-                    <div className="card">
+                  <div key={`${item.imageUrl}-${i}`} className="col-xl-6 col-lg-12 mb-3">
+                    <div className="card banner-item-card">
                       <div
                         ref={el => {
                           if (el) bannerPreviewRefs.current[i] = el;
@@ -306,10 +329,18 @@ export default function BannerSettings() {
                               background: item.badgeBgColor || "#ef4444",
                               color: item.badgeTextColor || "#ffffff",
                               fontSize: Number(item.badgeFontSize || 14),
-                              borderRadius: Number(item.badgeRadius || 8),
+                              borderRadius:
+                                item.badgeShape === "pill" ? 999 :
+                                  item.badgeShape === "square" ? 4 :
+                                    Number(item.badgeRadius || 8),
                               padding: `${Number(item.badgePaddingY || 6)}px ${Number(item.badgePaddingX || 10)}px`,
                               lineHeight: 1.2,
                               fontWeight: 600,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: Number(item.badgeWidth || 0) > 0 ? `${Number(item.badgeWidth)}px` : "auto",
+                              minHeight: Number(item.badgeHeight || 0) > 0 ? `${Number(item.badgeHeight)}px` : "auto",
                               cursor: draggingBadgeIndex === i ? "grabbing" : "grab",
                               userSelect: "none",
                               touchAction: "none",
@@ -321,7 +352,20 @@ export default function BannerSettings() {
                           </span>
                         )}
                       </div>
-                      <div className="card-body p-2 text-center">
+                      <div className="card-body p-3 text-center">
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                          <div className="small fw-semibold">Banner #{i + 1}</div>
+                          <label className="btn btn-sm btn-outline-primary mb-0">
+                            Update Image
+                            <input
+                              type="file"
+                              accept="image/*"
+                              hidden
+                              onChange={e => replaceBannerImage(i, e)}
+                              disabled={uploadingBanner}
+                            />
+                          </label>
+                        </div>
                         <div className="mb-2">
                           <label className="form-label small">Link URL</label>
                           <input
@@ -447,6 +491,38 @@ export default function BannerSettings() {
                                 className="form-control form-control-sm"
                                 value={Number(item.badgePaddingY || 6)}
                                 onChange={e => updateBannerItem(i, "badgePaddingY", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Shape</label>
+                              <select
+                                className="form-select form-select-sm"
+                                value={item.badgeShape || "custom"}
+                                onChange={e => updateBannerItem(i, "badgeShape", e.target.value)}
+                              >
+                                <option value="custom">Custom Radius</option>
+                                <option value="pill">Pill</option>
+                                <option value="square">Square</option>
+                              </select>
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Width</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeWidth || 0)}
+                                onChange={e => updateBannerItem(i, "badgeWidth", Number(e.target.value || 0))}
+                                placeholder="Auto"
+                              />
+                            </div>
+                            <div className="col-3">
+                              <label className="form-label small">Height</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeHeight || 0)}
+                                onChange={e => updateBannerItem(i, "badgeHeight", Number(e.target.value || 0))}
+                                placeholder="Auto"
                               />
                             </div>
                           </div>
