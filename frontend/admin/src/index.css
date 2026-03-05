@@ -429,6 +429,24 @@ code {
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06) !important;
 }
 
+.banner-item-card-flash {
+  border-color: #2271b1 !important;
+  box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.2), 0 14px 28px rgba(34, 113, 177, 0.22) !important;
+  animation: bannerCardPulse 0.9s ease 2;
+}
+
+@keyframes bannerCardPulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.012);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .banner-item-card .form-label.small {
   font-weight: 600;
   color: #3c434a;

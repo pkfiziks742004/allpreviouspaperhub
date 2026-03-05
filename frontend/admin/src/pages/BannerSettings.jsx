@@ -55,8 +55,10 @@ export default function BannerSettings() {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draggingBadgeIndex, setDraggingBadgeIndex] = useState(null);
+  const [flashIndexes, setFlashIndexes] = useState([]);
   const bannerPreviewRefs = useRef({});
   const badgeRefs = useRef({});
+  const bannerListRef = useRef(null);
 
   const token = localStorage.getItem("token");
   const headers = { headers: { Authorization: token } };
@@ -125,11 +127,21 @@ export default function BannerSettings() {
       const fd = new FormData();
       files.forEach(f => fd.append("banners", f));
       const res = await axios.post(`${API}/api/settings/banners`, fd, headers);
+      let nextItems = [];
       if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
-        setBannerItems(res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl));
+        nextItems = res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl);
       } else {
-        setBannerItems((Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url)));
+        nextItems = (Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url));
       }
+      setBannerItems(nextItems);
+      const uploadedCount = files.length;
+      const start = Math.max(0, nextItems.length - uploadedCount);
+      const newIndexes = Array.from({ length: uploadedCount }, (_, idx) => start + idx);
+      setFlashIndexes(newIndexes);
+      window.setTimeout(() => {
+        bannerListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+      window.setTimeout(() => setFlashIndexes([]), 2200);
       alert("Banners uploaded");
     } catch (err) {
       const msg = err?.response?.data || err?.message || "Banner upload failed";
@@ -165,11 +177,18 @@ export default function BannerSettings() {
       fd.append("banners", file);
       fd.append("replaceIndex", String(idx));
       const res = await axios.post(`${API}/api/settings/banners`, fd, headers);
+      let nextItems = [];
       if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
-        setBannerItems(res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl));
+        nextItems = res.data.bannerItems.map(normalizeBannerItem).filter(item => item.imageUrl);
       } else {
-        setBannerItems((Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url)));
+        nextItems = (Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => createDefaultBannerItem(url));
       }
+      setBannerItems(nextItems);
+      setFlashIndexes([idx]);
+      window.setTimeout(() => {
+        bannerPreviewRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 80);
+      window.setTimeout(() => setFlashIndexes([]), 1800);
       alert("Banner image updated");
     } catch (err) {
       const msg = err?.response?.data || err?.message || "Banner replace failed";
@@ -286,11 +305,11 @@ export default function BannerSettings() {
             Allowed ratios: 16:5 or 16:9 (examples: 1600x500, 1920x600, 1280x400, 1280x720, 1920x1080).
           </div>
           {bannerItems.length > 0 && (
-            <div className="mt-3">
+            <div className="mt-3" ref={bannerListRef}>
               <div className="row">
                 {bannerItems.map((item, i) => (
                   <div key={`${item.imageUrl}-${i}`} className="col-xl-6 col-lg-12 mb-3">
-                    <div className="card banner-item-card">
+                    <div className={`card banner-item-card ${flashIndexes.includes(i) ? "banner-item-card-flash" : ""}`}>
                       <div
                         ref={el => {
                           if (el) bannerPreviewRefs.current[i] = el;
@@ -353,19 +372,7 @@ export default function BannerSettings() {
                         )}
                       </div>
                       <div className="card-body p-3 text-center">
-                        <div className="d-flex align-items-center justify-content-between mb-2">
-                          <div className="small fw-semibold">Banner #{i + 1}</div>
-                          <label className="btn btn-sm btn-outline-primary mb-0">
-                            Update Image
-                            <input
-                              type="file"
-                              accept="image/*"
-                              hidden
-                              onChange={e => replaceBannerImage(i, e)}
-                              disabled={uploadingBanner}
-                            />
-                          </label>
-                        </div>
+                        <div className="small fw-semibold text-start mb-2">Banner #{i + 1}</div>
                         <div className="mb-2">
                           <label className="form-label small">Link URL</label>
                           <input
@@ -527,12 +534,24 @@ export default function BannerSettings() {
                             </div>
                           </div>
                         </div>
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => removeBanner(i)}
-                        >
-                          Remove
-                        </button>
+                        <div className="d-flex gap-2 justify-content-end">
+                          <label className="btn btn-sm btn-outline-primary mb-0">
+                            Update
+                            <input
+                              type="file"
+                              accept="image/*"
+                              hidden
+                              onChange={e => replaceBannerImage(i, e)}
+                              disabled={uploadingBanner}
+                            />
+                          </label>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => removeBanner(i)}
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
