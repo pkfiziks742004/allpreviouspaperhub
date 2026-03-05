@@ -352,14 +352,18 @@ function Navbar() {
           </form>
           {navLinks.length > 0 ? (
             navLinks.map((link, idx) => {
-              const isExternal = (link.url || "").startsWith("http");
+              const rawUrl = String(link?.url || "").trim();
+              const normalizedUrl = rawUrl
+                ? (rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`)
+                : "/";
+              const isExternal = /^https?:\/\//i.test(rawUrl);
               const className = `header-link${idx !== navLinks.length - 1 ? " me-3" : ""}`;
               if (isExternal) {
                 return (
                   <a
                     key={`hl-${idx}`}
                     className={className}
-                    href={link.url}
+                    href={rawUrl}
                     target={link.newTab ? "_blank" : "_self"}
                     rel={link.newTab ? "noreferrer" : undefined}
                     onClick={() => setMenuOpen(false)}
@@ -372,7 +376,7 @@ function Navbar() {
                 <Link
                   key={`hl-${idx}`}
                   className={className}
-                  to={link.url || "/"}
+                  to={normalizedUrl}
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label || "Link"}
