@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Carousel } from "react-bootstrap";
 import { API_BASE, resolveApiUrl } from "../config/api";
@@ -114,6 +114,8 @@ export default function Banner() {
   const [ready, setReady] = useState(false);
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
+  const [badgeScaleMap, setBadgeScaleMap] = useState({});
+  const bannerImageRefs = useRef({});
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
 
   const resolveUrl = url => {
@@ -182,6 +184,27 @@ export default function Banner() {
       .finally(() => setReady(true));
   }, []);
 
+  useEffect(() => {
+    const updateScaleMap = () => {
+      setBadgeScaleMap(prev => {
+        const next = { ...prev };
+        items.forEach((_, idx) => {
+          const img = bannerImageRefs.current[idx];
+          if (!img) return;
+          const naturalWidth = Number(img.naturalWidth || 0);
+          const renderedWidth = Number(img.clientWidth || 0);
+          if (!naturalWidth || !renderedWidth) return;
+          next[idx] = Math.min(1.25, Math.max(0.42, renderedWidth / naturalWidth));
+        });
+        return next;
+      });
+    };
+
+    updateScaleMap();
+    window.addEventListener("resize", updateScaleMap);
+    return () => window.removeEventListener("resize", updateScaleMap);
+  }, [items]);
+
   if (!ready || items.length === 0) return null;
 
   const bannerShellStyle =
@@ -196,6 +219,7 @@ export default function Banner() {
         };
 
   const renderBannerItem = (item, index) => {
+    const scale = Number(badgeScaleMap[index] || 1);
     const isComplexShape =
       item.badgeShape &&
       !["custom", "pill", "square", "rounded-square", "soft-rounded"].includes(item.badgeShape);
@@ -204,11 +228,24 @@ export default function Banner() {
     const image = (
       <>
         <img
+          ref={el => {
+            bannerImageRefs.current[index] = el;
+          }}
           className="d-block w-100 banner-img"
           src={resolveUrl(item.imageUrl)}
           alt={`Banner ${index + 1}`}
           loading="lazy"
           style={{ objectFit: item.fitMode || "cover" }}
+          onLoad={event => {
+            const img = event.currentTarget;
+            const naturalWidth = Number(img.naturalWidth || 0);
+            const renderedWidth = Number(img.clientWidth || 0);
+            if (!naturalWidth || !renderedWidth) return;
+            setBadgeScaleMap(prev => ({
+              ...prev,
+              [index]: Math.min(1.25, Math.max(0.42, renderedWidth / naturalWidth))
+            }));
+          }}
         />
         {item.badgeEnabled && (item.badgeText || (item.badgeUseImage && item.badgeImageUrl)) && (
           <span
@@ -216,9 +253,13 @@ export default function Banner() {
             style={{
               "--badge-top": `${Math.max(0, Number(item.badgeTop || 0))}px`,
               "--badge-left": `${Math.max(0, Number(item.badgeLeft || 0))}px`,
-              "--badge-font-size": `${Math.max(10, Number(item.badgeFontSize || 14))}px`,
-              "--badge-pad-y": `${Math.max(4, Number(item.badgePaddingY || 6))}px`,
-              "--badge-pad-x": `${Math.max(6, Number(item.badgePaddingX || 10))}px`,
+              top: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeTop || 0)) * scale)}px, calc(100% - 24px))`,
+              left: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeLeft || 0)) * scale)}px, calc(100% - 24px))`,
+              fontSize: `${Math.max(10, Math.round(Math.max(10, Number(item.badgeFontSize || 14)) * scale))}px`,
+              padding: `${Math.max(4, Math.round(Math.max(4, Number(item.badgePaddingY || 6)) * scale))}px ${Math.max(
+                6,
+                Math.round(Math.max(6, Number(item.badgePaddingX || 10)) * scale)
+              )}px`,
               background: item.badgeBgColor,
               color: item.badgeTextColor,
               ...getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius),
@@ -251,8 +292,14 @@ export default function Banner() {
                 src={resolveUrl(item.badgeImageUrl)}
                 alt="badge"
                 style={{
-                  width: `${Math.max(10, Number(item.badgeImageSize || 18))}px`,
-                  height: `${Math.max(10, Number(item.badgeImageSize || 18))}px`,
+                  width: `${Math.max(
+                    10,
+                    Math.round(Math.max(10, Number(item.badgeImageSize || 18)) * scale)
+                  )}px`,
+                  height: `${Math.max(
+                    10,
+                    Math.round(Math.max(10, Number(item.badgeImageSize || 18)) * scale)
+                  )}px`,
                   objectFit: "contain",
                   marginRight: item.badgeText ? "6px" : "0"
                 }}

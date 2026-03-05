@@ -293,28 +293,12 @@ body {
   max-width: min(72%, 320px);
   pointer-events: none;
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
-  --badge-top-effective: var(--badge-top, 16px);
-  --badge-left-effective: var(--badge-left, 16px);
-  --badge-font-effective: var(--badge-font-size, 14px);
-  --badge-pad-y-effective: var(--badge-pad-y, 6px);
-  --badge-pad-x-effective: var(--badge-pad-x, 10px);
-  top: clamp(4px, var(--badge-top-effective), calc(100% - 24px));
-  left: clamp(4px, var(--badge-left-effective), calc(100% - 24px));
-  font-size: var(--badge-font-effective) !important;
-  padding: var(--badge-pad-y-effective) var(--badge-pad-x-effective) !important;
-  transform-origin: top left;
-  will-change: transform;
 }
 
 @media (max-width: 992px) {
   .banner-badge {
     max-width: min(68%, 230px);
     line-height: 1;
-    --badge-top-effective: calc(var(--badge-top, 16px) * 0.78);
-    --badge-left-effective: calc(var(--badge-left, 16px) * 0.78);
-    --badge-font-effective: calc(var(--badge-font-size, 14px) * 0.86);
-    --badge-pad-y-effective: calc(var(--badge-pad-y, 6px) * 0.86);
-    --badge-pad-x-effective: calc(var(--badge-pad-x, 10px) * 0.86);
   }
 }
 
@@ -1185,11 +1169,6 @@ a:hover {
 
   .banner-badge {
     max-width: min(64%, 168px);
-    --badge-top-effective: calc(var(--badge-top, 16px) * 0.62);
-    --badge-left-effective: calc(var(--badge-left, 16px) * 0.62);
-    --badge-font-effective: calc(var(--badge-font-size, 14px) * 0.74);
-    --badge-pad-y-effective: calc(var(--badge-pad-y, 6px) * 0.72);
-    --badge-pad-x-effective: calc(var(--badge-pad-x, 10px) * 0.72);
   }
 
   .card h5 {
