@@ -109,6 +109,12 @@ const getBadgeShapeStyle = (shape, radius) => {
   return { borderRadius: "0", clipPath: BADGE_SHAPE_CLIP_PATH[shape] || "none" };
 };
 
+const responsivePx = (value, minPx, viewportFactor) => {
+  const safe = Math.max(Number(value || 0), minPx);
+  const vf = Math.max(Number(viewportFactor || 0), 0);
+  return `clamp(${minPx}px, ${vf}vw, ${safe}px)`;
+};
+
 export default function Banner() {
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
@@ -196,6 +202,11 @@ export default function Banner() {
         };
 
   const renderBannerItem = (item, index) => {
+    const isComplexShape =
+      item.badgeShape &&
+      !["custom", "pill", "square", "rounded-square", "soft-rounded"].includes(item.badgeShape);
+    const fallbackWidth = isComplexShape ? 88 : 0;
+    const fallbackHeight = isComplexShape ? 44 : 0;
     const image = (
       <>
         <img
@@ -209,28 +220,36 @@ export default function Banner() {
           <span
             className="banner-badge"
             style={{
-              top: `${item.badgeTop}px`,
-              left: `${item.badgeLeft}px`,
+              top: responsivePx(item.badgeTop, 6, 2.6),
+              left: responsivePx(item.badgeLeft, 6, 2.6),
               background: item.badgeBgColor,
               color: item.badgeTextColor,
-              fontSize: `${item.badgeFontSize}px`,
+              fontSize: responsivePx(item.badgeFontSize, 10, 2.4),
               ...getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius),
-              padding: `${item.badgePaddingY}px ${item.badgePaddingX}px`,
+              padding: `${responsivePx(item.badgePaddingY, 4, 1.3)} ${responsivePx(
+                item.badgePaddingX,
+                6,
+                1.8
+              )}`,
               width:
                 item.badgeWidth > 0
-                  ? `${item.badgeWidth}px`
-                  : item.badgeShape && !["custom", "pill", "square", "rounded-square", "soft-rounded"].includes(item.badgeShape)
-                    ? "88px"
+                  ? responsivePx(item.badgeWidth, 44, 18)
+                  : fallbackWidth > 0
+                    ? responsivePx(fallbackWidth, 52, 13)
                     : "auto",
               minHeight:
                 item.badgeHeight > 0
-                  ? `${item.badgeHeight}px`
-                  : item.badgeShape && !["custom", "pill", "square", "rounded-square", "soft-rounded"].includes(item.badgeShape)
-                    ? "44px"
+                  ? responsivePx(item.badgeHeight, 24, 8)
+                  : fallbackHeight > 0
+                    ? responsivePx(fallbackHeight, 28, 7)
                     : "auto",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
+              textAlign: "center",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
               border: `${Number(item.badgeBorderWidth || 0)}px solid ${item.badgeBorderColor || "#ffffff"}`,
               outline: `${Number(item.badgeOutlineWidth || 0)}px solid ${item.badgeOutlineColor || "#1e293b"}`,
               boxShadow: `${Number(item.badgeShadowX || 0)}px ${Number(item.badgeShadowY || 0)}px ${Number(item.badgeShadowBlur || 0)}px ${item.badgeShadowColor || "#0f172a66"}`
@@ -241,8 +260,8 @@ export default function Banner() {
                 src={resolveUrl(item.badgeImageUrl)}
                 alt="badge"
                 style={{
-                  width: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
-                  height: `${Math.max(12, Number(item.badgeImageSize || 18))}px`,
+                  width: responsivePx(item.badgeImageSize || 18, 10, 2.2),
+                  height: responsivePx(item.badgeImageSize || 18, 10, 2.2),
                   objectFit: "contain",
                   marginRight: item.badgeText ? "6px" : "0"
                 }}

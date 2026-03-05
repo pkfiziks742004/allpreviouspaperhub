@@ -290,9 +290,16 @@ body {
   z-index: 4;
   font-weight: 700;
   line-height: 1.1;
-  max-width: min(80%, 420px);
+  max-width: min(72%, 320px);
   pointer-events: none;
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
+}
+
+@media (max-width: 992px) {
+  .banner-badge {
+    max-width: min(68%, 230px);
+    line-height: 1;
+  }
 }
 
 .card h5 {
@@ -1158,6 +1165,10 @@ a:hover {
 
   .banner-frame {
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+  }
+
+  .banner-badge {
+    max-width: min(64%, 168px);
   }
 
   .card h5 {
