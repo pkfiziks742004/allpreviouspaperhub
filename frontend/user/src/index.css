@@ -73,6 +73,7 @@ body {
   right: 0;
   z-index: 1030;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  backdrop-filter: saturate(1.1) blur(3px);
 }
 
 .site-header-spacer {
@@ -113,6 +114,7 @@ body {
   max-width: min(72vw, 520px);
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -138,6 +140,20 @@ body {
   max-width: 100%;
   width: auto !important;
   object-fit: contain;
+  display: block;
+}
+
+.user-brand-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(58vw, 400px);
+  min-height: 28px;
+  transition: transform 0.2s ease;
+}
+
+.user-brand-logo-wrap:hover {
+  transform: translateY(-1px);
 }
 
 .header-menu-backdrop {
@@ -149,17 +165,30 @@ body {
   margin-right: 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--header-search-surface, rgba(255, 255, 255, 0.12));
   border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
   border-radius: 999px;
-  padding: 5px 7px;
+  padding: 5px 6px;
   backdrop-filter: blur(3px);
-  box-shadow: 0 4px 10px rgba(2, 8, 23, 0.12);
+  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.14);
+}
+
+.header-search-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--header-search-placeholder, rgba(255, 255, 255, 0.8));
+  background: var(--header-search-input-bg, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
 }
 
 .header-search-input {
-  width: clamp(220px, 24vw, 340px);
+  width: clamp(240px, 24vw, 360px);
   border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
   outline: 0;
   background: var(--header-search-input-bg, rgba(255, 255, 255, 0.08));
@@ -194,7 +223,7 @@ body {
   min-height: 34px;
   padding: 0 15px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .header-search-btn {
@@ -204,6 +233,20 @@ body {
 
 .header-search-btn:hover {
   background: var(--header-search-btn-hover, #fbbf24);
+}
+
+.header-search-clear-icon {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--header-search-clear-text, #ffffff);
+  background: var(--header-search-clear-bg, rgba(255, 255, 255, 0.16));
 }
 
 .header-search-clear-btn {
@@ -577,7 +620,7 @@ body {
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     min-width: 180px;
-    width: min(92vw, 360px);
+    width: min(94vw, 420px);
     z-index: 1036;
     box-shadow: 0 18px 38px rgba(2, 8, 23, 0.35);
   }
@@ -588,14 +631,22 @@ body {
 
   .header-search-form-mobile {
     width: 100%;
-    margin: 0 0 6px;
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(2, 8, 23, 0.32);
+    margin: 0 0 8px;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.24), rgba(2, 8, 23, 0.36));
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 9px;
+  }
+
+  .header-search-mobile-label {
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 700;
   }
 
   .header-search-form-mobile .header-search-input {
@@ -613,6 +664,8 @@ body {
   .header-search-form-mobile .header-search-btn,
   .header-search-form-mobile .header-search-clear-btn {
     flex: 1 1 0;
+    min-height: 40px;
+    font-size: 14px;
   }
 
   .header-menu-backdrop.open {
@@ -631,6 +684,8 @@ body {
   .header-link.me-3 {
     color: var(--header-menu-text, var(--header-link-color, #ffffff));
     margin-right: 0 !important;
+    font-size: 1.05rem;
+    font-weight: 600;
   }
 }
 
@@ -1087,7 +1142,7 @@ a:hover {
   }
 
   .user-navbar-logo {
-    height: min(var(--logo-height), clamp(26px, 8vw, 36px));
+    height: min(var(--logo-height), clamp(24px, 7.5vw, 34px));
   }
 
   .user-brand-text {
