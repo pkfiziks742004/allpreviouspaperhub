@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
@@ -10,6 +10,7 @@ import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
 export default function Courses(){
   const { universitySlug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [courses,setCourses]=useState([]);
   const [search,setSearch]=useState("");
@@ -55,10 +56,14 @@ export default function Courses(){
       navigate("/", { replace: true });
       return;
     }
+    const cameFromUniversityClick = !!location.state?.fromUniversityClick;
+    if (cameFromUniversityClick) {
+      return;
+    }
     if (!canAccessUniversity(universitySlug)) {
       navigate("/", { replace: true });
     }
-  }, [navigate, universitySlug]);
+  }, [location.state, navigate, universitySlug]);
 
   useEffect(() => {
     if (!universitySlug || !universities.length) return;

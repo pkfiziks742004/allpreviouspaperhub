@@ -244,9 +244,10 @@ export default function Home() {
   const openUniversityFromCourse = course => {
     const uni = findUniversity(course?.universityId);
     if (!uni) return;
+    if (uni.comingSoon) return;
     const uniSlug = toRouteSegment(uni.name, "university");
     markUniversityFlow(uniSlug);
-    navigate(`/${uniSlug}`);
+    navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
   };
 
   return (
@@ -290,8 +291,10 @@ export default function Home() {
                   className="card modern-card modern-card--large h-100 text-center"
                   style={{ cursor: "pointer", ...buildCardStyle("university") }}
                   onClick={() => {
-                    markUniversityFlow(toRouteSegment(u.name, "university"));
-                    navigate(`/${toRouteSegment(u.name, "university")}`);
+                    if (u.comingSoon) return;
+                    const uniSlug = toRouteSegment(u.name, "university");
+                    markUniversityFlow(uniSlug);
+                    navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
                   }}
                 >
                   <div className="card-body">
