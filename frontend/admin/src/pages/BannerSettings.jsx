@@ -149,6 +149,8 @@ const createDefaultBannerItem = url => ({
   badgeText: "",
   badgeTop: 16,
   badgeLeft: 16,
+  mobileBadgeTop: 12,
+  mobileBadgeLeft: 12,
   badgeBgColor: "#ef4444",
   badgeTextColor: "#ffffff",
   badgeFontSize: 14,
@@ -183,6 +185,12 @@ const normalizeBannerItem = item => ({
   badgeText: String(item?.badgeText || ""),
   badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
   badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+  mobileBadgeTop: Number.isFinite(Number(item?.mobileBadgeTop))
+    ? Number(item.mobileBadgeTop)
+    : (Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 12),
+  mobileBadgeLeft: Number.isFinite(Number(item?.mobileBadgeLeft))
+    ? Number(item.mobileBadgeLeft)
+    : (Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 12),
   badgeBgColor: item?.badgeBgColor || "#ef4444",
   badgeTextColor: item?.badgeTextColor || "#ffffff",
   badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
@@ -686,6 +694,24 @@ export default function BannerSettings() {
                                 className="form-control form-control-sm"
                                 value={Number(item.badgeLeft || 0)}
                                 onChange={e => updateBannerItem(i, "badgeLeft", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Mobile Top(px)</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.mobileBadgeTop ?? 12)}
+                                onChange={e => updateBannerItem(i, "mobileBadgeTop", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Mobile Left(px)</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.mobileBadgeLeft ?? 12)}
+                                onChange={e => updateBannerItem(i, "mobileBadgeLeft", Number(e.target.value || 0))}
                               />
                             </div>
                             <div className="col-6">

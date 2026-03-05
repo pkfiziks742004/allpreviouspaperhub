@@ -126,6 +126,12 @@ const normalizeBannerItem = item => {
     badgeText: String(item?.badgeText || "").trim(),
     badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
     badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+    mobileBadgeTop: Number.isFinite(Number(item?.mobileBadgeTop))
+      ? Number(item.mobileBadgeTop)
+      : (Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 12),
+    mobileBadgeLeft: Number.isFinite(Number(item?.mobileBadgeLeft))
+      ? Number(item.mobileBadgeLeft)
+      : (Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 12),
     badgeBgColor: String(item?.badgeBgColor || "#ef4444"),
     badgeTextColor: String(item?.badgeTextColor || "#ffffff"),
     badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
