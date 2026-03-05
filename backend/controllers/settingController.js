@@ -7,6 +7,17 @@ const ALLOWED_BANNER_RATIOS = [
   { width: 16, height: 9 }  // YouTube thumbnail ratio
 ];
 const BANNER_ASPECT_EPSILON = 0.02;
+const ALLOWED_BADGE_SHAPES = new Set([
+  "custom", "pill", "square", "rounded-square", "soft-rounded", "notch",
+  "chevron-right", "chevron-left", "diamond", "hexagon", "octagon", "triangle-up",
+  "triangle-down", "triangle-left", "triangle-right", "parallelogram-right",
+  "parallelogram-left", "tag-right", "tag-left", "message", "bookmark", "ticket",
+  "ribbon", "star-5", "star-6", "star-8", "burst-12", "burst-16", "circle",
+  "ellipse", "leaf", "egg", "cloud", "heart", "shield", "drop", "arrow-right",
+  "arrow-left", "arrow-up", "arrow-down", "house", "pentagon", "cross", "plus",
+  "x-shape", "trapezoid", "frame", "bevel", "cut-corners", "slant-top",
+  "slant-bottom", "wave-top", "wave-bottom", "blob-1", "blob-2"
+]);
 
 const getImageSizeFromBuffer = buffer => {
   if (!buffer || buffer.length < 10) return null;
@@ -90,7 +101,7 @@ const normalizeBannerItem = item => {
   const fitModeRaw = String(item?.fitMode || "cover").toLowerCase();
   const fitMode = ["cover", "contain", "fill"].includes(fitModeRaw) ? fitModeRaw : "cover";
   const badgeShapeRaw = String(item?.badgeShape || "custom").toLowerCase();
-  const badgeShape = ["custom", "pill", "square"].includes(badgeShapeRaw) ? badgeShapeRaw : "custom";
+  const badgeShape = ALLOWED_BADGE_SHAPES.has(badgeShapeRaw) ? badgeShapeRaw : "custom";
   const badgeEnabled = item?.badgeEnabled !== undefined
     ? !!item.badgeEnabled
     : !!String(item?.badgeText || "").trim();
