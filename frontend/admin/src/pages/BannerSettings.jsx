@@ -7,7 +7,7 @@ const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE 
 export default function BannerSettings() {
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
-  const [bannerImages, setBannerImages] = useState([]);
+  const [bannerItems, setBannerItems] = useState([]);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -24,7 +24,46 @@ export default function BannerSettings() {
     axios.get(`${API}/api/settings`).then(res => {
       setBannerMargin(Number(res.data.bannerMargin || 0));
       setBannerRadius(Number(res.data.bannerRadius || 0));
-      setBannerImages(Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []);
+      if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
+        setBannerItems(
+          res.data.bannerItems.map(item => ({
+            imageUrl: item.imageUrl || "",
+            linkUrl: item.linkUrl || "",
+            openInNewTab: !!item.openInNewTab,
+            fitMode: item.fitMode || "cover",
+            badgeEnabled: item.badgeEnabled !== false,
+            badgeText: item.badgeText || "",
+            badgeTop: Number(item.badgeTop || 16),
+            badgeLeft: Number(item.badgeLeft || 16),
+            badgeBgColor: item.badgeBgColor || "#ef4444",
+            badgeTextColor: item.badgeTextColor || "#ffffff",
+            badgeFontSize: Number(item.badgeFontSize || 14),
+            badgeRadius: Number(item.badgeRadius || 8),
+            badgePaddingX: Number(item.badgePaddingX || 10),
+            badgePaddingY: Number(item.badgePaddingY || 6)
+          }))
+        );
+      } else {
+        const fallbackImages = Array.isArray(res.data.bannerImages) ? res.data.bannerImages : [];
+        setBannerItems(
+          fallbackImages.map(url => ({
+            imageUrl: url,
+            linkUrl: "",
+            openInNewTab: false,
+            fitMode: "cover",
+            badgeEnabled: false,
+            badgeText: "",
+            badgeTop: 16,
+            badgeLeft: 16,
+            badgeBgColor: "#ef4444",
+            badgeTextColor: "#ffffff",
+            badgeFontSize: 14,
+            badgeRadius: 8,
+            badgePaddingX: 10,
+            badgePaddingY: 6
+          }))
+        );
+      }
     });
   }, []);
 
@@ -73,7 +112,28 @@ export default function BannerSettings() {
       const fd = new FormData();
       files.forEach(f => fd.append("banners", f));
       const res = await axios.post(`${API}/api/settings/banners`, fd, headers);
-      setBannerImages(Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []);
+      if (Array.isArray(res.data.bannerItems) && res.data.bannerItems.length > 0) {
+        setBannerItems(res.data.bannerItems);
+      } else {
+        setBannerItems(
+          (Array.isArray(res.data.bannerImages) ? res.data.bannerImages : []).map(url => ({
+            imageUrl: url,
+            linkUrl: "",
+            openInNewTab: false,
+            fitMode: "cover",
+            badgeEnabled: false,
+            badgeText: "",
+            badgeTop: 16,
+            badgeLeft: 16,
+            badgeBgColor: "#ef4444",
+            badgeTextColor: "#ffffff",
+            badgeFontSize: 14,
+            badgeRadius: 8,
+            badgePaddingX: 10,
+            badgePaddingY: 6
+          }))
+        );
+      }
       alert("Banners uploaded");
     } catch (err) {
       const msg = err?.response?.data || err?.message || "Banner upload failed";
@@ -85,8 +145,13 @@ export default function BannerSettings() {
   };
 
   const removeBanner = idx => {
-    const next = bannerImages.filter((_, i) => i !== idx);
-    setBannerImages(next);
+    setBannerItems(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateBannerItem = (idx, key, value) => {
+    setBannerItems(prev =>
+      prev.map((item, i) => (i === idx ? { ...item, [key]: value } : item))
+    );
   };
 
   const save = async () => {
@@ -97,7 +162,7 @@ export default function BannerSettings() {
         {
           bannerMargin,
           bannerRadius,
-          bannerImages
+          bannerItems
         },
         headers
       );
@@ -147,18 +212,151 @@ export default function BannerSettings() {
           <div className="form-text">
             Allowed ratios: 16:5 or 16:9 (examples: 1600x500, 1920x600, 1280x400, 1280x720, 1920x1080).
           </div>
-          {bannerImages.length > 0 && (
+          {bannerItems.length > 0 && (
             <div className="mt-3">
               <div className="row">
-                {bannerImages.map((img, i) => (
-                  <div key={img + i} className="col-md-4 mb-3">
+                {bannerItems.map((item, i) => (
+                  <div key={`${item.imageUrl}-${i}`} className="col-md-6 mb-3">
                     <div className="card">
                       <img
-                        src={resolveUrl(img)}
+                        src={resolveUrl(item.imageUrl)}
                         className="card-img-top"
                         alt={`Banner ${i + 1}`}
+                        style={{
+                          maxHeight: "220px",
+                          objectFit: item.fitMode || "cover",
+                          objectPosition: "center"
+                        }}
                       />
                       <div className="card-body p-2 text-center">
+                        <div className="mb-2">
+                          <label className="form-label small">Link URL</label>
+                          <input
+                            className="form-control form-control-sm"
+                            value={item.linkUrl || ""}
+                            onChange={e => updateBannerItem(i, "linkUrl", e.target.value)}
+                            placeholder="https://example.com or /about"
+                          />
+                        </div>
+                        <div className="form-check form-switch mb-2 text-start">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={`openInNewTab-${i}`}
+                            checked={!!item.openInNewTab}
+                            onChange={e => updateBannerItem(i, "openInNewTab", e.target.checked)}
+                          />
+                          <label className="form-check-label small" htmlFor={`openInNewTab-${i}`}>
+                            Open link in new tab
+                          </label>
+                        </div>
+                        <div className="mb-2 text-start">
+                          <label className="form-label small">Image Fit</label>
+                          <select
+                            className="form-select form-select-sm"
+                            value={item.fitMode || "cover"}
+                            onChange={e => updateBannerItem(i, "fitMode", e.target.value)}
+                          >
+                            <option value="cover">Cover</option>
+                            <option value="contain">Contain</option>
+                            <option value="fill">Fill</option>
+                          </select>
+                        </div>
+                        <div className="border rounded p-2 mb-2 text-start">
+                          <div className="small fw-bold mb-2">Badge Overlay</div>
+                          <div className="form-check form-switch mb-2">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`badgeEnabled-${i}`}
+                              checked={!!item.badgeEnabled}
+                              onChange={e => updateBannerItem(i, "badgeEnabled", e.target.checked)}
+                            />
+                            <label className="form-check-label small" htmlFor={`badgeEnabled-${i}`}>
+                              Enable badge
+                            </label>
+                          </div>
+                          <input
+                            className="form-control form-control-sm mb-2"
+                            value={item.badgeText || ""}
+                            onChange={e => updateBannerItem(i, "badgeText", e.target.value)}
+                            placeholder="Badge text"
+                          />
+                          <div className="row g-2">
+                            <div className="col-6">
+                              <label className="form-label small">Top(px)</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeTop || 0)}
+                                onChange={e => updateBannerItem(i, "badgeTop", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Left(px)</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeLeft || 0)}
+                                onChange={e => updateBannerItem(i, "badgeLeft", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Text Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color form-control-sm"
+                                value={item.badgeTextColor || "#ffffff"}
+                                onChange={e => updateBannerItem(i, "badgeTextColor", e.target.value)}
+                              />
+                            </div>
+                            <div className="col-6">
+                              <label className="form-label small">Badge Color</label>
+                              <input
+                                type="color"
+                                className="form-control form-control-color form-control-sm"
+                                value={item.badgeBgColor || "#ef4444"}
+                                onChange={e => updateBannerItem(i, "badgeBgColor", e.target.value)}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Font</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeFontSize || 14)}
+                                onChange={e => updateBannerItem(i, "badgeFontSize", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Radius</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgeRadius || 8)}
+                                onChange={e => updateBannerItem(i, "badgeRadius", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Pad X</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgePaddingX || 10)}
+                                onChange={e => updateBannerItem(i, "badgePaddingX", Number(e.target.value || 0))}
+                              />
+                            </div>
+                            <div className="col-4">
+                              <label className="form-label small">Pad Y</label>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={Number(item.badgePaddingY || 6)}
+                                onChange={e => updateBannerItem(i, "badgePaddingY", Number(e.target.value || 0))}
+                              />
+                            </div>
+                          </div>
+                        </div>
                         <button
                           className="btn btn-sm btn-outline-danger"
                           onClick={() => removeBanner(i)}

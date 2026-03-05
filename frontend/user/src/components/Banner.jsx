@@ -4,7 +4,7 @@ import { Carousel } from "react-bootstrap";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
 export default function Banner() {
-  const [images, setImages] = useState([]);
+  const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
@@ -18,11 +18,35 @@ export default function Banner() {
     axios
       .get(`${API_BASE}/api/settings`)
       .then(res => {
-        if (res.data && Array.isArray(res.data.bannerImages) && res.data.bannerImages.length > 0) {
-          setImages(res.data.bannerImages);
-        } else {
-          setImages([]);
-        }
+        const rawItems =
+          Array.isArray(res.data?.bannerItems) && res.data.bannerItems.length > 0
+            ? res.data.bannerItems
+            : (Array.isArray(res.data?.bannerImages) ? res.data.bannerImages.map(src => ({ imageUrl: src })) : []);
+        const normalized = rawItems
+          .map(item => {
+            const imageUrl = String(item?.imageUrl || item?.src || item || "").trim();
+            if (!imageUrl) return null;
+            return {
+              imageUrl,
+              linkUrl: String(item?.linkUrl || "").trim(),
+              openInNewTab: !!item?.openInNewTab,
+              fitMode: ["cover", "contain", "fill"].includes(String(item?.fitMode || "").toLowerCase())
+                ? String(item.fitMode).toLowerCase()
+                : "cover",
+              badgeEnabled: item?.badgeEnabled !== undefined ? !!item.badgeEnabled : !!String(item?.badgeText || "").trim(),
+              badgeText: String(item?.badgeText || "").trim(),
+              badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
+              badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+              badgeBgColor: item?.badgeBgColor || "#ef4444",
+              badgeTextColor: item?.badgeTextColor || "#ffffff",
+              badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
+              badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
+              badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
+              badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6
+            };
+          })
+          .filter(Boolean);
+        setItems(normalized);
         if (res.data && res.data.bannerMargin !== undefined) {
           setBannerMargin(Number(res.data.bannerMargin || 0));
         }
@@ -31,12 +55,12 @@ export default function Banner() {
         }
       })
       .catch(() => {
-        setImages([]);
+        setItems([]);
       })
       .finally(() => setReady(true));
   }, []);
 
-  if (!ready || images.length === 0) return null;
+  if (!ready || items.length === 0) return null;
 
   const bannerShellStyle =
     safeMargin > 0
@@ -49,16 +73,56 @@ export default function Banner() {
           width: "100%"
         };
 
-  if (images.length === 1) {
+  const renderBannerItem = (item, index) => {
+    const image = (
+      <>
+        <img
+          className="d-block w-100 banner-img"
+          src={resolveUrl(item.imageUrl)}
+          alt={`Banner ${index + 1}`}
+          loading="lazy"
+          style={{ objectFit: item.fitMode || "cover" }}
+        />
+        {item.badgeEnabled && item.badgeText && (
+          <span
+            className="banner-badge"
+            style={{
+              top: `${item.badgeTop}px`,
+              left: `${item.badgeLeft}px`,
+              background: item.badgeBgColor,
+              color: item.badgeTextColor,
+              fontSize: `${item.badgeFontSize}px`,
+              borderRadius: `${item.badgeRadius}px`,
+              padding: `${item.badgePaddingY}px ${item.badgePaddingX}px`
+            }}
+          >
+            {item.badgeText}
+          </span>
+        )}
+      </>
+    );
+
+    if (!item.linkUrl) return image;
+
+    return (
+      <a
+        href={item.linkUrl}
+        target={item.openInNewTab ? "_blank" : "_self"}
+        rel={item.openInNewTab ? "noreferrer" : undefined}
+        className="banner-link-wrap"
+      >
+        {image}
+      </a>
+    );
+  };
+
+  if (items.length === 1) {
     return (
       <div className="banner-shell" style={bannerShellStyle}>
         <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
-          <img
-            className="d-block w-100 banner-img"
-            src={resolveUrl(images[0])}
-            alt="Banner"
-            loading="lazy"
-          />
+          <div className="banner-item">
+            {renderBannerItem(items[0], 0)}
+          </div>
         </div>
       </div>
     );
@@ -67,15 +131,12 @@ export default function Banner() {
   return (
     <div className="banner-shell" style={bannerShellStyle}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
-        <Carousel interval={3000} pause={false} indicators={false} controls={images.length > 1}>
-          {images.map((src, i) => (
-            <Carousel.Item key={src + i}>
-              <img
-                className="d-block w-100 banner-img"
-                src={resolveUrl(src)}
-                alt={`Banner ${i + 1}`}
-                loading="lazy"
-              />
+        <Carousel interval={3000} pause={false} indicators={false} controls={items.length > 1}>
+          {items.map((item, i) => (
+            <Carousel.Item key={`${item.imageUrl}-${i}`}>
+              <div className="banner-item">
+                {renderBannerItem(item, i)}
+              </div>
             </Carousel.Item>
           ))}
         </Carousel>

@@ -84,6 +84,32 @@ const validateBannerImageRatio = async file => {
   }
 };
 
+const normalizeBannerItem = item => {
+  const imageUrl = String(item?.imageUrl || item?.src || "").trim();
+  if (!imageUrl) return null;
+  const fitModeRaw = String(item?.fitMode || "cover").toLowerCase();
+  const fitMode = ["cover", "contain", "fill"].includes(fitModeRaw) ? fitModeRaw : "cover";
+  const badgeEnabled = item?.badgeEnabled !== undefined
+    ? !!item.badgeEnabled
+    : !!String(item?.badgeText || "").trim();
+  return {
+    imageUrl,
+    linkUrl: String(item?.linkUrl || "").trim(),
+    openInNewTab: !!item?.openInNewTab,
+    fitMode,
+    badgeEnabled,
+    badgeText: String(item?.badgeText || "").trim(),
+    badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
+    badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+    badgeBgColor: String(item?.badgeBgColor || "#ef4444"),
+    badgeTextColor: String(item?.badgeTextColor || "#ffffff"),
+    badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
+    badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
+    badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
+    badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6
+  };
+};
+
 const defaults = {
   siteName: "Study Portal",
   logoUrl: "",
@@ -175,6 +201,7 @@ const defaults = {
   ratingEnabled: true,
   ratingPopupFrequencyDays: 7,
   bannerImages: [],
+  bannerItems: [],
   seoTitle: "",
   seoDescription: "",
   seoKeywords: "",
@@ -364,6 +391,7 @@ const updateSettings = async (req, res) => {
       ratingEnabled: req.body.ratingEnabled,
       ratingPopupFrequencyDays: req.body.ratingPopupFrequencyDays,
       bannerImages: req.body.bannerImages,
+      bannerItems: req.body.bannerItems,
       seoTitle: req.body.seoTitle,
       seoDescription: req.body.seoDescription,
       seoKeywords: req.body.seoKeywords,
@@ -611,6 +639,23 @@ const updateSettings = async (req, res) => {
         prevBanners.filter(url => !nextBannerSet.has(url)).forEach(url => removedFiles.push(url));
         settings.bannerImages = nextBanners;
       }
+      if (Array.isArray(payload.bannerItems)) {
+        const prevBannerItems = Array.isArray(previousSettings.bannerItems) ? previousSettings.bannerItems : [];
+        const prevUrls = new Set(
+          prevBannerItems
+            .map(item => String(item?.imageUrl || "").trim())
+            .filter(Boolean)
+        );
+        const nextBannerItems = payload.bannerItems
+          .map(normalizeBannerItem)
+          .filter(Boolean);
+        const nextUrls = new Set(nextBannerItems.map(item => item.imageUrl));
+        prevUrls.forEach(url => {
+          if (!nextUrls.has(url)) removedFiles.push(url);
+        });
+        settings.bannerItems = nextBannerItems;
+        settings.bannerImages = nextBannerItems.map(item => item.imageUrl);
+      }
       settings.courseSections = Array.isArray(payload.courseSections)
         ? payload.courseSections
         : settings.courseSections;
@@ -688,11 +733,20 @@ const uploadBanners = async (req, res) => {
     );
 
     const newImages = uploadedBanners.map(item => item.secure_url);
+    const newItems = newImages.map(url => normalizeBannerItem({ imageUrl: url }));
     let settings = await Setting.findOne();
     if (!settings) {
-      settings = await Setting.create({ ...defaults, bannerImages: newImages });
+      settings = await Setting.create({
+        ...defaults,
+        bannerImages: newImages,
+        bannerItems: newItems
+      });
     } else {
-      settings.bannerImages = [...(settings.bannerImages || []), ...newImages];
+      const currentItems = Array.isArray(settings.bannerItems)
+        ? settings.bannerItems.map(normalizeBannerItem).filter(Boolean)
+        : [];
+      settings.bannerItems = [...currentItems, ...newItems];
+      settings.bannerImages = settings.bannerItems.map(item => item.imageUrl);
       await settings.save();
     }
     emitSettingsChanged();

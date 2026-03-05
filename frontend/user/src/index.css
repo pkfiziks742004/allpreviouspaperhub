@@ -275,6 +275,26 @@ body {
   object-fit: contain !important;
 }
 
+.banner-item {
+  position: relative;
+}
+
+.banner-link-wrap {
+  display: block;
+  position: relative;
+  text-decoration: none;
+}
+
+.banner-badge {
+  position: absolute;
+  z-index: 4;
+  font-weight: 700;
+  line-height: 1.1;
+  max-width: min(80%, 420px);
+  pointer-events: none;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.25);
+}
+
 .card h5 {
   font-size: 1.05rem;
 }
