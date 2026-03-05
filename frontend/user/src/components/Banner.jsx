@@ -214,16 +214,14 @@ export default function Banner() {
           <span
             className="banner-badge"
             style={{
-              top: `clamp(4px, ${Number(item.badgeTop || 0)}px, calc(100% - 24px))`,
-              left: `clamp(4px, ${Number(item.badgeLeft || 0)}px, calc(100% - 24px))`,
+              "--badge-top": `${Math.max(0, Number(item.badgeTop || 0))}px`,
+              "--badge-left": `${Math.max(0, Number(item.badgeLeft || 0))}px`,
+              "--badge-font-size": `${Math.max(10, Number(item.badgeFontSize || 14))}px`,
+              "--badge-pad-y": `${Math.max(4, Number(item.badgePaddingY || 6))}px`,
+              "--badge-pad-x": `${Math.max(6, Number(item.badgePaddingX || 10))}px`,
               background: item.badgeBgColor,
               color: item.badgeTextColor,
-              fontSize: `${Math.max(10, Number(item.badgeFontSize || 14))}px`,
               ...getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius),
-              padding: `${Math.max(4, Number(item.badgePaddingY || 6))}px ${Math.max(
-                6,
-                Number(item.badgePaddingX || 10)
-              )}px`,
               width:
                 item.badgeWidth > 0
                   ? `${Math.max(18, Number(item.badgeWidth))}px`
