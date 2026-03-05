@@ -29,6 +29,7 @@ export default function Courses(){
   });
   const [universities, setUniversities] = useState([]);
   const [selectedUniversity, setSelectedUniversity] = useState(null);
+  const [universitiesLoaded, setUniversitiesLoaded] = useState(false);
   const trackedSearchRef = useRef("");
 
 
@@ -38,18 +39,29 @@ export default function Courses(){
     .then(res=>setCourses(res.data));
 
     axios.get(`${API_BASE}/api/universities`)
-    .then(res => setUniversities(res.data || []));
+    .then(res => setUniversities(res.data || []))
+    .finally(() => setUniversitiesLoaded(true));
 
   },[]);
 
   useEffect(() => {
-    if (!universitySlug || !universities.length) {
+    if (!universitySlug || !universitiesLoaded) {
       setSelectedUniversity(null);
       return;
     }
+    if (!universities.length) {
+      setSelectedUniversity(null);
+      navigate("/", { replace: true });
+      return;
+    }
     const found = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
+    if (!found) {
+      setSelectedUniversity(null);
+      navigate("/", { replace: true });
+      return;
+    }
     setSelectedUniversity(found);
-  }, [universitySlug, universities]);
+  }, [navigate, universities, universitiesLoaded, universitySlug]);
 
   useEffect(() => {
     if (!universitySlug) {
@@ -64,13 +76,6 @@ export default function Courses(){
       navigate("/", { replace: true });
     }
   }, [location.state, navigate, universitySlug]);
-
-  useEffect(() => {
-    if (!universitySlug || !universities.length) return;
-    if (!selectedUniversity) {
-      navigate("/", { replace: true });
-    }
-  }, [navigate, selectedUniversity, universities.length, universitySlug]);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
