@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
 
@@ -10,6 +10,9 @@ export default function BannerSettings() {
   const [bannerItems, setBannerItems] = useState([]);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [draggingBadgeIndex, setDraggingBadgeIndex] = useState(null);
+  const bannerPreviewRefs = useRef({});
+  const badgeRefs = useRef({});
 
   const token = localStorage.getItem("token");
   const headers = { headers: { Authorization: token } };
@@ -154,6 +157,53 @@ export default function BannerSettings() {
     );
   };
 
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const startBadgeDrag = (idx, event) => {
+    if (!bannerItems[idx]?.badgeEnabled) return;
+    event.preventDefault();
+
+    const previewEl = bannerPreviewRefs.current[idx];
+    const badgeEl = badgeRefs.current[idx];
+    if (!previewEl || !badgeEl) return;
+
+    const previewRect = previewEl.getBoundingClientRect();
+    const badgeRect = badgeEl.getBoundingClientRect();
+    const offsetX = event.clientX - badgeRect.left;
+    const offsetY = event.clientY - badgeRect.top;
+
+    setDraggingBadgeIndex(idx);
+
+    const onMove = moveEvent => {
+      const maxLeft = Math.max(0, previewRect.width - badgeRect.width);
+      const maxTop = Math.max(0, previewRect.height - badgeRect.height);
+
+      const nextLeft = clamp(moveEvent.clientX - previewRect.left - offsetX, 0, maxLeft);
+      const nextTop = clamp(moveEvent.clientY - previewRect.top - offsetY, 0, maxTop);
+
+      setBannerItems(prev =>
+        prev.map((item, i) =>
+          i === idx
+            ? {
+                ...item,
+                badgeLeft: Math.round(nextLeft),
+                badgeTop: Math.round(nextTop)
+              }
+            : item
+        )
+      );
+    };
+
+    const onUp = () => {
+      setDraggingBadgeIndex(null);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
   const save = async () => {
     setSaving(true);
     try {
@@ -218,16 +268,59 @@ export default function BannerSettings() {
                 {bannerItems.map((item, i) => (
                   <div key={`${item.imageUrl}-${i}`} className="col-md-6 mb-3">
                     <div className="card">
-                      <img
-                        src={resolveUrl(item.imageUrl)}
-                        className="card-img-top"
-                        alt={`Banner ${i + 1}`}
-                        style={{
-                          maxHeight: "220px",
-                          objectFit: item.fitMode || "cover",
-                          objectPosition: "center"
+                      <div
+                        ref={el => {
+                          if (el) bannerPreviewRefs.current[i] = el;
                         }}
-                      />
+                        style={{
+                          position: "relative",
+                          width: "100%",
+                          height: "220px",
+                          overflow: "hidden",
+                          borderTopLeftRadius: "inherit",
+                          borderTopRightRadius: "inherit",
+                          background: "#f6f7fb"
+                        }}
+                      >
+                        <img
+                          src={resolveUrl(item.imageUrl)}
+                          className="card-img-top"
+                          alt={`Banner ${i + 1}`}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: item.fitMode || "cover",
+                            objectPosition: "center"
+                          }}
+                        />
+                        {item.badgeEnabled && item.badgeText && (
+                          <span
+                            ref={el => {
+                              if (el) badgeRefs.current[i] = el;
+                            }}
+                            onPointerDown={e => startBadgeDrag(i, e)}
+                            style={{
+                              position: "absolute",
+                              top: Number(item.badgeTop || 0),
+                              left: Number(item.badgeLeft || 0),
+                              background: item.badgeBgColor || "#ef4444",
+                              color: item.badgeTextColor || "#ffffff",
+                              fontSize: Number(item.badgeFontSize || 14),
+                              borderRadius: Number(item.badgeRadius || 8),
+                              padding: `${Number(item.badgePaddingY || 6)}px ${Number(item.badgePaddingX || 10)}px`,
+                              lineHeight: 1.2,
+                              fontWeight: 600,
+                              cursor: draggingBadgeIndex === i ? "grabbing" : "grab",
+                              userSelect: "none",
+                              touchAction: "none",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.22)"
+                            }}
+                            title="Drag to move badge"
+                          >
+                            {item.badgeText}
+                          </span>
+                        )}
+                      </div>
                       <div className="card-body p-2 text-center">
                         <div className="mb-2">
                           <label className="form-label small">Link URL</label>
@@ -282,6 +375,7 @@ export default function BannerSettings() {
                             onChange={e => updateBannerItem(i, "badgeText", e.target.value)}
                             placeholder="Badge text"
                           />
+                          <div className="form-text mb-2">Tip: Preview badge ko drag karke exact position set karein.</div>
                           <div className="row g-2">
                             <div className="col-6">
                               <label className="form-label small">Top(px)</label>
