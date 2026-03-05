@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
+import { canAccessPaper } from "../utils/navigationFlow";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -19,7 +20,8 @@ const defaultPaperOpenViewer = {
 };
 
 export default function PaperOpen() {
-  const { id, universitySlug, courseSlug, semesterSlug, paperSlug } = useParams();
+  const { universitySlug, courseSlug, semesterSlug, paperSlug } = useParams();
+  const navigate = useNavigate();
   const [paper, setPaper] = useState(null);
   const [error, setError] = useState("");
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
@@ -37,34 +39,38 @@ export default function PaperOpen() {
   }, []);
 
   useEffect(() => {
+    if (!universitySlug || !courseSlug || !semesterSlug || !paperSlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (!canAccessPaper(universitySlug, courseSlug, semesterSlug, paperSlug)) {
+      navigate("/", { replace: true });
+    }
+  }, [courseSlug, navigate, paperSlug, semesterSlug, universitySlug]);
+
+  useEffect(() => {
     const loadPaper = async () => {
       try {
-        const paperRequest = id
-          ? axios.get(`${API_BASE}/api/papers/${id}`)
-          : axios.get(`${API_BASE}/api/papers`);
+        const paperRequest = axios.get(`${API_BASE}/api/papers`);
         const [paperRes, settingsRes] = await Promise.all([
           paperRequest,
           axios.get(`${API_BASE}/api/settings`).catch(() => ({ data: {} }))
         ]);
 
         let resolvedPaper = null;
-        if (id) {
-          resolvedPaper = paperRes.data || null;
-        } else {
-          const all = Array.isArray(paperRes.data) ? paperRes.data : [];
-          resolvedPaper =
-            all.find(p => {
-              const uniName = p?.courseId?.universityId?.name || p?.universityName || "";
-              const courseName = p?.courseId?.name || p?.courseName || "";
-              const semName = p?.semId?.name || p?.semesterName || "";
-              return (
-                toRouteSegment(uniName, "university") === universitySlug &&
-                toRouteSegment(courseName, "course") === courseSlug &&
-                toRouteSegment(semName, "semester") === semesterSlug &&
-                toRouteSegment(p?.title, "paper") === paperSlug
-              );
-            }) || null;
-        }
+        const all = Array.isArray(paperRes.data) ? paperRes.data : [];
+        resolvedPaper =
+          all.find(p => {
+            const uniName = p?.courseId?.universityId?.name || p?.universityName || "";
+            const courseName = p?.courseId?.name || p?.courseName || "";
+            const semName = p?.semId?.name || p?.semesterName || "";
+            return (
+              toRouteSegment(uniName, "university") === universitySlug &&
+              toRouteSegment(courseName, "course") === courseSlug &&
+              toRouteSegment(semName, "semester") === semesterSlug &&
+              toRouteSegment(p?.title, "paper") === paperSlug
+            );
+          }) || null;
 
         setPaper(resolvedPaper);
         setPaperOpenViewer({
@@ -82,7 +88,7 @@ export default function PaperOpen() {
       }
     };
     loadPaper();
-  }, [id, universitySlug, courseSlug, semesterSlug, paperSlug]);
+  }, [courseSlug, paperSlug, semesterSlug, universitySlug]);
 
   useEffect(() => {
     if (!paper?._id) return undefined;

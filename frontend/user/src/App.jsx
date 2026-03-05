@@ -240,10 +240,6 @@ function App() {
           <Route path="/:universitySlug/:courseSlug" element={<Semesters />} />
           <Route path="/:universitySlug/:courseSlug/:semesterSlug" element={<Papers />} />
           <Route path="/:universitySlug/:courseSlug/:semesterSlug/:paperSlug" element={<PaperOpen />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/course/:id" element={<Semesters />} />
-          <Route path="/papers/:id" element={<Papers />} />
-          <Route path="/paper-open/:id" element={<PaperOpen />} />
           <Route path="/page/:slug" element={<CustomPage />} />
           <Route path="/about" element={<AboutUs />} />
         </Routes>

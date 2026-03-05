@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
@@ -9,6 +9,7 @@ import Footer from "../components/Footer";
 import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
 import { toRouteSegment } from "../utils/slugs";
+import { markUniversityFlow } from "../utils/navigationFlow";
 
 export default function Home() {
   const location = useLocation();
@@ -16,7 +17,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
   const [universities, setUniversities] = useState([]);
-  const [activeUniversityId, setActiveUniversityId] = useState("");
   const [homeTitle, setHomeTitle] = useState("");
   const [homeSubtitle, setHomeSubtitle] = useState("");
   const [homeTitleStyle, setHomeTitleStyle] = useState({});
@@ -24,19 +24,14 @@ export default function Home() {
   const [courseSections, setCourseSections] = useState([]);
   const [cardStyles, setCardStyles] = useState({});
   const [universityNameStyle, setUniversityNameStyle] = useState({});
-  const [courseNameStyle, setCourseNameStyle] = useState({});
   const [universitiesSectionTitle, setUniversitiesSectionTitle] = useState("");
   const [universitiesSectionSubtitle, setUniversitiesSectionSubtitle] = useState("");
-  const [coursesSectionTitle, setCoursesSectionTitle] = useState("");
   const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState({});
-  const [coursesTitleStyle, setCoursesTitleStyle] = useState({});
   const [courseButtonStyle, setCourseButtonStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [sectionCardButtonEnabled, setSectionCardButtonEnabled] = useState(true);
   const [sectionCardButtonText, setSectionCardButtonText] = useState("View Details");
-  const [pendingCourseScroll, setPendingCourseScroll] = useState(false);
   const [notices, setNotices] = useState([]);
-  const coursesSectionRef = useRef(null);
   const [typeActionLabels, setTypeActionLabels] = useState({
     university: "View Semesters",
     college: "View Semesters",
@@ -57,11 +52,8 @@ export default function Home() {
       .then(res => {
         const data = res.data || [];
         setUniversities(data);
-        if (!activeUniversityId && data.length > 0) {
-          setActiveUniversityId(data[0]._id);
-        }
       });
-  }, [activeUniversityId]);
+  }, []);
 
   const loadSettings = useCallback(() => {
     return axios
@@ -78,12 +70,9 @@ export default function Home() {
         setCourseSections(Array.isArray(res.data.courseSections) ? res.data.courseSections : []);
         setCardStyles(res.data.cardStyles || {});
         setUniversityNameStyle(res.data.universityNameStyle || {});
-        setCourseNameStyle(res.data.courseNameStyle || {});
         setUniversitiesSectionTitle(res.data.universitiesSectionTitle || "");
         setUniversitiesSectionSubtitle(res.data.universitiesSectionSubtitle || "");
-        setCoursesSectionTitle(res.data.coursesSectionTitle || "");
         setUniversitiesTitleStyle(res.data.universitiesTitleStyle || {});
-        setCoursesTitleStyle(res.data.coursesTitleStyle || {});
         setCourseButtonStyle(res.data.courseButtonStyle || {});
         setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
         setSectionCardButtonEnabled(
@@ -115,27 +104,6 @@ export default function Home() {
       .then(res => setNotices(Array.isArray(res.data) ? res.data : []))
       .catch(() => setNotices([]));
   }, []);
-
-  useEffect(() => {
-    if (!pendingCourseScroll || !activeUniversityId || !coursesSectionRef.current) return;
-
-    const headerHeightVar = getComputedStyle(document.documentElement)
-      .getPropertyValue("--site-header-height")
-      .trim();
-    const headerOffset = Number.parseInt(headerHeightVar, 10) || 0;
-    const targetTop =
-      coursesSectionRef.current.getBoundingClientRect().top +
-      window.scrollY -
-      headerOffset -
-      12;
-
-    window.scrollTo({
-      top: Math.max(targetTop, 0),
-      behavior: "smooth"
-    });
-
-    setPendingCourseScroll(false);
-  }, [pendingCourseScroll, activeUniversityId]);
 
   const renderText = (text, style, fallbackTag) => {
     const Tag = (style && style.variant) || fallbackTag || "p";
@@ -171,19 +139,6 @@ export default function Home() {
     const matchesType = searchType === "all" || uniType === searchType;
     return matchesText && matchesType;
   });
-
-  useEffect(() => {
-    if (!filteredUniversities.length) {
-      setActiveUniversityId("");
-      return;
-    }
-    const exists = filteredUniversities.some(u => String(u._id) === String(activeUniversityId));
-    if (!exists) setActiveUniversityId(filteredUniversities[0]._id);
-  }, [filteredUniversities, activeUniversityId]);
-
-  const visibleCourses = activeUniversityId
-    ? courses.filter(c => String(c.universityId || "") === String(activeUniversityId))
-    : courses;
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -286,10 +241,12 @@ export default function Home() {
   const findUniversity = universityId =>
     universities.find(u => String(u._id) === String(universityId));
 
-  const buildCoursePath = course => {
+  const openUniversityFromCourse = course => {
     const uni = findUniversity(course?.universityId);
-    if (!uni) return `/course/${course?._id}`;
-    return `/${toRouteSegment(uni.name, "university")}/${toRouteSegment(course?.name, "course")}`;
+    if (!uni) return;
+    const uniSlug = toRouteSegment(uni.name, "university");
+    markUniversityFlow(uniSlug);
+    navigate(`/${uniSlug}`);
   };
 
   return (
@@ -330,9 +287,10 @@ export default function Home() {
             {filteredUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
-                  className={`card modern-card modern-card--large h-100 text-center ${activeUniversityId === u._id ? "border-primary" : ""}`}
+                  className="card modern-card modern-card--large h-100 text-center"
                   style={{ cursor: "pointer", ...buildCardStyle("university") }}
                   onClick={() => {
+                    markUniversityFlow(toRouteSegment(u.name, "university"));
                     navigate(`/${toRouteSegment(u.name, "university")}`);
                   }}
                 >
@@ -367,51 +325,6 @@ export default function Home() {
             )}
           </div>
 
-          {activeUniversityId && (
-            <div className="mt-4" ref={coursesSectionRef}>
-              <h5 className="section-title-sm" style={sectionTitleStyle(coursesTitleStyle)}>{coursesSectionTitle}</h5>
-              {universities.find(u => u._id === activeUniversityId)?.comingSoon ? (
-                <div className="alert alert-warning text-center mb-0">
-                  {universities.find(u => u._id === activeUniversityId)?.comingSoonText || "Coming soon"}
-                </div>
-              ) : (
-                <div className="cards-grid cards-grid-4-6">
-                  {visibleCourses.map(c => (
-                    <div key={c._id} className="cards-grid-item">
-                    <div className="card modern-card h-100 text-center" style={buildCardStyle("course")}>
-                      <div className="card-body">
-                        {renderName(c.name, courseNameStyle, "h5")}
-                        <a
-                          href={buildCoursePath(c)}
-                          className="btn btn-outline-primary btn-sm mt-3"
-                          style={courseBtnStyle}
-                          onMouseEnter={e => {
-                            if (courseButtonStyle.hoverColor) {
-                              e.currentTarget.style.backgroundColor = courseButtonStyle.hoverColor;
-                              e.currentTarget.style.borderColor = courseButtonStyle.hoverColor;
-                            }
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.backgroundColor = courseButtonStyle.bgColor || "";
-                            e.currentTarget.style.borderColor = courseButtonStyle.bgColor || "";
-                          }}
-                        >
-                            {getCourseButtonLabel(c)}
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {visibleCourses.length === 0 && (
-                    <div className="col-12 text-muted">
-                      No courses for this university.
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {courseSections.map((section, idx) => {
@@ -453,7 +366,7 @@ export default function Home() {
                         className="card modern-card h-100 text-center"
                         style={{ ...buildCardStyle("section"), cursor: "pointer" }}
                         onClick={() => {
-                          navigate(buildCoursePath(c));
+                          openUniversityFromCourse(c);
                         }}
                       >
                         <div className="card-body">
@@ -465,7 +378,7 @@ export default function Home() {
                               style={courseBtnStyle}
                               onClick={e => {
                                 e.stopPropagation();
-                                navigate(buildCoursePath(c));
+                                openUniversityFromCourse(c);
                               }}
                               onMouseEnter={e => {
                                 if (courseButtonStyle.hoverColor) {

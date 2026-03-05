@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -6,10 +6,12 @@ import Footer from "../components/Footer";
 import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
+import { canAccessSemester, markPaperFlow } from "../utils/navigationFlow";
 
 export default function Papers(){
 
-  const { id, universitySlug, courseSlug, semesterSlug } = useParams();
+  const { universitySlug, courseSlug, semesterSlug } = useParams();
+  const navigate = useNavigate();
 
   const [papers, setPapers] = useState([]);
   const [selectedUniversity, setSelectedUniversity] = useState(null);
@@ -27,12 +29,6 @@ export default function Papers(){
 
   useEffect(()=>{
     const load = async () => {
-      if (id) {
-        const res = await axios.get(`${API_BASE}/api/papers/semester/${id}`);
-        setPapers(res.data || []);
-        return;
-      }
-
       if (!universitySlug || !courseSlug || !semesterSlug) {
         setPapers([]);
         return;
@@ -64,6 +60,7 @@ export default function Papers(){
 
       if (!semester?._id) {
         setPapers([]);
+        navigate("/", { replace: true });
         return;
       }
 
@@ -71,9 +68,22 @@ export default function Papers(){
       setPapers(res.data || []);
     };
 
-    load().catch(() => setPapers([]));
+    load().catch(() => {
+      setPapers([]);
+      navigate("/", { replace: true });
+    });
 
-},[id, universitySlug, courseSlug, semesterSlug]);
+},[courseSlug, navigate, semesterSlug, universitySlug]);
+
+  useEffect(() => {
+    if (!universitySlug || !courseSlug || !semesterSlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (!canAccessSemester(universitySlug, courseSlug, semesterSlug)) {
+      navigate("/", { replace: true });
+    }
+  }, [courseSlug, navigate, semesterSlug, universitySlug]);
 
   useEffect(() => {
     axios
@@ -150,7 +160,7 @@ export default function Papers(){
   };
 
   const buildPaperPath = paper => {
-    if (!selectedUniversity || !selectedCourse || !selectedSemester) return `/paper-open/${paper._id}`;
+    if (!selectedUniversity || !selectedCourse || !selectedSemester) return "/";
     return `/${toRouteSegment(selectedUniversity.name, "university")}/${toRouteSegment(selectedCourse.name, "course")}/${toRouteSegment(selectedSemester.name, "semester")}/${toRouteSegment(paper.title, "paper")}`;
   };
 
@@ -205,12 +215,17 @@ export default function Papers(){
                   {renderPaperTitle(p)}
                 </div>
 
-                <a
-                  href={buildPaperPath(p)}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
                   className="btn btn-primary btn-sm paper-open-btn"
                   style={btnStyle}
+                  onClick={() => {
+                    const targetPath = buildPaperPath(p);
+                    const paperRouteSlug = toRouteSegment(p.title, "paper");
+                    markPaperFlow(universitySlug, courseSlug, semesterSlug, paperRouteSlug);
+                    axios.get(`${API_BASE}/api/papers/download/${p._id}`).catch(() => {});
+                    navigate(targetPath);
+                  }}
                   onMouseEnter={e => {
                     if (questionPaperButtonStyle.hoverColor) {
                       e.currentTarget.style.backgroundColor = questionPaperButtonStyle.hoverColor;
@@ -221,12 +236,9 @@ export default function Papers(){
                     e.currentTarget.style.backgroundColor = questionPaperButtonStyle.bgColor || "";
                     e.currentTarget.style.borderColor = questionPaperButtonStyle.bgColor || "";
                   }}
-                  onClick={() => {
-                    axios.get(`${API_BASE}/api/papers/download/${p._id}`);
-                  }}
                 >
                   Open Paper ({p.downloads || 0})
-                </a>
+                </button>
               </div>
             ))}
             {filteredPapers.length === 0 && (

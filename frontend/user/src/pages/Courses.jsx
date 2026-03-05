@@ -1,13 +1,15 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
+import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
 
 export default function Courses(){
   const { universitySlug } = useParams();
+  const navigate = useNavigate();
 
   const [courses,setCourses]=useState([]);
   const [search,setSearch]=useState("");
@@ -47,6 +49,23 @@ export default function Courses(){
     const found = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
     setSelectedUniversity(found);
   }, [universitySlug, universities]);
+
+  useEffect(() => {
+    if (!universitySlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (!canAccessUniversity(universitySlug)) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate, universitySlug]);
+
+  useEffect(() => {
+    if (!universitySlug || !universities.length) return;
+    if (!selectedUniversity) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate, selectedUniversity, universities.length, universitySlug]);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
@@ -161,7 +180,7 @@ export default function Courses(){
 
   const buildCoursePath = course => {
     const uni = selectedUniversity || universities.find(u => String(u._id) === String(course.universityId));
-    if (!uni) return `/course/${course._id}`;
+    if (!uni) return "/";
     return `/${toRouteSegment(uni.name, "university")}/${toRouteSegment(course.name, "course")}`;
   };
 
@@ -202,10 +221,17 @@ export default function Courses(){
 
           {renderCourseName(c.name)}
 
-          <a
-            href={buildCoursePath(c)}
+          <button
+            type="button"
             className="btn btn-outline-primary btn-sm mt-3"
             style={courseBtnStyle}
+            onClick={() => {
+              const targetPath = buildCoursePath(c);
+              const courseRouteSlug = toRouteSegment(c.name, "course");
+              if (!selectedUniversity || !courseRouteSlug) return;
+              markCourseFlow(universitySlug, courseRouteSlug);
+              navigate(targetPath);
+            }}
             onMouseEnter={e => {
               if (courseButtonStyle.hoverColor) {
                 e.currentTarget.style.backgroundColor = courseButtonStyle.hoverColor;
@@ -218,7 +244,7 @@ export default function Courses(){
             }}
           >
             {getCourseButtonLabel(c)}
-          </a>
+          </button>
 
         </div>
 

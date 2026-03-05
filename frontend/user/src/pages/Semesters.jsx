@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
@@ -6,10 +6,12 @@ import Footer from "../components/Footer";
 import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
+import { canAccessCourse, markSemesterFlow } from "../utils/navigationFlow";
 
 export default function Semesters(){
 
-  const { id, universitySlug, courseSlug } = useParams();
+  const { universitySlug, courseSlug } = useParams();
+  const navigate = useNavigate();
   const [list,setList]=useState([]);
   const [selectedUniversity, setSelectedUniversity] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -22,12 +24,6 @@ export default function Semesters(){
 
   useEffect(()=>{
     const load = async () => {
-      if (id) {
-        const res = await axios.get(`${API_BASE}/api/semesters/${id}`);
-        setList(res.data || []);
-        return;
-      }
-
       if (!universitySlug || !courseSlug) {
         setList([]);
         return;
@@ -51,6 +47,7 @@ export default function Semesters(){
 
       if (!course?._id) {
         setList([]);
+        navigate("/", { replace: true });
         return;
       }
 
@@ -58,8 +55,21 @@ export default function Semesters(){
       setList(semRes.data || []);
     };
 
-    load().catch(() => setList([]));
-  },[id, universitySlug, courseSlug]);
+    load().catch(() => {
+      setList([]);
+      navigate("/", { replace: true });
+    });
+  },[courseSlug, navigate, universitySlug]);
+
+  useEffect(() => {
+    if (!universitySlug || !courseSlug) {
+      navigate("/", { replace: true });
+      return;
+    }
+    if (!canAccessCourse(universitySlug, courseSlug)) {
+      navigate("/", { replace: true });
+    }
+  }, [courseSlug, navigate, universitySlug]);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
@@ -154,7 +164,7 @@ export default function Semesters(){
   };
 
   const buildPapersPath = semester => {
-    if (!selectedUniversity || !selectedCourse) return `/papers/${semester._id}`;
+    if (!selectedUniversity || !selectedCourse) return "/";
     return `/${toRouteSegment(selectedUniversity.name, "university")}/${toRouteSegment(selectedCourse.name, "course")}/${toRouteSegment(semester.name, "semester")}`;
   };
 
@@ -201,6 +211,10 @@ export default function Semesters(){
                     to={buildPapersPath(s)}
                     className="btn btn-outline-primary btn-sm mt-2 semester-view-btn"
                     style={semesterBtnStyle}
+                    onClick={() => {
+                      const semesterRouteSlug = toRouteSegment(s.name, "semester");
+                      markSemesterFlow(universitySlug, courseSlug, semesterRouteSlug);
+                    }}
                     onMouseEnter={e => {
                       if (buttonStyle.hoverColor) {
                         e.currentTarget.style.backgroundColor = buttonStyle.hoverColor;
