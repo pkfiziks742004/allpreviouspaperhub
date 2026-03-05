@@ -5,11 +5,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
+import { toRouteSegment } from "../utils/slugs";
 
 export default function Semesters(){
 
-  const { id } = useParams();
+  const { id, universitySlug, courseSlug } = useParams();
   const [list,setList]=useState([]);
+  const [selectedUniversity, setSelectedUniversity] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [title, setTitle] = useState("");
   const [titleStyle, setTitleStyle] = useState({});
   const [cardStyle, setCardStyle] = useState({});
@@ -18,12 +21,45 @@ export default function Semesters(){
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
 
   useEffect(()=>{
+    const load = async () => {
+      if (id) {
+        const res = await axios.get(`${API_BASE}/api/semesters/${id}`);
+        setList(res.data || []);
+        return;
+      }
 
-    axios
-    .get(`${API_BASE}/api/semesters/${id}`)
-    .then(res=>setList(res.data));
+      if (!universitySlug || !courseSlug) {
+        setList([]);
+        return;
+      }
 
-  },[id]);
+      const [uniRes, courseRes] = await Promise.all([
+        axios.get(`${API_BASE}/api/universities`),
+        axios.get(`${API_BASE}/api/courses`)
+      ]);
+
+      const universities = uniRes.data || [];
+      const courses = courseRes.data || [];
+      const uni = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
+      const course = courses.find(c =>
+        String(c.universityId || "") === String(uni?._id || "") &&
+        toRouteSegment(c.name, "course") === courseSlug
+      ) || null;
+
+      setSelectedUniversity(uni);
+      setSelectedCourse(course);
+
+      if (!course?._id) {
+        setList([]);
+        return;
+      }
+
+      const semRes = await axios.get(`${API_BASE}/api/semesters/${course._id}`);
+      setList(semRes.data || []);
+    };
+
+    load().catch(() => setList([]));
+  },[id, universitySlug, courseSlug]);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
@@ -117,6 +153,11 @@ export default function Semesters(){
     return "";
   };
 
+  const buildPapersPath = semester => {
+    if (!selectedUniversity || !selectedCourse) return `/papers/${semester._id}`;
+    return `/${toRouteSegment(selectedUniversity.name, "university")}/${toRouteSegment(selectedCourse.name, "course")}/${toRouteSegment(semester.name, "semester")}`;
+  };
+
 
   return(
     <div className="page-shell">
@@ -157,7 +198,7 @@ export default function Semesters(){
                   </div>
 
                   <Link
-                    to={`/papers/${s._id}`}
+                    to={buildPapersPath(s)}
                     className="btn btn-outline-primary btn-sm mt-2 semester-view-btn"
                     style={semesterBtnStyle}
                     onMouseEnter={e => {

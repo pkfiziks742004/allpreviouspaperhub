@@ -8,6 +8,7 @@ import Banner from "../components/Banner";
 import Footer from "../components/Footer";
 import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
+import { toRouteSegment } from "../utils/slugs";
 
 export default function Home() {
   const location = useLocation();
@@ -282,6 +283,15 @@ export default function Home() {
     return getActionLabelByType(uniType);
   };
 
+  const findUniversity = universityId =>
+    universities.find(u => String(u._id) === String(universityId));
+
+  const buildCoursePath = course => {
+    const uni = findUniversity(course?.universityId);
+    if (!uni) return `/course/${course?._id}`;
+    return `/${toRouteSegment(uni.name, "university")}/${toRouteSegment(course?.name, "course")}`;
+  };
+
   return (
     <div className="page-shell">
       <RatingPopup />
@@ -323,8 +333,7 @@ export default function Home() {
                   className={`card modern-card modern-card--large h-100 text-center ${activeUniversityId === u._id ? "border-primary" : ""}`}
                   style={{ cursor: "pointer", ...buildCardStyle("university") }}
                   onClick={() => {
-                    setActiveUniversityId(u._id);
-                    setPendingCourseScroll(true);
+                    navigate(`/${toRouteSegment(u.name, "university")}`);
                   }}
                 >
                   <div className="card-body">
@@ -373,7 +382,7 @@ export default function Home() {
                       <div className="card-body">
                         {renderName(c.name, courseNameStyle, "h5")}
                         <a
-                          href={`/course/${c._id}`}
+                          href={buildCoursePath(c)}
                           className="btn btn-outline-primary btn-sm mt-3"
                           style={courseBtnStyle}
                           onMouseEnter={e => {
@@ -444,7 +453,7 @@ export default function Home() {
                         className="card modern-card h-100 text-center"
                         style={{ ...buildCardStyle("section"), cursor: "pointer" }}
                         onClick={() => {
-                          navigate(`/course/${c._id}`);
+                          navigate(buildCoursePath(c));
                         }}
                       >
                         <div className="card-body">
@@ -456,7 +465,7 @@ export default function Home() {
                               style={courseBtnStyle}
                               onClick={e => {
                                 e.stopPropagation();
-                                navigate(`/course/${c._id}`);
+                                navigate(buildCoursePath(c));
                               }}
                               onMouseEnter={e => {
                                 if (courseButtonStyle.hoverColor) {

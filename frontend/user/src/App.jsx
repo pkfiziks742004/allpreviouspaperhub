@@ -236,6 +236,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/:universitySlug" element={<Courses />} />
+          <Route path="/:universitySlug/:courseSlug" element={<Semesters />} />
+          <Route path="/:universitySlug/:courseSlug/:semesterSlug" element={<Papers />} />
+          <Route path="/:universitySlug/:courseSlug/:semesterSlug/:paperSlug" element={<PaperOpen />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/course/:id" element={<Semesters />} />
           <Route path="/papers/:id" element={<Papers />} />

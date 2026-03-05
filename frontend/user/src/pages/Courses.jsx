@@ -1,10 +1,13 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
+import { toRouteSegment } from "../utils/slugs";
 
 export default function Courses(){
+  const { universitySlug } = useParams();
 
   const [courses,setCourses]=useState([]);
   const [search,setSearch]=useState("");
@@ -22,6 +25,7 @@ export default function Courses(){
     other: "View Details"
   });
   const [universities, setUniversities] = useState([]);
+  const [selectedUniversity, setSelectedUniversity] = useState(null);
   const trackedSearchRef = useRef("");
 
 
@@ -34,6 +38,15 @@ export default function Courses(){
     .then(res => setUniversities(res.data || []));
 
   },[]);
+
+  useEffect(() => {
+    if (!universitySlug || !universities.length) {
+      setSelectedUniversity(null);
+      return;
+    }
+    const found = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
+    setSelectedUniversity(found);
+  }, [universitySlug, universities]);
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
@@ -146,6 +159,16 @@ export default function Courses(){
     return (typeActionLabels && typeActionLabels[key]) || "View Semesters";
   };
 
+  const buildCoursePath = course => {
+    const uni = selectedUniversity || universities.find(u => String(u._id) === String(course.universityId));
+    if (!uni) return `/course/${course._id}`;
+    return `/${toRouteSegment(uni.name, "university")}/${toRouteSegment(course.name, "course")}`;
+  };
+
+  const visibleCourses = courses
+    .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
+    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+
   return(
     <div className="page-shell">
       <Navbar/>
@@ -154,7 +177,9 @@ export default function Courses(){
       <div className="container mt-4">
 
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
-          <h3 className="section-title-sm" style={sectionTitleStyle}>{coursesSectionTitle}</h3>
+          <h3 className="section-title-sm" style={sectionTitleStyle}>
+            {selectedUniversity ? `${selectedUniversity.name} - ${coursesSectionTitle || "Courses"}` : coursesSectionTitle}
+          </h3>
         <input
   type="text"
   className="form-control mb-3"
@@ -166,11 +191,7 @@ export default function Courses(){
 
         <div className="cards-grid cards-grid-4-6">
 
-  {courses
-  .filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  )
-  .map(c => (
+  {visibleCourses.map(c => (
 
 
     <div key={c._id} className="cards-grid-item">
@@ -182,7 +203,7 @@ export default function Courses(){
           {renderCourseName(c.name)}
 
           <a
-            href={`/course/${c._id}`}
+            href={buildCoursePath(c)}
             className="btn btn-outline-primary btn-sm mt-3"
             style={courseBtnStyle}
             onMouseEnter={e => {
