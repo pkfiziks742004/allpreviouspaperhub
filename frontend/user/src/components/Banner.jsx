@@ -225,6 +225,19 @@ export default function Banner() {
       !["custom", "pill", "square", "rounded-square", "soft-rounded"].includes(item.badgeShape);
     const fallbackWidth = isComplexShape ? 88 : 0;
     const fallbackHeight = isComplexShape ? 44 : 0;
+    const computedFont = Math.max(10, Math.round(Math.max(10, Number(item.badgeFontSize || 14)) * scale));
+    const computedPadY = Math.max(4, Math.round(Math.max(4, Number(item.badgePaddingY || 6)) * scale));
+    const computedPadX = Math.max(6, Math.round(Math.max(6, Number(item.badgePaddingX || 10)) * scale));
+    const computedWidth = item.badgeWidth > 0 ? Math.max(18, Number(item.badgeWidth)) : fallbackWidth;
+    const computedHeight = item.badgeHeight > 0 ? Math.max(14, Number(item.badgeHeight)) : fallbackHeight;
+    const estimatedBadgeHeight = Math.max(
+      20,
+      computedHeight > 0 ? Math.round(computedHeight * scale) : computedFont + computedPadY * 2 + 6
+    );
+    const estimatedBadgeWidth = Math.max(
+      42,
+      computedWidth > 0 ? Math.round(computedWidth * scale) : 96
+    );
     const image = (
       <>
         <img
@@ -253,13 +266,10 @@ export default function Banner() {
             style={{
               "--badge-top": `${Math.max(0, Number(item.badgeTop || 0))}px`,
               "--badge-left": `${Math.max(0, Number(item.badgeLeft || 0))}px`,
-              top: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeTop || 0)) * scale)}px, calc(100% - 24px))`,
-              left: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeLeft || 0)) * scale)}px, calc(100% - 24px))`,
-              fontSize: `${Math.max(10, Math.round(Math.max(10, Number(item.badgeFontSize || 14)) * scale))}px`,
-              padding: `${Math.max(4, Math.round(Math.max(4, Number(item.badgePaddingY || 6)) * scale))}px ${Math.max(
-                6,
-                Math.round(Math.max(6, Number(item.badgePaddingX || 10)) * scale)
-              )}px`,
+              top: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeTop || 0)) * scale)}px, calc(100% - ${estimatedBadgeHeight + 4}px))`,
+              left: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeLeft || 0)) * scale)}px, calc(100% - ${estimatedBadgeWidth + 4}px))`,
+              fontSize: `${computedFont}px`,
+              padding: `${computedPadY}px ${computedPadX}px`,
               background: item.badgeBgColor,
               color: item.badgeTextColor,
               ...getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius),
@@ -294,11 +304,11 @@ export default function Banner() {
                 style={{
                   width: `${Math.max(
                     10,
-                    Math.round(Math.max(10, Number(item.badgeImageSize || 18)) * scale)
+                    Math.round(Math.max(10, Number(item.badgeImageSize || 18) * scale))
                   )}px`,
                   height: `${Math.max(
                     10,
-                    Math.round(Math.max(10, Number(item.badgeImageSize || 18)) * scale)
+                    Math.round(Math.max(10, Number(item.badgeImageSize || 18) * scale))
                   )}px`,
                   objectFit: "contain",
                   marginRight: item.badgeText ? "6px" : "0"
