@@ -114,6 +114,7 @@ export default function Banner() {
   const [ready, setReady] = useState(false);
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
+  const [isMobileView, setIsMobileView] = useState(false);
   const [badgeScaleMap, setBadgeScaleMap] = useState({});
   const bannerImageRefs = useRef({});
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
@@ -185,6 +186,15 @@ export default function Banner() {
   }, []);
 
   useEffect(() => {
+    const setViewportMode = () => {
+      setIsMobileView(window.innerWidth <= 576);
+    };
+    setViewportMode();
+    window.addEventListener("resize", setViewportMode);
+    return () => window.removeEventListener("resize", setViewportMode);
+  }, []);
+
+  useEffect(() => {
     const updateScaleMap = () => {
       setBadgeScaleMap(prev => {
         const next = { ...prev };
@@ -238,6 +248,14 @@ export default function Banner() {
       42,
       computedWidth > 0 ? Math.round(computedWidth * scale) : 96
     );
+    const desktopTop = Math.round(Math.max(0, Number(item.badgeTop || 0)) * scale);
+    const desktopLeft = Math.round(Math.max(0, Number(item.badgeLeft || 0)) * scale);
+    const mobileTopFromData = Number(item.mobileBadgeTop);
+    const mobileLeftFromData = Number(item.mobileBadgeLeft);
+    const mobileTop = Number.isFinite(mobileTopFromData) ? Math.max(4, mobileTopFromData) : Math.min(desktopTop, 12);
+    const mobileLeft = Number.isFinite(mobileLeftFromData) ? Math.max(4, mobileLeftFromData) : Math.min(desktopLeft, 12);
+    const effectiveTop = isMobileView ? mobileTop : desktopTop;
+    const effectiveLeft = isMobileView ? mobileLeft : desktopLeft;
     const image = (
       <>
         <img
@@ -266,8 +284,8 @@ export default function Banner() {
             style={{
               "--badge-top": `${Math.max(0, Number(item.badgeTop || 0))}px`,
               "--badge-left": `${Math.max(0, Number(item.badgeLeft || 0))}px`,
-              top: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeTop || 0)) * scale)}px, calc(100% - ${estimatedBadgeHeight + 4}px))`,
-              left: `clamp(4px, ${Math.round(Math.max(0, Number(item.badgeLeft || 0)) * scale)}px, calc(100% - ${estimatedBadgeWidth + 4}px))`,
+              top: `clamp(4px, ${effectiveTop}px, calc(100% - ${estimatedBadgeHeight + 4}px))`,
+              left: `clamp(4px, ${effectiveLeft}px, calc(100% - ${estimatedBadgeWidth + 4}px))`,
               fontSize: `${computedFont}px`,
               padding: `${computedPadY}px ${computedPadX}px`,
               background: item.badgeBgColor,
