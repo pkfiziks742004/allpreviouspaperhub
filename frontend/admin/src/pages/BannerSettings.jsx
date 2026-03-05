@@ -119,6 +119,27 @@ const getBadgeShapeStyle = (shape, radius) => {
   return { borderRadius: 0, clipPath: BADGE_SHAPE_CLIP_PATH[shape] || "none" };
 };
 
+const getPreviewBadgeStyle = item => {
+  const shapeStyle = getBadgeShapeStyle(item.badgeShape || "custom", item.badgeRadius);
+  return {
+    ...shapeStyle,
+    background: item.badgeBgColor || "#ef4444",
+    color: item.badgeTextColor || "#ffffff",
+    border: `${Number(item.badgeBorderWidth || 0)}px solid ${item.badgeBorderColor || "#ffffff"}`,
+    outline: `${Number(item.badgeOutlineWidth || 0)}px solid ${item.badgeOutlineColor || "#1e293b"}`,
+    boxShadow: `${Number(item.badgeShadowX || 0)}px ${Number(item.badgeShadowY || 0)}px ${Number(item.badgeShadowBlur || 0)}px ${item.badgeShadowColor || "#0f172a66"}`,
+    minWidth: "72px",
+    minHeight: "36px",
+    padding: "6px 10px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "12px",
+    fontWeight: 700,
+    lineHeight: 1
+  };
+};
+
 const createDefaultBannerItem = url => ({
   imageUrl: url || "",
   linkUrl: "",
@@ -837,6 +858,43 @@ export default function BannerSettings() {
                                 }
                                 onChange={e => updateBannerItem(i, "badgeShadowColor", e.target.value)}
                               />
+                            </div>
+                            <div className="col-12">
+                              <label className="form-label small mb-1">Shape Picker (Visual)</label>
+                              <div
+                                style={{
+                                  maxHeight: "190px",
+                                  overflowY: "auto",
+                                  border: "1px solid #d0d7de",
+                                  borderRadius: "8px",
+                                  padding: "8px",
+                                  background: "#fff"
+                                }}
+                              >
+                                <div className="d-flex flex-wrap gap-2">
+                                  {ALL_BADGE_SHAPES.map(shape => (
+                                    <button
+                                      key={`${shape.value}-${i}`}
+                                      type="button"
+                                      onClick={() => updateBannerItem(i, "badgeShape", shape.value)}
+                                      className={`btn btn-sm ${item.badgeShape === shape.value ? "btn-primary" : "btn-light"}`}
+                                      style={{
+                                        border: item.badgeShape === shape.value ? "1px solid #0d6efd" : "1px solid #d0d7de",
+                                        minWidth: "106px",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "6px",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        padding: "7px 6px"
+                                      }}
+                                    >
+                                      <span style={getPreviewBadgeStyle({ ...item, badgeShape: shape.value })}>Aa</span>
+                                      <span className="small" style={{ lineHeight: 1.1 }}>{shape.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
