@@ -250,6 +250,19 @@ const defaults = {
     size: 13,
     minWidth: 140
   },
+  paperOpenViewer: {
+    pageBgColor: "#0f172a",
+    textColor: "#ffffff",
+    viewerBgColor: "#ffffff",
+    topBarBgColor: "#0f172a",
+    topBarTextColor: "#ffffff",
+    mobileHelpText: "Mobile/Tablet par in-app PDF viewer stable nahi hota. Neeche button se PDF open karein.",
+    openPdfText: "Open PDF",
+    downloadButtonText: "Download Paper",
+    openWebsiteText: "Open Website",
+    loadingText: "Loading PDF...",
+    notFoundText: "Paper not found."
+  },
   semestersSectionTitle: "Semesters",
   semestersTitleStyle: { color: "#0f172a", bold: true, italic: false, align: "left", size: 22 },
   semesterCardStyle: {
@@ -396,6 +409,7 @@ const updateSettings = async (req, res) => {
       questionPapersTitleStyle: req.body.questionPapersTitleStyle,
       questionPaperCardStyle: req.body.questionPaperCardStyle,
       questionPaperButtonStyle: req.body.questionPaperButtonStyle,
+      paperOpenViewer: req.body.paperOpenViewer,
       semestersSectionTitle: req.body.semestersSectionTitle,
       semestersTitleStyle: req.body.semestersTitleStyle,
       semesterCardStyle: req.body.semesterCardStyle,
@@ -573,6 +587,12 @@ const updateSettings = async (req, res) => {
       if (payload.questionPapersTitleStyle !== undefined) settings.questionPapersTitleStyle = payload.questionPapersTitleStyle;
       if (payload.questionPaperCardStyle !== undefined) settings.questionPaperCardStyle = payload.questionPaperCardStyle;
       if (payload.questionPaperButtonStyle !== undefined) settings.questionPaperButtonStyle = payload.questionPaperButtonStyle;
+      if (payload.paperOpenViewer !== undefined) {
+        settings.paperOpenViewer = {
+          ...(settings.paperOpenViewer || defaults.paperOpenViewer || {}),
+          ...(payload.paperOpenViewer || {})
+        };
+      }
       if (payload.semestersSectionTitle !== undefined) settings.semestersSectionTitle = payload.semestersSectionTitle;
       if (payload.semestersTitleStyle !== undefined) settings.semestersTitleStyle = payload.semestersTitleStyle;
       if (payload.semesterCardStyle !== undefined) settings.semesterCardStyle = payload.semesterCardStyle;

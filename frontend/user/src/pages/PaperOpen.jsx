@@ -3,6 +3,20 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config/api";
 
+const defaultPaperOpenViewer = {
+  pageBgColor: "#0f172a",
+  textColor: "#ffffff",
+  viewerBgColor: "#ffffff",
+  topBarBgColor: "#0f172a",
+  topBarTextColor: "#ffffff",
+  mobileHelpText: "Mobile/Tablet par in-app PDF viewer stable nahi hota. Neeche button se PDF open karein.",
+  openPdfText: "Open PDF",
+  downloadButtonText: "Download Paper",
+  openWebsiteText: "Open Website",
+  loadingText: "Loading PDF...",
+  notFoundText: "Paper not found."
+};
+
 export default function PaperOpen() {
   const { id } = useParams();
   const [paper, setPaper] = useState(null);
@@ -10,6 +24,7 @@ export default function PaperOpen() {
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
   const [pdfBlobUrl, setPdfBlobUrl] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [paperOpenViewer, setPaperOpenViewer] = useState(defaultPaperOpenViewer);
 
   useEffect(() => {
     const checkDevice = () => {
@@ -23,10 +38,17 @@ export default function PaperOpen() {
   useEffect(() => {
     const loadPaper = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/papers/${id}`);
-        setPaper(res.data || null);
+        const [paperRes, settingsRes] = await Promise.all([
+          axios.get(`${API_BASE}/api/papers/${id}`),
+          axios.get(`${API_BASE}/api/settings`).catch(() => ({ data: {} }))
+        ]);
+        setPaper(paperRes.data || null);
+        setPaperOpenViewer({
+          ...defaultPaperOpenViewer,
+          ...((settingsRes && settingsRes.data && settingsRes.data.paperOpenViewer) || {})
+        });
       } catch (e) {
-        setError("Paper not found.");
+        setError(defaultPaperOpenViewer.notFoundText);
       }
     };
     loadPaper();
@@ -99,7 +121,7 @@ export default function PaperOpen() {
   }
 
   if (!paper) {
-    return <div style={{ padding: 20 }}>Loading PDF...</div>;
+    return <div style={{ padding: 20 }}>{paperOpenViewer.loadingText || "Loading PDF..."}</div>;
   }
 
   const openUrl = `${API_BASE}/api/papers/open-file/${paper._id}`;
@@ -107,20 +129,20 @@ export default function PaperOpen() {
 
   if (isMobileOrTablet) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0f172a", color: "#fff", padding: 16 }}>
+      <div style={{ minHeight: "100vh", background: paperOpenViewer.pageBgColor, color: paperOpenViewer.textColor, padding: 16 }}>
         <h5 style={{ marginBottom: 12 }}>{paper.title}</h5>
         <p style={{ opacity: 0.85, marginBottom: 12 }}>
-          Mobile/Tablet par in-app PDF viewer stable nahi hota. Neeche button se PDF open karein.
+          {paperOpenViewer.mobileHelpText}
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <a href={pdfBlobUrl || openUrl} target="_blank" rel="noreferrer" className="btn btn-light">
-            Open PDF
+            {paperOpenViewer.openPdfText}
           </a>
           <button type="button" className="btn btn-outline-light" onClick={handleDownload}>
-            {downloading ? "Downloading..." : "Download Paper"}
+            {downloading ? "Downloading..." : paperOpenViewer.downloadButtonText}
           </button>
           <button type="button" className="btn btn-warning" onClick={openWebsite}>
-            Open Website
+            {paperOpenViewer.openWebsiteText}
           </button>
         </div>
       </div>
@@ -128,7 +150,7 @@ export default function PaperOpen() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0f172a", color: "#fff" }}>
+    <div style={{ minHeight: "100vh", background: paperOpenViewer.pageBgColor, color: paperOpenViewer.textColor }}>
       <div
         style={{
           display: "flex",
@@ -136,23 +158,25 @@ export default function PaperOpen() {
           alignItems: "center",
           padding: "10px 14px",
           gap: "10px",
-          flexWrap: "wrap"
+          flexWrap: "wrap",
+          background: paperOpenViewer.topBarBgColor,
+          color: paperOpenViewer.topBarTextColor
         }}
       >
         <strong>{paper.title}</strong>
         <div style={{ display: "flex", gap: "10px" }}>
           <button type="button" className="btn btn-sm btn-light" onClick={handleDownload}>
-            {downloading ? "Downloading..." : "Download Paper"}
+            {downloading ? "Downloading..." : paperOpenViewer.downloadButtonText}
           </button>
           <button type="button" className="btn btn-sm btn-warning" onClick={openWebsite}>
-            Open Website
+            {paperOpenViewer.openWebsiteText}
           </button>
         </div>
       </div>
 
       <div style={{ position: "relative", height: "calc(100vh - 64px)", overflow: "hidden" }}>
         {!embeddedPdfUrl && (
-          <div style={{ padding: 20, color: "#fff" }}>Loading PDF...</div>
+          <div style={{ padding: 20, color: paperOpenViewer.textColor }}>{paperOpenViewer.loadingText}</div>
         )}
         <iframe
           title={paper.title}
@@ -161,7 +185,7 @@ export default function PaperOpen() {
             width: "100%",
             height: "calc(100% + 56px)",
             border: 0,
-            background: "#fff",
+            background: paperOpenViewer.viewerBgColor,
             transform: "translateY(-56px)"
           }}
         />

@@ -41,12 +41,27 @@ const defaultButtonStyle = {
   minWidth: 140
 };
 
+const defaultPaperOpenViewer = {
+  pageBgColor: "#0f172a",
+  textColor: "#ffffff",
+  viewerBgColor: "#ffffff",
+  topBarBgColor: "#0f172a",
+  topBarTextColor: "#ffffff",
+  mobileHelpText: "Mobile/Tablet par in-app PDF viewer stable nahi hota. Neeche button se PDF open karein.",
+  openPdfText: "Open PDF",
+  downloadButtonText: "Download Paper",
+  openWebsiteText: "Open Website",
+  loadingText: "Loading PDF...",
+  notFoundText: "Paper not found."
+};
+
 export default function QuestionPaperSettings() {
   const [questionPapersSectionTitle, setQuestionPapersSectionTitle] = useState("Question Papers");
   const [questionPapersTitleStyle, setQuestionPapersTitleStyle] = useState(defaultTitleStyle);
   const [paperNameStyle, setPaperNameStyle] = useState(defaultNameStyle);
   const [questionPaperCardStyle, setQuestionPaperCardStyle] = useState(defaultCardStyle);
   const [questionPaperButtonStyle, setQuestionPaperButtonStyle] = useState(defaultButtonStyle);
+  const [paperOpenViewer, setPaperOpenViewer] = useState(defaultPaperOpenViewer);
   const [saving, setSaving] = useState(false);
 
   const token = localStorage.getItem("token");
@@ -59,6 +74,7 @@ export default function QuestionPaperSettings() {
       setPaperNameStyle({ ...defaultNameStyle, ...(res.data.paperNameStyle || {}) });
       setQuestionPaperCardStyle({ ...defaultCardStyle, ...(res.data.questionPaperCardStyle || {}) });
       setQuestionPaperButtonStyle({ ...defaultButtonStyle, ...(res.data.questionPaperButtonStyle || {}) });
+      setPaperOpenViewer({ ...defaultPaperOpenViewer, ...(res.data.paperOpenViewer || {}) });
     });
   }, []);
 
@@ -72,7 +88,8 @@ export default function QuestionPaperSettings() {
           questionPapersTitleStyle,
           paperNameStyle,
           questionPaperCardStyle,
-          questionPaperButtonStyle
+          questionPaperButtonStyle,
+          paperOpenViewer
         },
         headers
       );
@@ -147,6 +164,106 @@ export default function QuestionPaperSettings() {
                 <input className="form-check-input" type="checkbox" id="qp-btn-italic" checked={!!questionPaperButtonStyle.italic} onChange={e => setQuestionPaperButtonStyle({ ...questionPaperButtonStyle, italic: e.target.checked })} />
                 <label className="form-check-label" htmlFor="qp-btn-italic">Italic</label>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border rounded p-3 mb-3">
+          <div className="fw-bold mb-2">Paper Open Page (Editable Content + Colors)</div>
+          <div className="row">
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Page Background</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={paperOpenViewer.pageBgColor || "#0f172a"}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, pageBgColor: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Text Color</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={paperOpenViewer.textColor || "#ffffff"}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, textColor: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">PDF Viewer Background</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={paperOpenViewer.viewerBgColor || "#ffffff"}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, viewerBgColor: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Top Bar Background</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={paperOpenViewer.topBarBgColor || "#0f172a"}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, topBarBgColor: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Top Bar Text Color</label>
+              <input
+                type="color"
+                className="form-control form-control-color"
+                value={paperOpenViewer.topBarTextColor || "#ffffff"}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, topBarTextColor: e.target.value })}
+              />
+            </div>
+            <div className="col-md-12 mb-2">
+              <label className="form-label">Mobile Help Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.mobileHelpText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, mobileHelpText: e.target.value })}
+                placeholder="Mobile/Tablet help text"
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Open PDF Button Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.openPdfText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, openPdfText: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Download Button Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.downloadButtonText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, downloadButtonText: e.target.value })}
+              />
+            </div>
+            <div className="col-md-4 mb-2">
+              <label className="form-label">Open Website Button Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.openWebsiteText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, openWebsiteText: e.target.value })}
+              />
+            </div>
+            <div className="col-md-6 mb-2">
+              <label className="form-label">Loading Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.loadingText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, loadingText: e.target.value })}
+              />
+            </div>
+            <div className="col-md-6 mb-2">
+              <label className="form-label">Not Found Text</label>
+              <input
+                className="form-control"
+                value={paperOpenViewer.notFoundText || ""}
+                onChange={e => setPaperOpenViewer({ ...paperOpenViewer, notFoundText: e.target.value })}
+              />
             </div>
           </div>
         </div>
