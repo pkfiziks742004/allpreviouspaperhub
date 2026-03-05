@@ -291,17 +291,6 @@ function Navbar() {
           </button>
 
           <form className="header-search-form d-none d-lg-flex" onSubmit={runSearch}>
-            <span className="header-search-icon" aria-hidden="true">
-              &#128269;
-            </span>
-            <input
-              className="header-search-input"
-              type="search"
-              placeholder="Search university, school, college..."
-              value={headerSearch}
-              onChange={e => setHeaderSearch(e.target.value)}
-              aria-label="Search university, school, college"
-            />
             <select
               className="header-search-type"
               value={headerType}
@@ -314,16 +303,14 @@ function Navbar() {
               <option value="school">School</option>
               <option value="other">Other</option>
             </select>
-            {(headerSearch || headerType !== "all") && (
-              <button
-                type="button"
-                className="header-search-clear-icon"
-                aria-label="Clear search filters"
-                onClick={clearSearch}
-              >
-                &#10005;
-              </button>
-            )}
+            <input
+              className="header-search-input"
+              type="search"
+              placeholder="Search university, school, college..."
+              value={headerSearch}
+              onChange={e => setHeaderSearch(e.target.value)}
+              aria-label="Search university, school, college"
+            />
             <button type="submit" className="header-search-btn">Search</button>
           </form>
 

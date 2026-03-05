@@ -165,93 +165,68 @@ body {
   margin-right: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--header-search-surface, rgba(255, 255, 255, 0.12));
-  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
-  border-radius: 999px;
-  padding: 5px 6px;
-  backdrop-filter: blur(3px);
-  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.14);
-}
-
-.header-search-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: var(--header-search-placeholder, rgba(255, 255, 255, 0.8));
-  background: var(--header-search-input-bg, rgba(255, 255, 255, 0.08));
-  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
+  gap: 0;
+  background: #131921;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
+  overflow: hidden;
 }
 
 .header-search-input {
-  width: clamp(240px, 24vw, 360px);
-  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.2));
+  width: clamp(260px, 26vw, 420px);
+  border: 0;
   outline: 0;
-  background: var(--header-search-input-bg, rgba(255, 255, 255, 0.08));
-  color: var(--header-search-text, #ffffff);
+  background: #ffffff;
+  color: #0f172a;
   font-size: 14px;
   padding: 0 12px;
-  border-radius: 999px;
-  min-height: 34px;
+  border-radius: 0;
+  min-height: 40px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .header-search-input::placeholder {
-  color: var(--header-search-placeholder, rgba(255, 255, 255, 0.8));
+  color: rgba(15, 23, 42, 0.5);
 }
 
 .header-search-type {
-  border: 1px solid var(--header-search-border, rgba(255, 255, 255, 0.28));
-  background: var(--header-search-select-bg, rgba(15, 23, 42, 0.35));
-  color: var(--header-search-text, #ffffff);
-  border-radius: 999px;
-  height: 34px;
+  border: 0;
+  background: #e5e7eb;
+  color: #111827;
+  border-radius: 8px 0 0 8px;
+  height: 40px;
   padding: 0 12px;
   font-size: 13px;
+  font-weight: 600;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-right: 1px solid rgba(15, 23, 42, 0.14);
 }
 
 .header-search-btn,
 .header-search-clear-btn {
   border: 0;
-  border-radius: 999px;
-  min-height: 34px;
-  padding: 0 15px;
+  border-radius: 0 8px 8px 0;
+  min-height: 40px;
+  padding: 0 20px;
   font-size: 13px;
   font-weight: 700;
 }
 
 .header-search-btn {
-  background: var(--header-search-btn-bg, #f59e0b);
-  color: var(--header-search-btn-text, #111827);
+  background: #f59e0b;
+  color: #111827;
 }
 
 .header-search-btn:hover {
-  background: var(--header-search-btn-hover, #fbbf24);
-}
-
-.header-search-clear-icon {
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: var(--header-search-clear-text, #ffffff);
-  background: var(--header-search-clear-bg, rgba(255, 255, 255, 0.16));
+  background: #ffb84d;
 }
 
 .header-search-clear-btn {
   background: var(--header-search-clear-bg, rgba(255, 255, 255, 0.16));
   color: var(--header-search-clear-text, #ffffff);
+  border-radius: 999px;
 }
 
 .header-search-mobile-actions {
@@ -262,8 +237,7 @@ body {
 
 .header-search-input:focus,
 .header-search-type:focus {
-  border-color: rgba(59, 130, 246, 0.65);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.55);
 }
 
 .banner-shell {
@@ -639,6 +613,8 @@ body {
     flex-direction: column;
     align-items: stretch;
     gap: 9px;
+    border-radius: 14px;
+    overflow: visible;
   }
 
   .header-search-mobile-label {
@@ -651,14 +627,18 @@ body {
 
   .header-search-form-mobile .header-search-input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.12);
+    background: #ffffff;
     border-radius: 10px;
     min-height: 36px;
     padding: 0 10px;
+    color: #0f172a;
   }
 
   .header-search-form-mobile .header-search-type {
     width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.9);
   }
 
   .header-search-form-mobile .header-search-btn,
