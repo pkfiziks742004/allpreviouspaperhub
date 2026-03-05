@@ -220,6 +220,14 @@ function Navbar() {
     const label = String(link?.label || "").trim().toLowerCase();
     return url !== "/courses" && label !== "courses";
   });
+  const hasHomeLink = visibleHeaderLinks.some(link => {
+    const url = String(link?.url || "").trim().toLowerCase();
+    const label = String(link?.label || "").trim().toLowerCase();
+    return url === "/" || url === "/home" || label === "home";
+  });
+  const navLinks = hasHomeLink
+    ? visibleHeaderLinks
+    : [{ label: "Home", url: "/", newTab: false }, ...visibleHeaderLinks];
 
   return (
     <>
@@ -342,10 +350,10 @@ function Navbar() {
               <button type="button" className="header-search-clear-btn" onClick={clearSearch}>Clear</button>
             </div>
           </form>
-          {visibleHeaderLinks.length > 0 ? (
-            visibleHeaderLinks.map((link, idx) => {
+          {navLinks.length > 0 ? (
+            navLinks.map((link, idx) => {
               const isExternal = (link.url || "").startsWith("http");
-              const className = `header-link${idx !== visibleHeaderLinks.length - 1 ? " me-3" : ""}`;
+              const className = `header-link${idx !== navLinks.length - 1 ? " me-3" : ""}`;
               if (isExternal) {
                 return (
                   <a
@@ -371,13 +379,7 @@ function Navbar() {
                 </Link>
               );
             })
-          ) : (
-            <>
-              <Link className="header-link me-3" to="/" onClick={() => setMenuOpen(false)}>
-                Home
-              </Link>
-            </>
-          )}
+          ) : null}
         </div>
         </nav>
         <button
