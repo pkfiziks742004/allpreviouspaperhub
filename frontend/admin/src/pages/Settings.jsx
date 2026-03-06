@@ -21,6 +21,9 @@ export default function Settings() {
   const [alertColor, setAlertColor] = useState("#fff3cd");
   const [alertHeight, setAlertHeight] = useState(32);
   const [alertFontSize, setAlertFontSize] = useState(14);
+  const [alertMarqueeDirection, setAlertMarqueeDirection] = useState("rtl");
+  const [alertMarqueeSpeed, setAlertMarqueeSpeed] = useState(18);
+  const [alertMarqueeGap, setAlertMarqueeGap] = useState(2);
   const [pageBgColor, setPageBgColor] = useState("#ffffff");
   const [homeTitle, setHomeTitle] = useState("");
   const [homeSubtitle, setHomeSubtitle] = useState("");
@@ -48,6 +51,9 @@ export default function Settings() {
       setAlertColor(res.data.alertColor || "#fff3cd");
       setAlertHeight(Number(res.data.alertHeight || 32));
       setAlertFontSize(Number(res.data.alertFontSize || 14));
+      setAlertMarqueeDirection(res.data.alertMarqueeDirection === "ltr" ? "ltr" : "rtl");
+      setAlertMarqueeSpeed(Number(res.data.alertMarqueeSpeed || 18));
+      setAlertMarqueeGap(Number(res.data.alertMarqueeGap || 2));
       setPageBgColor(res.data.pageBgColor || "#ffffff");
       setHomeTitle(res.data.homeTitle || "");
       setHomeSubtitle(res.data.homeSubtitle || "");
@@ -84,6 +90,9 @@ export default function Settings() {
           alertColor,
           alertHeight,
           alertFontSize,
+          alertMarqueeDirection,
+          alertMarqueeSpeed,
+          alertMarqueeGap,
           pageBgColor,
           homeTitle,
           homeSubtitle,
@@ -285,6 +294,43 @@ export default function Settings() {
             className="form-control"
             value={alertFontSize}
             onChange={e => setAlertFontSize(Number(e.target.value || 0))}
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Marquee Direction</label>
+          <select
+            className="form-select"
+            value={alertMarqueeDirection}
+            onChange={e => setAlertMarqueeDirection(e.target.value)}
+          >
+            <option value="rtl">Right to Left</option>
+            <option value="ltr">Left to Right</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Marquee Speed (seconds)</label>
+          <input
+            type="number"
+            min="4"
+            step="1"
+            className="form-control"
+            value={alertMarqueeSpeed}
+            onChange={e => setAlertMarqueeSpeed(Number(e.target.value || 18))}
+          />
+          <div className="form-text">Smaller value = faster scroll.</div>
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Marquee Gap (cm)</label>
+          <input
+            type="number"
+            min="0.2"
+            step="0.1"
+            className="form-control"
+            value={alertMarqueeGap}
+            onChange={e => setAlertMarqueeGap(Number(e.target.value || 2))}
           />
         </div>
 

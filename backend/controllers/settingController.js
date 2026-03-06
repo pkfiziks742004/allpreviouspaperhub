@@ -209,6 +209,9 @@ const defaults = {
   alertTextColor: "#000000",
   alertHeight: 32,
   alertFontSize: 14,
+  alertMarqueeDirection: "rtl",
+  alertMarqueeSpeed: 18,
+  alertMarqueeGap: 2,
   copyrightEnabled: false,
   copyrightText: "",
   copyrightColor: "#f8f9fa",
@@ -408,6 +411,9 @@ const updateSettings = async (req, res) => {
       alertTextColor: req.body.alertTextColor,
       alertHeight: req.body.alertHeight,
       alertFontSize: req.body.alertFontSize,
+      alertMarqueeDirection: req.body.alertMarqueeDirection,
+      alertMarqueeSpeed: req.body.alertMarqueeSpeed,
+      alertMarqueeGap: req.body.alertMarqueeGap,
       copyrightEnabled: req.body.copyrightEnabled,
       copyrightText: req.body.copyrightText,
       copyrightColor: req.body.copyrightColor,
@@ -557,6 +563,9 @@ const updateSettings = async (req, res) => {
       if (payload.alertTextColor !== undefined) settings.alertTextColor = payload.alertTextColor;
       if (payload.alertHeight !== undefined) settings.alertHeight = payload.alertHeight;
       if (payload.alertFontSize !== undefined) settings.alertFontSize = payload.alertFontSize;
+      if (payload.alertMarqueeDirection !== undefined) settings.alertMarqueeDirection = payload.alertMarqueeDirection;
+      if (payload.alertMarqueeSpeed !== undefined) settings.alertMarqueeSpeed = payload.alertMarqueeSpeed;
+      if (payload.alertMarqueeGap !== undefined) settings.alertMarqueeGap = payload.alertMarqueeGap;
       if (payload.copyrightEnabled !== undefined) settings.copyrightEnabled = payload.copyrightEnabled;
       if (payload.copyrightText !== undefined) settings.copyrightText = payload.copyrightText;
       if (payload.copyrightColor !== undefined) settings.copyrightColor = payload.copyrightColor;

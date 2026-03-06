@@ -258,14 +258,18 @@ body {
   align-items: center;
   width: max-content;
   will-change: transform;
-  animation: alertMarquee 18s linear infinite;
+  animation-name: alertMarquee;
+  animation-duration: var(--alert-marquee-speed, 18s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: var(--alert-marquee-direction, normal);
 }
 
 .site-alert-group {
   display: flex;
   align-items: center;
-  gap: 2cm;
-  padding-right: 2cm;
+  gap: var(--alert-marquee-gap, 2cm);
+  padding-right: var(--alert-marquee-gap, 2cm);
   flex: 0 0 auto;
 }
 

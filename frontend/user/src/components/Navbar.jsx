@@ -25,6 +25,9 @@ function Navbar() {
   const [alertColor, setAlertColor] = useState("#fff3cd");
   const [alertHeight, setAlertHeight] = useState(32);
   const [alertFontSize, setAlertFontSize] = useState(14);
+  const [alertMarqueeDirection, setAlertMarqueeDirection] = useState("rtl");
+  const [alertMarqueeSpeed, setAlertMarqueeSpeed] = useState(18);
+  const [alertMarqueeGap, setAlertMarqueeGap] = useState(2);
   const [alertStyle, setAlertStyle] = useState({});
   const [siteNameStyle, setSiteNameStyle] = useState({});
   const [useSplitColor, setUseSplitColor] = useState(false);
@@ -107,6 +110,9 @@ function Navbar() {
         setAlertColor(res.data.alertColor || "#fff3cd");
         setAlertHeight(res.data.alertHeight || 32);
         setAlertFontSize(res.data.alertFontSize || 14);
+        setAlertMarqueeDirection(res.data.alertMarqueeDirection === "ltr" ? "ltr" : "rtl");
+        setAlertMarqueeSpeed(Number(res.data.alertMarqueeSpeed || 18));
+        setAlertMarqueeGap(Number(res.data.alertMarqueeGap || 2));
         setAlertStyle(res.data.alertStyle || {});
         setSiteNameStyle(res.data.siteNameStyle || {});
         setUseSplitColor(res.data.useSplitColor || false);
@@ -400,7 +406,10 @@ function Navbar() {
               backgroundColor: alertColor,
               padding: "6px 0",
               minHeight: alertHeight ? `${alertHeight}px` : undefined,
-              display: "flex"
+              display: "flex",
+              "--alert-marquee-speed": `${Math.max(4, Number(alertMarqueeSpeed) || 18)}s`,
+              "--alert-marquee-gap": `${Math.max(0.2, Number(alertMarqueeGap) || 2)}cm`,
+              "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
             }}
           >
             <div className="site-alert-marquee">
@@ -411,10 +420,8 @@ function Navbar() {
                     <>
                       <div className="site-alert-group">
                         <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
-                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
                       </div>
                       <div className="site-alert-group" aria-hidden="true">
-                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
                         <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
                       </div>
                     </>
