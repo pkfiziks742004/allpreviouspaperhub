@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
+import { applySeoByPage } from "../utils/seo";
 
 export default function Courses(){
   const { universitySlug } = useParams();
@@ -28,6 +29,7 @@ export default function Courses(){
     other: "View Details"
   });
   const [universities, setUniversities] = useState([]);
+  const [settingsSnapshot, setSettingsSnapshot] = useState(null);
   const [selectedUniversity, setSelectedUniversity] = useState(null);
   const [universitiesLoaded, setUniversitiesLoaded] = useState(false);
   const trackedSearchRef = useRef("");
@@ -79,6 +81,7 @@ export default function Courses(){
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
+      setSettingsSnapshot(res.data || {});
       setCoursesSectionTitle(res.data.coursesSectionTitle || "");
       setCoursesTitleStyle(res.data.coursesTitleStyle || {});
       setCardStyles(res.data.cardStyles || {});
@@ -95,6 +98,22 @@ export default function Courses(){
       });
     });
   }, []);
+
+  useEffect(() => {
+    if (!settingsSnapshot) return;
+    applySeoByPage({
+      settings: settingsSnapshot,
+      pageKey: "courses",
+      context: {
+        university: selectedUniversity?.name || "",
+        universitySlug: universitySlug || ""
+      },
+      fallback: {
+        title: selectedUniversity?.name ? `${selectedUniversity.name} Courses` : "Courses",
+        canonicalPath: `/${universitySlug || ""}`
+      }
+    });
+  }, [selectedUniversity, settingsSnapshot, universitySlug]);
 
   useEffect(() => {
     const term = search.trim();

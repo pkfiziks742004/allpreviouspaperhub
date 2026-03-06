@@ -7,6 +7,7 @@ import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessSemester, markPaperFlow } from "../utils/navigationFlow";
+import { applySeoByPage } from "../utils/seo";
 
 export default function Papers(){
 
@@ -25,6 +26,7 @@ export default function Papers(){
   const [questionPaperCardStyle, setQuestionPaperCardStyle] = useState({});
   const [questionPaperButtonStyle, setQuestionPaperButtonStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
+  const [settingsSnapshot, setSettingsSnapshot] = useState(null);
   const trackedSearchRef = useRef("");
 
   useEffect(()=>{
@@ -89,6 +91,7 @@ export default function Papers(){
     axios
       .get(`${API_BASE}/api/settings`)
       .then(res => {
+        setSettingsSnapshot(res.data || {});
         setPaperNameStyle(res.data.paperNameStyle || {});
         setQuestionPapersSectionTitle(res.data.questionPapersSectionTitle || "");
         setQuestionPapersTitleStyle(res.data.questionPapersTitleStyle || {});
@@ -97,6 +100,37 @@ export default function Papers(){
         setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
       });
   }, []);
+
+  useEffect(() => {
+    if (!settingsSnapshot) return;
+    applySeoByPage({
+      settings: settingsSnapshot,
+      pageKey: "papers",
+      context: {
+        university: selectedUniversity?.name || "",
+        course: selectedCourse?.name || "",
+        semester: selectedSemester?.name || "",
+        universitySlug: universitySlug || "",
+        courseSlug: courseSlug || "",
+        semesterSlug: semesterSlug || ""
+      },
+      fallback: {
+        title:
+          selectedSemester?.name && selectedCourse?.name
+            ? `${selectedSemester.name} Papers | ${selectedCourse.name}`
+            : "Question Papers",
+        canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}`
+      }
+    });
+  }, [
+    courseSlug,
+    selectedCourse,
+    selectedSemester,
+    selectedUniversity,
+    semesterSlug,
+    settingsSnapshot,
+    universitySlug
+  ]);
 
   useEffect(() => {
     const term = search.trim();

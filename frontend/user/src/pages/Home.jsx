@@ -10,6 +10,7 @@ import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
+import { applySeoByPage } from "../utils/seo";
 
 export default function Home() {
   const location = useLocation();
@@ -88,6 +89,15 @@ export default function Home() {
           entranceExam: "View Exam Papers",
           other: "View Details",
           ...(res.data.typeActionLabels || {})
+        });
+        applySeoByPage({
+          settings: res.data || {},
+          pageKey: "home",
+          fallback: {
+            title: res.data.homeTitle || "All Previous Paper Hub",
+            description: res.data.homeSubtitle || "",
+            canonicalPath: "/"
+          }
         });
       });
   }, []);

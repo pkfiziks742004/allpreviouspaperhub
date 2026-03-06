@@ -7,6 +7,7 @@ import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessCourse, markSemesterFlow } from "../utils/navigationFlow";
+import { applySeoByPage } from "../utils/seo";
 
 export default function Semesters(){
 
@@ -21,6 +22,7 @@ export default function Semesters(){
   const [buttonStyle, setButtonStyle] = useState({});
   const [semesterNameStyle, setSemesterNameStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
+  const [settingsSnapshot, setSettingsSnapshot] = useState(null);
 
   useEffect(()=>{
     const load = async () => {
@@ -73,6 +75,7 @@ export default function Semesters(){
 
   useEffect(() => {
     axios.get(`${API_BASE}/api/settings`).then(res => {
+      setSettingsSnapshot(res.data || {});
       setTitle(res.data.semestersSectionTitle || "");
       setTitleStyle(res.data.semestersTitleStyle || {});
       setCardStyle(res.data.semesterCardStyle || {});
@@ -81,6 +84,27 @@ export default function Semesters(){
       setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
     });
   }, []);
+
+  useEffect(() => {
+    if (!settingsSnapshot) return;
+    applySeoByPage({
+      settings: settingsSnapshot,
+      pageKey: "semesters",
+      context: {
+        university: selectedUniversity?.name || "",
+        course: selectedCourse?.name || "",
+        universitySlug: universitySlug || "",
+        courseSlug: courseSlug || ""
+      },
+      fallback: {
+        title:
+          selectedUniversity?.name && selectedCourse?.name
+            ? `${selectedCourse.name} | ${selectedUniversity.name}`
+            : "Semesters",
+        canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}`
+      }
+    });
+  }, [courseSlug, selectedCourse, selectedUniversity, settingsSnapshot, universitySlug]);
 
   const titleTextStyle = {
     color: titleStyle.color || "#0f172a",

@@ -3,6 +3,19 @@ import axios from "axios";
 import Layout from "../components/Layout";
 
 const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
+const SEO_PAGE_FIELDS = {
+  home: { label: "Home Page", pathHint: "/" },
+  about: { label: "About Page", pathHint: "/about" },
+  courses: { label: "Courses Page", pathHint: "/{universitySlug}" },
+  semesters: { label: "Semesters Page", pathHint: "/{universitySlug}/{courseSlug}" },
+  papers: { label: "Papers Page", pathHint: "/{universitySlug}/{courseSlug}/{semesterSlug}" },
+  paperOpen: { label: "Paper Open Page", pathHint: "/{universitySlug}/{courseSlug}/{semesterSlug}/{paperSlug}" }
+};
+
+const defaultSeoByPage = Object.keys(SEO_PAGE_FIELDS).reduce((acc, key) => {
+  acc[key] = { title: "", description: "", keywords: "", ogImage: "", canonicalPath: SEO_PAGE_FIELDS[key].pathHint };
+  return acc;
+}, {});
 
 export default function TrafficSettings() {
   const [seoTitle, setSeoTitle] = useState("");
@@ -19,6 +32,7 @@ export default function TrafficSettings() {
   const [userPageTitle, setUserPageTitle] = useState("");
   const [adminPageTitle, setAdminPageTitle] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
+  const [seoByPage, setSeoByPage] = useState(defaultSeoByPage);
   const [saving, setSaving] = useState(false);
   const [uploadingOg, setUploadingOg] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
@@ -46,6 +60,10 @@ export default function TrafficSettings() {
       setUserPageTitle(res.data.userPageTitle || "Study Portal");
       setAdminPageTitle(res.data.adminPageTitle || "Admin Panel");
       setFaviconUrl(res.data.faviconUrl || "");
+      setSeoByPage({
+        ...defaultSeoByPage,
+        ...(res.data.seoByPage || {})
+      });
     });
   }, []);
 
@@ -59,6 +77,7 @@ export default function TrafficSettings() {
           seoDescription,
           seoKeywords,
           ogImage,
+          seoByPage,
           faviconUrl,
           analyticsHeadScript,
           analyticsBodyScript,
@@ -153,6 +172,16 @@ export default function TrafficSettings() {
     return `${API}${url}`;
   };
 
+  const updateSeoByPage = (pageKey, field, value) => {
+    setSeoByPage(prev => ({
+      ...prev,
+      [pageKey]: {
+        ...(prev[pageKey] || defaultSeoByPage[pageKey]),
+        [field]: value
+      }
+    }));
+  };
+
   return (
     <Layout>
 
@@ -220,6 +249,65 @@ export default function TrafficSettings() {
             onChange={e => setSeoKeywords(e.target.value)}
             placeholder="keyword1, keyword2, keyword3"
           />
+        </div>
+
+        <div className="border rounded p-3 mb-3">
+          <h6 className="mb-3">Per-Page SEO</h6>
+          {Object.entries(SEO_PAGE_FIELDS).map(([pageKey, meta]) => (
+            <div key={pageKey} className="border rounded p-3 mb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <strong>{meta.label}</strong>
+                <small className="text-muted">{meta.pathHint}</small>
+              </div>
+              <div className="mb-2">
+                <label className="form-label">Title</label>
+                <input
+                  className="form-control"
+                  value={seoByPage?.[pageKey]?.title || ""}
+                  onChange={e => updateSeoByPage(pageKey, "title", e.target.value)}
+                  placeholder={`SEO title for ${meta.label}`}
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-control"
+                  rows="2"
+                  value={seoByPage?.[pageKey]?.description || ""}
+                  onChange={e => updateSeoByPage(pageKey, "description", e.target.value)}
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label">Keywords</label>
+                <input
+                  className="form-control"
+                  value={seoByPage?.[pageKey]?.keywords || ""}
+                  onChange={e => updateSeoByPage(pageKey, "keywords", e.target.value)}
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label">OG Image URL (optional)</label>
+                <input
+                  className="form-control"
+                  value={seoByPage?.[pageKey]?.ogImage || ""}
+                  onChange={e => updateSeoByPage(pageKey, "ogImage", e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="form-label">Canonical Path (optional)</label>
+                <input
+                  className="form-control"
+                  value={seoByPage?.[pageKey]?.canonicalPath || ""}
+                  onChange={e => updateSeoByPage(pageKey, "canonicalPath", e.target.value)}
+                  placeholder={meta.pathHint}
+                />
+                <div className="form-text">
+                  You can use placeholders like {"{universitySlug}"}, {"{courseSlug}"}, {"{semesterSlug}"}, {"{paperSlug}"}.
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mb-3">

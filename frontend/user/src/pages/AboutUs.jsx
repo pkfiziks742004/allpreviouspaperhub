@@ -3,6 +3,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl } from "../config/api";
+import { applySeoByPage } from "../utils/seo";
 
 const FALLBACK_SEO = {
   title: "About Us | Study Portal",
@@ -60,28 +61,6 @@ export default function AboutUs() {
   useEffect(() => {
     let mounted = true;
 
-    const ensureMeta = (name, content) => {
-      if (!content) return;
-      let tag = document.querySelector(`meta[name='${name}']`);
-      if (!tag) {
-        tag = document.createElement("meta");
-        tag.setAttribute("name", name);
-        document.head.appendChild(tag);
-      }
-      tag.setAttribute("content", content);
-    };
-
-    const ensureCanonical = href => {
-      if (!href) return;
-      let link = document.querySelector("link[rel='canonical']");
-      if (!link) {
-        link = document.createElement("link");
-        link.setAttribute("rel", "canonical");
-        document.head.appendChild(link);
-      }
-      link.setAttribute("href", href);
-    };
-
     const applySeo = async () => {
       setLoading(true);
       try {
@@ -93,19 +72,30 @@ export default function AboutUs() {
         const about = aboutRes.data || null;
         if (!mounted) return;
         setManagedAbout(about);
-
-        const base = String(settings?.canonicalUrl || window.location.origin).replace(/\/+$/, "");
-        document.title = about?.seoTitle || about?.title || FALLBACK_SEO.title;
-        ensureMeta("description", about?.seoDescription || FALLBACK_SEO.description);
-        ensureMeta("keywords", about?.seoKeywords || FALLBACK_SEO.keywords);
-        ensureCanonical(about?.canonicalUrl || `${base}/about`);
+        applySeoByPage({
+          settings,
+          pageKey: "about",
+          context: { page: "about" },
+          fallback: {
+            title: about?.seoTitle || about?.title || FALLBACK_SEO.title,
+            description: about?.seoDescription || FALLBACK_SEO.description,
+            keywords: about?.seoKeywords || FALLBACK_SEO.keywords,
+            canonicalPath: about?.canonicalUrl || "/about"
+          }
+        });
       } catch (err) {
         if (!mounted) return;
         setManagedAbout(null);
-        document.title = FALLBACK_SEO.title;
-        ensureMeta("description", FALLBACK_SEO.description);
-        ensureMeta("keywords", FALLBACK_SEO.keywords);
-        ensureCanonical(`${window.location.origin}/about`);
+        applySeoByPage({
+          settings: {},
+          pageKey: "about",
+          fallback: {
+            title: FALLBACK_SEO.title,
+            description: FALLBACK_SEO.description,
+            keywords: FALLBACK_SEO.keywords,
+            canonicalPath: "/about"
+          }
+        });
       } finally {
         if (mounted) setLoading(false);
       }
