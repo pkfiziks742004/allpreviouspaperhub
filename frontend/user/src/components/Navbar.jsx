@@ -193,17 +193,10 @@ function Navbar() {
     color: alertStyle.color || "#000000",
     fontWeight: alertStyle.bold ? "700" : "normal",
     fontStyle: alertStyle.italic ? "italic" : "normal",
-    textAlign: alertStyle.align || "right",
+    textAlign: alertStyle.align || "left",
     margin: 0,
     fontSize: alertFontSize ? `${alertFontSize}px` : undefined
   };
-
-  const alertJustify =
-    alertStyle.align === "left"
-      ? "flex-start"
-      : alertStyle.align === "center"
-        ? "center"
-        : "flex-end";
 
   if (!ready) {
     return <div className="site-header-spacer" />;
@@ -416,8 +409,7 @@ function Navbar() {
               display: "flex",
               "--alert-marquee-speed": `${Math.max(4, Number(alertMarqueeSpeed) || 18)}s`,
               "--alert-marquee-gap": `${Math.max(0.2, Number(alertMarqueeGap) || 2)}cm`,
-              "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal",
-              "--alert-marquee-justify": alertJustify
+              "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
             }}
           >
             <div className="site-alert-marquee">
@@ -426,10 +418,10 @@ function Navbar() {
                   const AlertTag = alertStyle.variant || "p";
                   return (
                     <>
-                      <div className="site-alert-group">
+                      <div className="site-alert-sequence">
                         <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
                       </div>
-                      <div className="site-alert-group" aria-hidden="true">
+                      <div className="site-alert-sequence" aria-hidden="true">
                         <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
                       </div>
                     </>

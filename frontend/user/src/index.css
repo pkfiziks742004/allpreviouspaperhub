@@ -265,28 +265,22 @@ body {
   animation-direction: var(--alert-marquee-direction, normal);
 }
 
-.site-alert-group {
+.site-alert-sequence {
   display: flex;
   align-items: center;
-  gap: var(--alert-marquee-gap, 2cm);
   padding-right: var(--alert-marquee-gap, 2cm);
   flex: 0 0 auto;
 }
 
 .site-alert-item {
   flex: 0 0 auto;
-  min-width: 100vw;
-  display: flex;
-  align-items: center;
-  justify-content: var(--alert-marquee-justify, flex-end);
   margin: 0;
   white-space: nowrap;
-  padding-inline: 12px;
 }
 
 @keyframes alertMarquee {
   from {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(100%, 0, 0);
   }
   to {
     transform: translate3d(-50%, 0, 0);
@@ -297,7 +291,7 @@ body {
   .site-alert-track {
     animation: none;
   }
-  .site-alert-group {
+  .site-alert-sequence {
     padding-right: 0;
   }
 }
