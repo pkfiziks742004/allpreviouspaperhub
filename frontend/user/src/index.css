@@ -251,12 +251,21 @@ body {
 .site-alert-marquee {
   width: 100%;
   overflow: hidden;
+  position: relative;
+}
+
+.site-alert-measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .site-alert-track {
   display: flex;
   align-items: center;
   width: max-content;
+  padding-inline-start: 100%;
   will-change: transform;
   animation-name: alertMarquee;
   animation-duration: var(--alert-marquee-speed, 18s);
@@ -268,6 +277,7 @@ body {
 .site-alert-sequence {
   display: flex;
   align-items: center;
+  gap: var(--alert-marquee-gap, 2cm);
   padding-right: var(--alert-marquee-gap, 2cm);
   flex: 0 0 auto;
 }
@@ -280,7 +290,7 @@ body {
 
 @keyframes alertMarquee {
   from {
-    transform: translate3d(100%, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
   to {
     transform: translate3d(-50%, 0, 0);

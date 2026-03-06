@@ -9,6 +9,8 @@ function Navbar() {
   const headerRef = useRef(null);
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
+  const alertMarqueeRef = useRef(null);
+  const alertMeasureRef = useRef(null);
   const [siteName, setSiteName] = useState("Study Portal");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoHeight, setLogoHeight] = useState(32);
@@ -39,6 +41,7 @@ function Navbar() {
   const [ready, setReady] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [headerType, setHeaderType] = useState("all");
+  const [alertRepeatCount, setAlertRepeatCount] = useState(2);
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -180,6 +183,33 @@ function Navbar() {
       document.removeEventListener("keydown", onEscape);
     };
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!alertEnabled || !alertText) {
+      setAlertRepeatCount(2);
+      return;
+    }
+
+    const computeRepeatCount = () => {
+      const containerWidth = alertMarqueeRef.current?.clientWidth || 0;
+      const textWidth = alertMeasureRef.current?.getBoundingClientRect?.().width || 0;
+      const gapCm = Math.max(0.2, Number(alertMarqueeGap) || 2);
+      const gapPx = gapCm * 37.7952755906;
+      const oneBlock = textWidth + gapPx;
+
+      if (!containerWidth || !oneBlock) {
+        setAlertRepeatCount(2);
+        return;
+      }
+
+      const needed = Math.ceil((containerWidth * 2) / oneBlock) + 1;
+      setAlertRepeatCount(Math.max(2, Math.min(40, needed)));
+    };
+
+    computeRepeatCount();
+    window.addEventListener("resize", computeRepeatCount);
+    return () => window.removeEventListener("resize", computeRepeatCount);
+  }, [alertEnabled, alertText, alertFontSize, alertStyle, alertMarqueeGap]);
 
   const nameStyle = {
     color: siteNameStyle.color || "#ffffff",
@@ -412,17 +442,28 @@ function Navbar() {
               "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
             }}
           >
-            <div className="site-alert-marquee">
+            <div ref={alertMarqueeRef} className="site-alert-marquee">
+              <span ref={alertMeasureRef} className="site-alert-measure" style={alertTextStyle}>
+                {alertText}
+              </span>
               <div className="site-alert-track">
                 {(() => {
                   const AlertTag = alertStyle.variant || "p";
                   return (
                     <>
                       <div className="site-alert-sequence">
-                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                          <AlertTag key={`alert-a-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                            {alertText}
+                          </AlertTag>
+                        ))}
                       </div>
                       <div className="site-alert-sequence" aria-hidden="true">
-                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                          <AlertTag key={`alert-b-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                            {alertText}
+                          </AlertTag>
+                        ))}
                       </div>
                     </>
                   );
