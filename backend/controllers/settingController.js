@@ -259,6 +259,7 @@ const defaults = {
     papers: { title: "", description: "", keywords: "", ogImage: "", canonicalPath: "/{universitySlug}/{courseSlug}/{semesterSlug}" },
     paperOpen: { title: "", description: "", keywords: "", ogImage: "", canonicalPath: "/{universitySlug}/{courseSlug}/{semesterSlug}/{paperSlug}" }
   },
+  seoRoutes: [],
   analyticsHeadScript: "",
   analyticsBodyScript: "",
   maintenanceEnabled: false,
@@ -450,6 +451,7 @@ const updateSettings = async (req, res) => {
       seoKeywords: req.body.seoKeywords,
       ogImage: req.body.ogImage,
       seoByPage: req.body.seoByPage,
+      seoRoutes: req.body.seoRoutes,
       analyticsHeadScript: req.body.analyticsHeadScript,
       analyticsBodyScript: req.body.analyticsBodyScript,
       maintenanceEnabled: req.body.maintenanceEnabled,
@@ -636,6 +638,7 @@ const updateSettings = async (req, res) => {
       if (payload.seoDescription !== undefined) settings.seoDescription = payload.seoDescription;
       if (payload.seoKeywords !== undefined) settings.seoKeywords = payload.seoKeywords;
       if (payload.seoByPage !== undefined) settings.seoByPage = payload.seoByPage;
+      if (payload.seoRoutes !== undefined) settings.seoRoutes = payload.seoRoutes;
       if (payload.ogImage !== undefined) {
         queueIfChanged(previousSettings.ogImage, payload.ogImage);
         settings.ogImage = payload.ogImage;

@@ -7,7 +7,7 @@ import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessCourse, markSemesterFlow } from "../utils/navigationFlow";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Semesters(){
 
@@ -87,23 +87,31 @@ export default function Semesters(){
 
   useEffect(() => {
     if (!settingsSnapshot) return;
-    applySeoByPage({
+    const context = {
+      university: selectedUniversity?.name || "",
+      course: selectedCourse?.name || "",
+      universitySlug: universitySlug || "",
+      courseSlug: courseSlug || ""
+    };
+    const hasRouteSeo = applySeoByRoute({
       settings: settingsSnapshot,
-      pageKey: "semesters",
-      context: {
-        university: selectedUniversity?.name || "",
-        course: selectedCourse?.name || "",
-        universitySlug: universitySlug || "",
-        courseSlug: courseSlug || ""
-      },
-      fallback: {
-        title:
-          selectedUniversity?.name && selectedCourse?.name
-            ? `${selectedCourse.name} | ${selectedUniversity.name}`
-            : "Semesters",
-        canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}`
-      }
+      context,
+      pathname: window.location.pathname
     });
+    if (!hasRouteSeo) {
+      applySeoByPage({
+        settings: settingsSnapshot,
+        pageKey: "semesters",
+        context,
+        fallback: {
+          title:
+            selectedUniversity?.name && selectedCourse?.name
+              ? `${selectedCourse.name} | ${selectedUniversity.name}`
+              : "Semesters",
+          canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}`
+        }
+      });
+    }
   }, [courseSlug, selectedCourse, selectedUniversity, settingsSnapshot, universitySlug]);
 
   const titleTextStyle = {

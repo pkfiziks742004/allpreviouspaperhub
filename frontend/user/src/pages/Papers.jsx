@@ -7,7 +7,7 @@ import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessSemester, markPaperFlow } from "../utils/navigationFlow";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Papers(){
 
@@ -103,25 +103,33 @@ export default function Papers(){
 
   useEffect(() => {
     if (!settingsSnapshot) return;
-    applySeoByPage({
+    const context = {
+      university: selectedUniversity?.name || "",
+      course: selectedCourse?.name || "",
+      semester: selectedSemester?.name || "",
+      universitySlug: universitySlug || "",
+      courseSlug: courseSlug || "",
+      semesterSlug: semesterSlug || ""
+    };
+    const hasRouteSeo = applySeoByRoute({
       settings: settingsSnapshot,
-      pageKey: "papers",
-      context: {
-        university: selectedUniversity?.name || "",
-        course: selectedCourse?.name || "",
-        semester: selectedSemester?.name || "",
-        universitySlug: universitySlug || "",
-        courseSlug: courseSlug || "",
-        semesterSlug: semesterSlug || ""
-      },
-      fallback: {
-        title:
-          selectedSemester?.name && selectedCourse?.name
-            ? `${selectedSemester.name} Papers | ${selectedCourse.name}`
-            : "Question Papers",
-        canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}`
-      }
+      context,
+      pathname: window.location.pathname
     });
+    if (!hasRouteSeo) {
+      applySeoByPage({
+        settings: settingsSnapshot,
+        pageKey: "papers",
+        context,
+        fallback: {
+          title:
+            selectedSemester?.name && selectedCourse?.name
+              ? `${selectedSemester.name} Papers | ${selectedCourse.name}`
+              : "Question Papers",
+          canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}`
+        }
+      });
+    }
   }, [
     courseSlug,
     selectedCourse,

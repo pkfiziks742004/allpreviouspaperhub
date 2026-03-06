@@ -3,19 +3,14 @@ import axios from "axios";
 import Layout from "../components/Layout";
 
 const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
-const SEO_PAGE_FIELDS = {
-  home: { label: "Home Page", pathHint: "/" },
-  about: { label: "About Page", pathHint: "/about" },
-  courses: { label: "Courses Page", pathHint: "/{universitySlug}" },
-  semesters: { label: "Semesters Page", pathHint: "/{universitySlug}/{courseSlug}" },
-  papers: { label: "Papers Page", pathHint: "/{universitySlug}/{courseSlug}/{semesterSlug}" },
-  paperOpen: { label: "Paper Open Page", pathHint: "/{universitySlug}/{courseSlug}/{semesterSlug}/{paperSlug}" }
-};
-
-const defaultSeoByPage = Object.keys(SEO_PAGE_FIELDS).reduce((acc, key) => {
-  acc[key] = { title: "", description: "", keywords: "", ogImage: "", canonicalPath: SEO_PAGE_FIELDS[key].pathHint };
-  return acc;
-}, {});
+const createSeoRoute = () => ({
+  path: "",
+  title: "",
+  description: "",
+  keywords: "",
+  ogImage: "",
+  canonicalPath: ""
+});
 
 export default function TrafficSettings() {
   const [seoTitle, setSeoTitle] = useState("");
@@ -32,7 +27,7 @@ export default function TrafficSettings() {
   const [userPageTitle, setUserPageTitle] = useState("");
   const [adminPageTitle, setAdminPageTitle] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
-  const [seoByPage, setSeoByPage] = useState(defaultSeoByPage);
+  const [seoRoutes, setSeoRoutes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [uploadingOg, setUploadingOg] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
@@ -60,10 +55,7 @@ export default function TrafficSettings() {
       setUserPageTitle(res.data.userPageTitle || "Study Portal");
       setAdminPageTitle(res.data.adminPageTitle || "Admin Panel");
       setFaviconUrl(res.data.faviconUrl || "");
-      setSeoByPage({
-        ...defaultSeoByPage,
-        ...(res.data.seoByPage || {})
-      });
+      setSeoRoutes(Array.isArray(res.data.seoRoutes) ? res.data.seoRoutes : []);
     });
   }, []);
 
@@ -77,7 +69,7 @@ export default function TrafficSettings() {
           seoDescription,
           seoKeywords,
           ogImage,
-          seoByPage,
+          seoRoutes,
           faviconUrl,
           analyticsHeadScript,
           analyticsBodyScript,
@@ -172,14 +164,16 @@ export default function TrafficSettings() {
     return `${API}${url}`;
   };
 
-  const updateSeoByPage = (pageKey, field, value) => {
-    setSeoByPage(prev => ({
-      ...prev,
-      [pageKey]: {
-        ...(prev[pageKey] || defaultSeoByPage[pageKey]),
-        [field]: value
-      }
-    }));
+  const addSeoRoute = () => {
+    setSeoRoutes(prev => [...prev, createSeoRoute()]);
+  };
+
+  const updateSeoRoute = (index, field, value) => {
+    setSeoRoutes(prev => prev.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)));
+  };
+
+  const removeSeoRoute = index => {
+    setSeoRoutes(prev => prev.filter((_, idx) => idx !== index));
   };
 
   return (
@@ -252,62 +246,84 @@ export default function TrafficSettings() {
         </div>
 
         <div className="border rounded p-3 mb-3">
-          <h6 className="mb-3">Per-Page SEO</h6>
-          {Object.entries(SEO_PAGE_FIELDS).map(([pageKey, meta]) => (
-            <div key={pageKey} className="border rounded p-3 mb-3">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <strong>{meta.label}</strong>
-                <small className="text-muted">{meta.pathHint}</small>
-              </div>
-              <div className="mb-2">
-                <label className="form-label">Title</label>
-                <input
-                  className="form-control"
-                  value={seoByPage?.[pageKey]?.title || ""}
-                  onChange={e => updateSeoByPage(pageKey, "title", e.target.value)}
-                  placeholder={`SEO title for ${meta.label}`}
-                />
-              </div>
-              <div className="mb-2">
-                <label className="form-label">Description</label>
-                <textarea
-                  className="form-control"
-                  rows="2"
-                  value={seoByPage?.[pageKey]?.description || ""}
-                  onChange={e => updateSeoByPage(pageKey, "description", e.target.value)}
-                />
-              </div>
-              <div className="mb-2">
-                <label className="form-label">Keywords</label>
-                <input
-                  className="form-control"
-                  value={seoByPage?.[pageKey]?.keywords || ""}
-                  onChange={e => updateSeoByPage(pageKey, "keywords", e.target.value)}
-                />
-              </div>
-              <div className="mb-2">
-                <label className="form-label">OG Image URL (optional)</label>
-                <input
-                  className="form-control"
-                  value={seoByPage?.[pageKey]?.ogImage || ""}
-                  onChange={e => updateSeoByPage(pageKey, "ogImage", e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <div>
-                <label className="form-label">Canonical Path (optional)</label>
-                <input
-                  className="form-control"
-                  value={seoByPage?.[pageKey]?.canonicalPath || ""}
-                  onChange={e => updateSeoByPage(pageKey, "canonicalPath", e.target.value)}
-                  placeholder={meta.pathHint}
-                />
-                <div className="form-text">
-                  You can use placeholders like {"{universitySlug}"}, {"{courseSlug}"}, {"{semesterSlug}"}, {"{paperSlug}"}.
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">URL Based SEO Rules</h6>
+            <button type="button" className="btn btn-sm btn-outline-primary" onClick={addSeoRoute}>
+              Add URL Rule
+            </button>
+          </div>
+          {seoRoutes.length === 0 ? (
+            <div className="text-muted small">
+              Add URL rule, for example: <code>/up-board-12th-class/hindi/hindi-2025</code> or full URL.
+            </div>
+          ) : (
+            seoRoutes.map((rule, idx) => (
+              <div key={`seo-route-${idx}`} className="border rounded p-3 mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <strong>Rule #{idx + 1}</strong>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => removeSeoRoute(idx)}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">URL / Path</label>
+                  <input
+                    className="form-control"
+                    value={rule.path || ""}
+                    onChange={e => updateSeoRoute(idx, "path", e.target.value)}
+                    placeholder="/up-board-12th-class/hindi/hindi-2025 or https://www.allpreviouspaperhub.in/up-board-12th-class/hindi/hindi-2025"
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">Title</label>
+                  <input
+                    className="form-control"
+                    value={rule.title || ""}
+                    onChange={e => updateSeoRoute(idx, "title", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">Description</label>
+                  <textarea
+                    className="form-control"
+                    rows="2"
+                    value={rule.description || ""}
+                    onChange={e => updateSeoRoute(idx, "description", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">Keywords</label>
+                  <input
+                    className="form-control"
+                    value={rule.keywords || ""}
+                    onChange={e => updateSeoRoute(idx, "keywords", e.target.value)}
+                  />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">OG Image URL (optional)</label>
+                  <input
+                    className="form-control"
+                    value={rule.ogImage || ""}
+                    onChange={e => updateSeoRoute(idx, "ogImage", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <label className="form-label">Canonical Path/URL (optional)</label>
+                  <input
+                    className="form-control"
+                    value={rule.canonicalPath || ""}
+                    onChange={e => updateSeoRoute(idx, "canonicalPath", e.target.value)}
+                    placeholder="/up-board-12th-class/hindi/hindi-2025"
+                  />
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         <div className="mb-3">

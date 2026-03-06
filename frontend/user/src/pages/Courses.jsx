@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Courses(){
   const { universitySlug } = useParams();
@@ -101,18 +101,26 @@ export default function Courses(){
 
   useEffect(() => {
     if (!settingsSnapshot) return;
-    applySeoByPage({
+    const context = {
+      university: selectedUniversity?.name || "",
+      universitySlug: universitySlug || ""
+    };
+    const hasRouteSeo = applySeoByRoute({
       settings: settingsSnapshot,
-      pageKey: "courses",
-      context: {
-        university: selectedUniversity?.name || "",
-        universitySlug: universitySlug || ""
-      },
-      fallback: {
-        title: selectedUniversity?.name ? `${selectedUniversity.name} Courses` : "Courses",
-        canonicalPath: `/${universitySlug || ""}`
-      }
+      context,
+      pathname: window.location.pathname
     });
+    if (!hasRouteSeo) {
+      applySeoByPage({
+        settings: settingsSnapshot,
+        pageKey: "courses",
+        context,
+        fallback: {
+          title: selectedUniversity?.name ? `${selectedUniversity.name} Courses` : "Courses",
+          canonicalPath: `/${universitySlug || ""}`
+        }
+      });
+    }
   }, [selectedUniversity, settingsSnapshot, universitySlug]);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import axios from "axios";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessPaper } from "../utils/navigationFlow";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -78,24 +78,33 @@ export default function PaperOpen() {
           ...defaultPaperOpenViewer,
           ...((settingsRes && settingsRes.data && settingsRes.data.paperOpenViewer) || {})
         });
-        applySeoByPage({
-          settings: (settingsRes && settingsRes.data) || {},
-          pageKey: "paperOpen",
-          context: {
-            university: resolvedPaper?.courseId?.universityId?.name || resolvedPaper?.universityName || "",
-            course: resolvedPaper?.courseId?.name || resolvedPaper?.courseName || "",
-            semester: resolvedPaper?.semId?.name || resolvedPaper?.semesterName || "",
-            paper: resolvedPaper?.title || "",
-            universitySlug: universitySlug || "",
-            courseSlug: courseSlug || "",
-            semesterSlug: semesterSlug || "",
-            paperSlug: paperSlug || ""
-          },
-          fallback: {
-            title: resolvedPaper?.title ? `${resolvedPaper.title} | Open Paper` : "Open Paper",
-            canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}/${paperSlug || ""}`
-          }
+        const settings = (settingsRes && settingsRes.data) || {};
+        const context = {
+          university: resolvedPaper?.courseId?.universityId?.name || resolvedPaper?.universityName || "",
+          course: resolvedPaper?.courseId?.name || resolvedPaper?.courseName || "",
+          semester: resolvedPaper?.semId?.name || resolvedPaper?.semesterName || "",
+          paper: resolvedPaper?.title || "",
+          universitySlug: universitySlug || "",
+          courseSlug: courseSlug || "",
+          semesterSlug: semesterSlug || "",
+          paperSlug: paperSlug || ""
+        };
+        const hasRouteSeo = applySeoByRoute({
+          settings,
+          context,
+          pathname: window.location.pathname
         });
+        if (!hasRouteSeo) {
+          applySeoByPage({
+            settings,
+            pageKey: "paperOpen",
+            context,
+            fallback: {
+              title: resolvedPaper?.title ? `${resolvedPaper.title} | Open Paper` : "Open Paper",
+              canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}/${paperSlug || ""}`
+            }
+          });
+        }
         if (!resolvedPaper) {
           setError(
             ((settingsRes && settingsRes.data && settingsRes.data.paperOpenViewer?.notFoundText) ||

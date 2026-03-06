@@ -32,18 +32,97 @@ const replaceTemplate = (value, context) => {
   );
 };
 
+const normalizePathLike = value => {
+  const raw = String(value || "").trim();
+  if (!raw) return "/";
+  try {
+    if (/^https?:\/\//i.test(raw)) {
+      const url = new URL(raw);
+      return (url.pathname || "/").replace(/\/+$/, "") || "/";
+    }
+  } catch (e) {
+    // ignore parse errors and fallback to raw path handling
+  }
+  const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
+  return withSlash.replace(/\/+$/, "") || "/";
+};
+
+const resolveCanonicalPath = ({ settings = {}, pathValue = "", fallback = window.location.pathname, context = {} }) => {
+  const canonicalBase = String(settings?.canonicalUrl || window.location.origin).replace(/\/+$/, "");
+  const replaced = replaceTemplate(pathValue, context).trim();
+  const selectedPath = replaced || fallback || "/";
+  if (selectedPath.startsWith("http://") || selectedPath.startsWith("https://")) return selectedPath;
+  const normalizedPath = normalizePathLike(selectedPath);
+  return `${canonicalBase}${normalizedPath === "/" ? "" : normalizedPath}`;
+};
+
+const setSeoPayload = ({ settings = {}, title = "", description = "", keywords = "", image = "", canonicalPath = "", context = {} }) => {
+  const baseTitle = String(settings?.userPageTitle || settings?.seoTitle || DEFAULT_SITE_TITLE).trim();
+  const finalTitle = String(title || baseTitle || DEFAULT_SITE_TITLE).trim();
+  const finalDescription = String(description || settings?.seoDescription || DEFAULT_SEO_DESCRIPTION).trim();
+  const finalKeywords = String(keywords || settings?.seoKeywords || "").trim();
+
+  document.title = finalTitle;
+  ensureMeta("apple-mobile-web-app-title", finalTitle);
+  ensureMeta("description", finalDescription);
+  ensureMeta("keywords", finalKeywords);
+
+  ensureMeta("og:title", finalTitle, "property");
+  ensureMeta("og:description", finalDescription, "property");
+  ensureMeta("og:site_name", baseTitle || DEFAULT_SITE_TITLE, "property");
+  ensureMeta("twitter:title", finalTitle);
+  ensureMeta("twitter:description", finalDescription);
+
+  const finalImage = String(image || settings?.ogImage || "").trim();
+  if (finalImage) {
+    const resolvedImage = resolveApiUrl(finalImage);
+    ensureMeta("og:image", resolvedImage, "property");
+    ensureMeta("twitter:image", resolvedImage);
+  }
+
+  const canonicalHref = resolveCanonicalPath({
+    settings,
+    pathValue: canonicalPath,
+    fallback: window.location.pathname,
+    context
+  });
+  ensureCanonical(canonicalHref);
+};
+
+export const applySeoByRoute = ({ settings = {}, context = {}, pathname = window.location.pathname }) => {
+  const rules = Array.isArray(settings?.seoRoutes) ? settings.seoRoutes : [];
+  if (!rules.length) return false;
+
+  const normalizedCurrentPath = normalizePathLike(pathname);
+  const matchedRule = rules.find(rule => {
+    const rulePath = normalizePathLike(replaceTemplate(rule?.path || "", context));
+    return rulePath === normalizedCurrentPath;
+  });
+
+  if (!matchedRule) return false;
+
+  setSeoPayload({
+    settings,
+    title: replaceTemplate(matchedRule?.title, context),
+    description: replaceTemplate(matchedRule?.description, context),
+    keywords: replaceTemplate(matchedRule?.keywords, context),
+    image: replaceTemplate(matchedRule?.ogImage, context),
+    canonicalPath: replaceTemplate(matchedRule?.canonicalPath || matchedRule?.path || "", context),
+    context
+  });
+
+  return true;
+};
+
 export const applySeoByPage = ({ settings = {}, pageKey = "", context = {}, fallback = {} }) => {
   const seoByPage = settings?.seoByPage || {};
   const pageSeo = seoByPage?.[pageKey] || {};
 
-  const baseTitle = String(settings?.userPageTitle || settings?.seoTitle || DEFAULT_SITE_TITLE).trim();
   const title =
     replaceTemplate(pageSeo?.title, context).trim() ||
     fallback.title ||
-    baseTitle ||
+    String(settings?.userPageTitle || settings?.seoTitle || DEFAULT_SITE_TITLE).trim() ||
     DEFAULT_SITE_TITLE;
-  document.title = title;
-  ensureMeta("apple-mobile-web-app-title", title);
 
   const description =
     replaceTemplate(pageSeo?.description, context).trim() ||
@@ -55,31 +134,19 @@ export const applySeoByPage = ({ settings = {}, pageKey = "", context = {}, fall
     replaceTemplate(pageSeo?.keywords, context).trim() ||
     fallback.keywords ||
     String(settings?.seoKeywords || "").trim();
-  ensureMeta("keywords", keywords);
-
-  const ogTitle = title;
-  const ogDescription = description;
-  ensureMeta("og:title", ogTitle, "property");
-  ensureMeta("og:description", ogDescription, "property");
-  ensureMeta("og:site_name", baseTitle || DEFAULT_SITE_TITLE, "property");
-  ensureMeta("twitter:title", ogTitle);
-  ensureMeta("twitter:description", ogDescription);
 
   const image =
     replaceTemplate(pageSeo?.ogImage, context).trim() ||
     String(settings?.ogImage || "").trim();
-  if (image) {
-    const resolvedImage = resolveApiUrl(image);
-    ensureMeta("og:image", resolvedImage, "property");
-    ensureMeta("twitter:image", resolvedImage);
-  }
-
-  const canonicalBase = String(settings?.canonicalUrl || window.location.origin).replace(/\/+$/, "");
   const canonicalPathRaw = replaceTemplate(pageSeo?.canonicalPath, context).trim();
-  const canonicalPath = canonicalPathRaw || fallback.canonicalPath || window.location.pathname;
-  const canonicalHref = canonicalPath.startsWith("http://") || canonicalPath.startsWith("https://")
-    ? canonicalPath
-    : `${canonicalBase}/${canonicalPath.replace(/^\/+/, "")}`;
-  ensureCanonical(canonicalHref);
-};
 
+  setSeoPayload({
+    settings,
+    title,
+    description,
+    keywords,
+    image,
+    canonicalPath: canonicalPathRaw || fallback.canonicalPath || window.location.pathname,
+    context
+  });
+};

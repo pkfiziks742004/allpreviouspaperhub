@@ -10,7 +10,7 @@ import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Home() {
   const location = useLocation();
@@ -90,15 +90,23 @@ export default function Home() {
           other: "View Details",
           ...(res.data.typeActionLabels || {})
         });
-        applySeoByPage({
-          settings: res.data || {},
-          pageKey: "home",
-          fallback: {
-            title: res.data.homeTitle || "All Previous Paper Hub",
-            description: res.data.homeSubtitle || "",
-            canonicalPath: "/"
-          }
+        const settings = res.data || {};
+        const hasRouteSeo = applySeoByRoute({
+          settings,
+          context: {},
+          pathname: window.location.pathname
         });
+        if (!hasRouteSeo) {
+          applySeoByPage({
+            settings,
+            pageKey: "home",
+            fallback: {
+              title: settings.homeTitle || "All Previous Paper Hub",
+              description: settings.homeSubtitle || "",
+              canonicalPath: "/"
+            }
+          });
+        }
       });
   }, []);
 

@@ -3,7 +3,7 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl } from "../config/api";
-import { applySeoByPage } from "../utils/seo";
+import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 const FALLBACK_SEO = {
   title: "About Us | Study Portal",
@@ -72,17 +72,25 @@ export default function AboutUs() {
         const about = aboutRes.data || null;
         if (!mounted) return;
         setManagedAbout(about);
-        applySeoByPage({
+        const context = { page: "about" };
+        const hasRouteSeo = applySeoByRoute({
           settings,
-          pageKey: "about",
-          context: { page: "about" },
-          fallback: {
-            title: about?.seoTitle || about?.title || FALLBACK_SEO.title,
-            description: about?.seoDescription || FALLBACK_SEO.description,
-            keywords: about?.seoKeywords || FALLBACK_SEO.keywords,
-            canonicalPath: about?.canonicalUrl || "/about"
-          }
+          context,
+          pathname: window.location.pathname
         });
+        if (!hasRouteSeo) {
+          applySeoByPage({
+            settings,
+            pageKey: "about",
+            context,
+            fallback: {
+              title: about?.seoTitle || about?.title || FALLBACK_SEO.title,
+              description: about?.seoDescription || FALLBACK_SEO.description,
+              keywords: about?.seoKeywords || FALLBACK_SEO.keywords,
+              canonicalPath: about?.canonicalUrl || "/about"
+            }
+          });
+        }
       } catch (err) {
         if (!mounted) return;
         setManagedAbout(null);
