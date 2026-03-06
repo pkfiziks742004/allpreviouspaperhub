@@ -31,6 +31,7 @@ export default function TrafficSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingOg, setUploadingOg] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingSeoRouteIndex, setUploadingSeoRouteIndex] = useState(null);
 
   const token = localStorage.getItem("token");
   const headers = { headers: { Authorization: token } };
@@ -176,6 +177,27 @@ export default function TrafficSettings() {
     setSeoRoutes(prev => prev.filter((_, idx) => idx !== index));
   };
 
+  const uploadSeoRouteImage = async (index, e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setUploadingSeoRouteIndex(index);
+    try {
+      const fd = new FormData();
+      fd.append("seoImage", file);
+      const res = await axios.post(`${API}/api/settings/seo-image`, fd, headers);
+      const url = res?.data?.url || "";
+      if (url) {
+        updateSeoRoute(index, "ogImage", url);
+      }
+      alert("SEO route image uploaded");
+    } catch (err) {
+      alert("SEO route image upload failed");
+    } finally {
+      setUploadingSeoRouteIndex(null);
+      e.target.value = "";
+    }
+  };
+
   return (
     <Layout>
 
@@ -305,12 +327,28 @@ export default function TrafficSettings() {
                 </div>
                 <div className="mb-2">
                   <label className="form-label">OG Image URL (optional)</label>
-                  <input
-                    className="form-control"
-                    value={rule.ogImage || ""}
-                    onChange={e => updateSeoRoute(idx, "ogImage", e.target.value)}
-                    placeholder="https://..."
-                  />
+                  <div className="row g-2">
+                    <div className="col-8">
+                      <input
+                        className="form-control"
+                        value={rule.ogImage || ""}
+                        onChange={e => updateSeoRoute(idx, "ogImage", e.target.value)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div className="col-4">
+                      <label className="btn btn-outline-secondary w-100 mb-0">
+                        {uploadingSeoRouteIndex === idx ? "Uploading..." : "Upload Image"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          disabled={uploadingSeoRouteIndex === idx}
+                          onChange={e => uploadSeoRouteImage(idx, e)}
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="form-label">Canonical Path/URL (optional)</label>

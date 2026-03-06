@@ -986,6 +986,21 @@ const uploadBadgeImage = async (req, res) => {
   }
 };
 
+const uploadSeoImage = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json("No file");
+    const uploaded = await uploadBufferToCloudinary({
+      buffer: req.file.buffer,
+      mimeType: req.file.mimetype,
+      folder: "study-portal/settings/seo-route-image",
+      resourceType: "image"
+    });
+    return res.json({ url: uploaded.secure_url });
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
+};
+
 module.exports = {
   getSettings,
   updateSettings,
@@ -996,5 +1011,6 @@ module.exports = {
   uploadFooterIcons,
   uploadFavicon,
   uploadOgImage,
-  uploadBadgeImage
+  uploadBadgeImage,
+  uploadSeoImage
 };
