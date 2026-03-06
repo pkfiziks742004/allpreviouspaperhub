@@ -131,7 +131,7 @@ export default function PrivacyPolicy() {
     <div className="page-shell">
       <Navbar />
       <div className="page-content">
-        <section className="about-page py-5" style={{ backgroundColor: managedPage?.bgColor || "" }}>
+        <section className="about-page py-5">
           <div className="container">
             {loading ? (
               <div className="about-hero mb-4">
@@ -140,11 +140,6 @@ export default function PrivacyPolicy() {
               </div>
             ) : (
               <>
-                {managedPage?.bannerUrl ? (
-                  <div className="custom-page-banner mb-4">
-                    <img src={resolveApiUrl(managedPage.bannerUrl)} alt={managedPage.title || "Privacy Policy"} />
-                  </div>
-                ) : null}
                 <div className="about-hero mb-4">
                   <p className="about-eyebrow">Legal</p>
                   <h1 className="about-title">{managedPage?.title || "Privacy Policy"}</h1>
@@ -163,4 +158,3 @@ export default function PrivacyPolicy() {
     </div>
   );
 }
-
