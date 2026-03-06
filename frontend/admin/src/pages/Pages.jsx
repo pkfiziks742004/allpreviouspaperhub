@@ -46,6 +46,13 @@ const wordCountFromHtml = html => {
   return text.split(/\s+/).filter(Boolean).length;
 };
 
+const getPublicPathBySlug = value => {
+  const normalized = makeSlug(value);
+  if (normalized === "about") return "/about";
+  if (normalized === "privacy-policy") return "/privacy-policy";
+  return `/page/${normalized || "page"}`;
+};
+
 export default function Pages() {
   const [pages, setPages] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -139,6 +146,37 @@ export default function Pages() {
     setPublished(true);
     setContentHtml("");
     setContentText("");
+  };
+
+  const startSpecialPageEdit = targetSlug => {
+    const normalized = makeSlug(targetSlug);
+    const existing = (pages || []).find(
+      p => makeSlug(p?.slug || "") === normalized
+    );
+    if (existing) {
+      startEdit(existing);
+      return;
+    }
+
+    resetForm();
+    if (normalized === "about") {
+      setTitle("About Us");
+      setSlug("about");
+      setSeoTitle("About Us | All Previous Paper Hub");
+      setCanonicalUrl(`${window.location.origin}/about`);
+      setPublished(true);
+      setSlugTouched(true);
+      return;
+    }
+
+    if (normalized === "privacy-policy") {
+      setTitle("Privacy Policy");
+      setSlug("privacy-policy");
+      setSeoTitle("Privacy Policy | All Previous Paper Hub");
+      setCanonicalUrl(`${window.location.origin}/privacy-policy`);
+      setPublished(true);
+      setSlugTouched(true);
+    }
   };
 
   const startEdit = page => {
@@ -302,11 +340,27 @@ export default function Pages() {
       <div className="card p-4 shadow mb-4" style={{ maxWidth: "1000px" }}>
         <div className="d-flex justify-content-between align-items-center mb-2">
           <div className="fw-bold">{editingId ? "Edit Page" : "New Page"}</div>
-          {editingId && (
-            <button className="btn btn-sm btn-outline-secondary" onClick={resetForm}>
-              New Page
+          <div className="d-flex gap-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => startSpecialPageEdit("about")}
+            >
+              Edit About
             </button>
-          )}
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => startSpecialPageEdit("privacy-policy")}
+            >
+              Edit Privacy Policy
+            </button>
+            {editingId && (
+              <button className="btn btn-sm btn-outline-secondary" onClick={resetForm}>
+                New Page
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="row">
@@ -342,8 +396,12 @@ export default function Pages() {
                 Auto
               </button>
             </div>
-            <div className="form-text">Final URL: `/page/{makeSlug(slug || title) || "page"}`</div>
-            <div className="form-text">Tip: About page ko admin se control karne ke liye slug `about` rakhein.</div>
+            <div className="form-text">
+              Final URL: `{getPublicPathBySlug(slug || title)}`
+            </div>
+            <div className="form-text">
+              Tip: `about` slug se About route aur `privacy-policy` slug se Privacy Policy route control hota hai.
+            </div>
           </div>
         </div>
 
@@ -566,7 +624,7 @@ export default function Pages() {
           </div>
           <div className="border rounded p-2 bg-white">
             <div className="fw-semibold">{title || "Untitled Page"}</div>
-            <div className="text-muted small">/page/{makeSlug(slug || title) || "page"}</div>
+            <div className="text-muted small">{getPublicPathBySlug(slug || title)}</div>
             {seoDescription && <div className="small mt-2">{seoDescription}</div>}
           </div>
         </div>
@@ -614,7 +672,7 @@ export default function Pages() {
             <div className="d-flex justify-content-between align-items-center">
               <div>
                 <div className="fw-bold">{page.title}</div>
-                <div className="text-muted">/page/{page.slug}</div>
+                <div className="text-muted">{getPublicPathBySlug(page.slug)}</div>
                 <div className="small text-muted">
                   Updated: {new Date(page.updatedAt || page.createdAt).toLocaleString()}
                 </div>
@@ -639,7 +697,7 @@ export default function Pages() {
                 {page.published ? (
                   <a
                     className="btn btn-sm btn-outline-dark"
-                    href={`/page/${page.slug}`}
+                    href={getPublicPathBySlug(page.slug)}
                     target="_blank"
                     rel="noreferrer"
                   >
