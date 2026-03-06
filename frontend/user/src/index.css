@@ -242,6 +242,45 @@ body {
   box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.16);
 }
 
+.site-alert-bar {
+  overflow: hidden;
+  align-items: center;
+}
+
+.site-alert-marquee {
+  width: 100%;
+  overflow: hidden;
+}
+
+.site-alert-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  animation: alertMarquee 18s linear infinite;
+}
+
+.site-alert-item {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+  padding-inline: 28px;
+}
+
+@keyframes alertMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-alert-track {
+    animation: none;
+  }
+}
+
 .banner-shell {
   width: 100%;
   max-width: none;

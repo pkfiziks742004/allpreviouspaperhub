@@ -395,20 +395,27 @@ function Navbar() {
 
         {alertEnabled && alertText && (
           <div
-            className="rounded-0 mb-0"
+            className="rounded-0 mb-0 site-alert-bar"
             style={{
               backgroundColor: alertColor,
-              padding: "6px 12px",
+              padding: "6px 0",
               minHeight: alertHeight ? `${alertHeight}px` : undefined,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: alertStyle.align || "center"
+              display: "flex"
             }}
           >
-            {(() => {
-              const AlertTag = alertStyle.variant || "p";
-              return <AlertTag style={alertTextStyle}>{alertText}</AlertTag>;
-            })()}
+            <div className="site-alert-marquee">
+              <div className="site-alert-track">
+                {(() => {
+                  const AlertTag = alertStyle.variant || "p";
+                  return (
+                    <>
+                      <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                      <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
         )}
       </div>
