@@ -409,8 +409,14 @@ function Navbar() {
                   const AlertTag = alertStyle.variant || "p";
                   return (
                     <>
-                      <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
-                      <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                      <div className="site-alert-group">
+                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                      </div>
+                      <div className="site-alert-group" aria-hidden="true">
+                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                        <AlertTag className="site-alert-item" style={alertTextStyle}>{alertText}</AlertTag>
+                      </div>
                     </>
                   );
                 })()}

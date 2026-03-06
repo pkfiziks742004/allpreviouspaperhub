@@ -257,20 +257,22 @@ body {
   display: flex;
   align-items: center;
   width: max-content;
-  min-width: 200%;
   will-change: transform;
   animation: alertMarquee 18s linear infinite;
 }
 
-.site-alert-item {
-  flex: 0 0 100%;
-  min-width: 100%;
+.site-alert-group {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 2cm;
+  padding-right: 2cm;
+  flex: 0 0 auto;
+}
+
+.site-alert-item {
+  flex: 0 0 auto;
   margin: 0;
   white-space: nowrap;
-  padding-inline: 16px;
 }
 
 @keyframes alertMarquee {
@@ -285,11 +287,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .site-alert-track {
     animation: none;
-    min-width: 100%;
   }
-  .site-alert-item {
-    flex-basis: 100%;
-    min-width: 100%;
+  .site-alert-group {
+    padding-right: 0;
   }
 }
 
