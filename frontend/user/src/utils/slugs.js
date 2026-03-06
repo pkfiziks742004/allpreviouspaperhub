@@ -1,5 +1,6 @@
 export const RESERVED_SLUGS = new Set([
   "about",
+  "privacy-policy",
   "courses",
   "course",
   "papers",
@@ -22,4 +23,3 @@ export function toRouteSegment(value, fallback = "item") {
   if (RESERVED_SLUGS.has(slug)) return `${slug}-item`;
   return slug;
 }
-

@@ -9,6 +9,7 @@ import Papers from "./pages/Papers";
 import PaperOpen from "./pages/PaperOpen";
 import CustomPage from "./pages/CustomPage";
 import AboutUs from "./pages/AboutUs";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { API_BASE, resolveApiUrl } from "./config/api";
 import { AdsProvider } from "./context/AdsContext";
 
@@ -242,6 +243,7 @@ function App() {
           <Route path="/:universitySlug/:courseSlug/:semesterSlug/:paperSlug" element={<PaperOpen />} />
           <Route path="/page/:slug" element={<CustomPage />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Routes>
       </BrowserRouter>
     </AdsProvider>
