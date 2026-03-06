@@ -32,6 +32,7 @@ export default function TrafficSettings() {
   const [uploadingOg, setUploadingOg] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const [uploadingSeoRouteIndex, setUploadingSeoRouteIndex] = useState(null);
+  const [editingSeoRouteIndex, setEditingSeoRouteIndex] = useState(null);
 
   const token = localStorage.getItem("token");
   const headers = { headers: { Authorization: token } };
@@ -56,7 +57,9 @@ export default function TrafficSettings() {
       setUserPageTitle(res.data.userPageTitle || "Study Portal");
       setAdminPageTitle(res.data.adminPageTitle || "Admin Panel");
       setFaviconUrl(res.data.faviconUrl || "");
-      setSeoRoutes(Array.isArray(res.data.seoRoutes) ? res.data.seoRoutes : []);
+      const routes = Array.isArray(res.data.seoRoutes) ? res.data.seoRoutes : [];
+      setSeoRoutes(routes);
+      setEditingSeoRouteIndex(routes.length > 0 ? 0 : null);
     });
   }, []);
 
@@ -166,7 +169,11 @@ export default function TrafficSettings() {
   };
 
   const addSeoRoute = () => {
-    setSeoRoutes(prev => [...prev, createSeoRoute()]);
+    setSeoRoutes(prev => {
+      const next = [...prev, createSeoRoute()];
+      setEditingSeoRouteIndex(next.length - 1);
+      return next;
+    });
   };
 
   const updateSeoRoute = (index, field, value) => {
@@ -174,7 +181,23 @@ export default function TrafficSettings() {
   };
 
   const removeSeoRoute = index => {
-    setSeoRoutes(prev => prev.filter((_, idx) => idx !== index));
+    setSeoRoutes(prev => {
+      const next = prev.filter((_, idx) => idx !== index);
+      setEditingSeoRouteIndex(current => {
+        if (next.length === 0) return null;
+        if (current === null) return 0;
+        if (current === index) return current >= next.length ? next.length - 1 : current;
+        if (current > index) return current - 1;
+        return current;
+      });
+      return next;
+    });
+  };
+
+  const getSeoRouteLabel = rule => {
+    const raw = String(rule?.path || "").trim();
+    if (!raw) return "(Path not set)";
+    return raw;
   };
 
   const uploadSeoRouteImage = async (index, e) => {
@@ -279,88 +302,132 @@ export default function TrafficSettings() {
               Add URL rule, for example: <code>/up-board-12th-class/hindi/hindi-2025</code> or full URL.
             </div>
           ) : (
-            seoRoutes.map((rule, idx) => (
-              <div key={`seo-route-${idx}`} className="border rounded p-3 mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <strong>Rule #{idx + 1}</strong>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => removeSeoRoute(idx)}
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">URL / Path</label>
-                  <input
-                    className="form-control"
-                    value={rule.path || ""}
-                    onChange={e => updateSeoRoute(idx, "path", e.target.value)}
-                    placeholder="/up-board-12th-class/hindi/hindi-2025 or https://www.allpreviouspaperhub.in/up-board-12th-class/hindi/hindi-2025"
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Title</label>
-                  <input
-                    className="form-control"
-                    value={rule.title || ""}
-                    onChange={e => updateSeoRoute(idx, "title", e.target.value)}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Description</label>
-                  <textarea
-                    className="form-control"
-                    rows="2"
-                    value={rule.description || ""}
-                    onChange={e => updateSeoRoute(idx, "description", e.target.value)}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">Keywords</label>
-                  <input
-                    className="form-control"
-                    value={rule.keywords || ""}
-                    onChange={e => updateSeoRoute(idx, "keywords", e.target.value)}
-                  />
-                </div>
-                <div className="mb-2">
-                  <label className="form-label">OG Image URL (optional)</label>
-                  <div className="row g-2">
-                    <div className="col-8">
-                      <input
-                        className="form-control"
-                        value={rule.ogImage || ""}
-                        onChange={e => updateSeoRoute(idx, "ogImage", e.target.value)}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div className="col-4">
-                      <label className="btn btn-outline-secondary w-100 mb-0">
-                        {uploadingSeoRouteIndex === idx ? "Uploading..." : "Upload Image"}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          disabled={uploadingSeoRouteIndex === idx}
-                          onChange={e => uploadSeoRouteImage(idx, e)}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="form-label">Canonical Path/URL (optional)</label>
-                  <input
-                    className="form-control"
-                    value={rule.canonicalPath || ""}
-                    onChange={e => updateSeoRoute(idx, "canonicalPath", e.target.value)}
-                    placeholder="/up-board-12th-class/hindi/hindi-2025"
-                  />
+            <>
+              <div className="border rounded mb-3">
+                <div className="table-responsive">
+                  <table className="table table-sm align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th style={{ width: "70px" }}>#</th>
+                        <th>Saved Link / Path</th>
+                        <th style={{ width: "200px" }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {seoRoutes.map((rule, idx) => (
+                        <tr key={`seo-route-row-${idx}`}>
+                          <td>{idx + 1}</td>
+                          <td style={{ wordBreak: "break-all" }}>
+                            {getSeoRouteLabel(rule)}
+                          </td>
+                          <td>
+                            <div className="d-flex gap-2">
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={() => setEditingSeoRouteIndex(idx)}
+                              >
+                                Update
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => removeSeoRoute(idx)}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            ))
+
+              {editingSeoRouteIndex !== null && seoRoutes[editingSeoRouteIndex] && (
+                <div className="border rounded p-3 mb-1">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Editing Rule #{editingSeoRouteIndex + 1}</strong>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary"
+                      onClick={() => setEditingSeoRouteIndex(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label">URL / Path</label>
+                    <input
+                      className="form-control"
+                      value={seoRoutes[editingSeoRouteIndex].path || ""}
+                      onChange={e => updateSeoRoute(editingSeoRouteIndex, "path", e.target.value)}
+                      placeholder="/up-board-12th-class/hindi/hindi-2025 or https://www.allpreviouspaperhub.in/up-board-12th-class/hindi/hindi-2025"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label">Title</label>
+                    <input
+                      className="form-control"
+                      value={seoRoutes[editingSeoRouteIndex].title || ""}
+                      onChange={e => updateSeoRoute(editingSeoRouteIndex, "title", e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={seoRoutes[editingSeoRouteIndex].description || ""}
+                      onChange={e => updateSeoRoute(editingSeoRouteIndex, "description", e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label">Keywords</label>
+                    <input
+                      className="form-control"
+                      value={seoRoutes[editingSeoRouteIndex].keywords || ""}
+                      onChange={e => updateSeoRoute(editingSeoRouteIndex, "keywords", e.target.value)}
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="form-label">OG Image URL (optional)</label>
+                    <div className="row g-2">
+                      <div className="col-8">
+                        <input
+                          className="form-control"
+                          value={seoRoutes[editingSeoRouteIndex].ogImage || ""}
+                          onChange={e => updateSeoRoute(editingSeoRouteIndex, "ogImage", e.target.value)}
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div className="col-4">
+                        <label className="btn btn-outline-secondary w-100 mb-0">
+                          {uploadingSeoRouteIndex === editingSeoRouteIndex ? "Uploading..." : "Upload Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            disabled={uploadingSeoRouteIndex === editingSeoRouteIndex}
+                            onChange={e => uploadSeoRouteImage(editingSeoRouteIndex, e)}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="form-label">Canonical Path/URL (optional)</label>
+                    <input
+                      className="form-control"
+                      value={seoRoutes[editingSeoRouteIndex].canonicalPath || ""}
+                      onChange={e => updateSeoRoute(editingSeoRouteIndex, "canonicalPath", e.target.value)}
+                      placeholder="/up-board-12th-class/hindi/hindi-2025"
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
