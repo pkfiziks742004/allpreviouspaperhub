@@ -275,8 +275,13 @@ body {
 
 .site-alert-item {
   flex: 0 0 auto;
+  min-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: var(--alert-marquee-justify, flex-end);
   margin: 0;
   white-space: nowrap;
+  padding-inline: 12px;
 }
 
 @keyframes alertMarquee {

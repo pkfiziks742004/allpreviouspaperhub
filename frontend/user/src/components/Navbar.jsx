@@ -193,10 +193,17 @@ function Navbar() {
     color: alertStyle.color || "#000000",
     fontWeight: alertStyle.bold ? "700" : "normal",
     fontStyle: alertStyle.italic ? "italic" : "normal",
-    textAlign: alertStyle.align || "center",
+    textAlign: alertStyle.align || "right",
     margin: 0,
     fontSize: alertFontSize ? `${alertFontSize}px` : undefined
   };
+
+  const alertJustify =
+    alertStyle.align === "left"
+      ? "flex-start"
+      : alertStyle.align === "center"
+        ? "center"
+        : "flex-end";
 
   if (!ready) {
     return <div className="site-header-spacer" />;
@@ -409,7 +416,8 @@ function Navbar() {
               display: "flex",
               "--alert-marquee-speed": `${Math.max(4, Number(alertMarqueeSpeed) || 18)}s`,
               "--alert-marquee-gap": `${Math.max(0.2, Number(alertMarqueeGap) || 2)}cm`,
-              "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
+              "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal",
+              "--alert-marquee-justify": alertJustify
             }}
           >
             <div className="site-alert-marquee">
