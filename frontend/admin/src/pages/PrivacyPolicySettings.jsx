@@ -92,6 +92,7 @@ export default function PrivacyPolicySettings() {
 
   const [pageId, setPageId] = useState("");
   const [title, setTitle] = useState("Privacy Policy");
+  const [heroEyebrow, setHeroEyebrow] = useState("Legal");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [seoKeywords, setSeoKeywords] = useState("");
@@ -137,6 +138,7 @@ export default function PrivacyPolicySettings() {
 
         setPageId(privacyPage._id || "");
         setTitle(privacyPage.title || "Privacy Policy");
+        setHeroEyebrow(privacyPage?.extra?.heroEyebrow || "Legal");
         setSeoTitle(privacyPage.seoTitle || "");
         setSeoDescription(privacyPage.seoDescription || "");
         setSeoKeywords(privacyPage.seoKeywords || "");
@@ -215,7 +217,10 @@ export default function PrivacyPolicySettings() {
       seoKeywords,
       canonicalUrl,
       published,
-      contentHtml: contentHtml || ""
+      contentHtml: contentHtml || "",
+      extra: {
+        heroEyebrow: String(heroEyebrow || "").trim() || "Legal"
+      }
     };
 
     setSaving(true);
@@ -244,11 +249,15 @@ export default function PrivacyPolicySettings() {
         </p>
 
         <div className="row">
+          <div className="col-md-4 mb-3">
+            <label className="form-label">Top Label (Hero Badge)</label>
+            <input className="form-control" value={heroEyebrow} onChange={e => setHeroEyebrow(e.target.value)} />
+          </div>
           <div className="col-md-8 mb-3">
             <label className="form-label">Page Title</label>
             <input className="form-control" value={title} onChange={e => setTitle(e.target.value)} />
           </div>
-          <div className="col-md-4 mb-3 d-flex align-items-end">
+          <div className="col-md-12 mb-3 d-flex align-items-end">
             <div className="form-check">
               <input
                 className="form-check-input"

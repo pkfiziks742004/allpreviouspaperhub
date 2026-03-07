@@ -141,7 +141,7 @@ export default function PrivacyPolicy() {
             ) : (
               <>
                 <div className="about-hero mb-4">
-                  <p className="about-eyebrow">Legal</p>
+                  <p className="about-eyebrow">{managedPage?.extra?.heroEyebrow || "Legal"}</p>
                   <h1 className="about-title">{managedPage?.title || "Privacy Policy"}</h1>
                 </div>
                 <div
