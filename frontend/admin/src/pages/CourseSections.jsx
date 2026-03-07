@@ -439,18 +439,27 @@ export default function CourseSections() {
                 value={selectedSection.sectionType || "course"}
                 onChange={e => {
                   const nextType = String(e.target.value || "course");
-                  const currentIds = Array.isArray(selectedSection.itemIds) ? selectedSection.itemIds : [];
-                  const allowedIds = new Set(
-                    (nextType === "university" ? universities : nextType === "semester" ? semesters : courses)
-                      .map(item => String(item?._id || ""))
-                      .filter(Boolean)
-                  );
-                  updateSection(activeSection, "sectionType", nextType);
-                  updateSection(
-                    activeSection,
-                    "itemIds",
-                    currentIds.map(id => String(id || "")).filter(id => allowedIds.has(id))
-                  );
+                  setCourseSections(prev => {
+                    const target = prev[activeSection];
+                    if (!target) return prev;
+                    const currentIds = Array.isArray(target.itemIds) ? target.itemIds : [];
+                    const allowedIds = new Set(
+                      (nextType === "university" ? universities : nextType === "semester" ? semesters : courses)
+                        .map(item => String(item?._id || ""))
+                        .filter(Boolean)
+                    );
+                    return prev.map((section, idx) =>
+                      idx === activeSection
+                        ? {
+                            ...section,
+                            sectionType: nextType,
+                            itemIds: currentIds
+                              .map(id => String(id || ""))
+                              .filter(id => allowedIds.has(id))
+                          }
+                        : section
+                    );
+                  });
                 }}
               >
                 {SECTION_TYPE_OPTIONS.map(option => (
