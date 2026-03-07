@@ -6,6 +6,28 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
+const ensureMeta = (key, value, attr = "name") => {
+  let tag = document.querySelector(`meta[${attr}='${key}']`);
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute(attr, key);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("content", value || "");
+};
+
+const ensureCanonical = href => {
+  if (!href) return;
+  let link = document.querySelector("link[rel='canonical']");
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", href);
+  ensureMeta("og:url", href, "property");
+};
+
 export default function CustomPage() {
   const { slug } = useParams();
   const [page, setPage] = useState(null);
@@ -26,38 +48,28 @@ export default function CustomPage() {
       .get(`${API_BASE}/api/pages/slug/${slug}`)
       .then(res => {
         setPage(res.data);
-        if (res.data?.seoTitle) {
-          document.title = res.data.seoTitle;
-        } else if (res.data?.title) {
-          document.title = res.data.title;
+        const seoTitle = String(res.data?.seoTitle || res.data?.title || "All Previous Paper Hub").trim();
+        const seoDescription = String(
+          res.data?.seoDescription || `${res.data?.title || "Page"} - All Previous Paper Hub`
+        ).trim();
+        const seoKeywords = String(res.data?.seoKeywords || "").trim();
+        const seoImage = resolveUrl(res.data?.seoImage || "");
+        const canonical = String(
+          res.data?.canonicalUrl || `${window.location.origin}/page/${slug}`
+        ).trim();
+
+        document.title = seoTitle;
+        ensureMeta("description", seoDescription);
+        ensureMeta("keywords", seoKeywords);
+        ensureMeta("og:title", seoTitle, "property");
+        ensureMeta("og:description", seoDescription, "property");
+        ensureMeta("twitter:title", seoTitle);
+        ensureMeta("twitter:description", seoDescription);
+        if (seoImage) {
+          ensureMeta("og:image", seoImage, "property");
+          ensureMeta("twitter:image", seoImage);
         }
-        if (res.data?.seoDescription) {
-          let tag = document.querySelector("meta[name='description']");
-          if (!tag) {
-            tag = document.createElement("meta");
-            tag.setAttribute("name", "description");
-            document.head.appendChild(tag);
-          }
-          tag.setAttribute("content", res.data.seoDescription);
-        }
-        if (res.data?.seoKeywords) {
-          let tag = document.querySelector("meta[name='keywords']");
-          if (!tag) {
-            tag = document.createElement("meta");
-            tag.setAttribute("name", "keywords");
-            document.head.appendChild(tag);
-          }
-          tag.setAttribute("content", res.data.seoKeywords);
-        }
-        if (res.data?.canonicalUrl) {
-          let link = document.querySelector("link[rel='canonical']");
-          if (!link) {
-            link = document.createElement("link");
-            link.setAttribute("rel", "canonical");
-            document.head.appendChild(link);
-          }
-          link.setAttribute("href", res.data.canonicalUrl);
-        }
+        ensureCanonical(canonical);
       })
       .catch(() => setNotFound(true));
   }, [slug]);

@@ -59,7 +59,14 @@ const corsOptions = {
     return callback(new Error("CORS blocked"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cache-Control",
+    "Pragma",
+    "Expires",
+    "X-Requested-With"
+  ],
   credentials: false
 };
 
@@ -254,6 +261,7 @@ app.get("/api/stats", verifyAdmin, verifyPermission("dashboard"), async (req, re
 app.get("/sitemap.xml", async (req, res) => {
   try {
     const Setting = require("./models/Setting");
+    const Page = require("./models/Page");
     const settings = await Setting.findOne();
     const baseUrl = (settings?.sitemapBaseUrl || "").replace(/\/+$/, "");
     if (!baseUrl) {
@@ -261,11 +269,21 @@ app.get("/sitemap.xml", async (req, res) => {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`);
     }
 
-    const corePaths = ["/", "/courses"];
+    const corePaths = ["/", "/about", "/privacy-policy"];
     const extraPaths = Array.isArray(settings?.sitemapExtraPaths)
       ? settings.sitemapExtraPaths
       : [];
-    const paths = [...new Set([...corePaths, ...extraPaths])];
+    const pages = await Page.find({ published: true }).catch(() => []);
+    const pagePaths = (pages || [])
+      .map(p => String(p?.slug || "").trim())
+      .filter(Boolean)
+      .map(slug => {
+        if (slug === "about") return "/about";
+        if (slug === "privacy-policy") return "/privacy-policy";
+        return `/page/${slug}`;
+      });
+
+    const paths = [...new Set([...corePaths, ...extraPaths, ...pagePaths])];
     const urls = paths
       .filter(p => typeof p === "string" && p.trim())
       .map(p => (p.startsWith("/") ? p : `/${p}`))
