@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
+import { getSettings } from "../utils/siteData";
 
 export default function Footer() {
   const [avg, setAvg] = useState(0);
@@ -47,48 +48,47 @@ export default function Footer() {
   };
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
-        if (res.data && res.data.footerText) {
-          setFooterText(res.data.footerText);
+    getSettings({ ttlMs: 45_000 })
+      .then(data => {
+        if (data && data.footerText) {
+          setFooterText(data.footerText);
         }
-        if (res.data && typeof res.data.ratingEnabled === "boolean") {
-          setRatingEnabled(res.data.ratingEnabled);
+        if (data && typeof data.ratingEnabled === "boolean") {
+          setRatingEnabled(data.ratingEnabled);
         }
-        setFooterStyle(res.data.footerStyle || {});
-        setFooterUseSplitColor(!!res.data.footerUseSplitColor);
-        setFooterNamePart1(res.data.footerNamePart1 || "");
-        setFooterNamePart1Color(res.data.footerNamePart1Color || "#ffffff");
-        setFooterNamePart2(res.data.footerNamePart2 || "");
-        setFooterNamePart2Color(res.data.footerNamePart2Color || "#fbbf24");
-        setFooterBgColor(res.data.footerBgColor || "#212529");
-        setFooterBgImage(res.data.footerBgImage || "");
-        setFooterLogoUrl(res.data.footerLogoUrl || "");
-        setFooterLogoHeight(res.data.footerLogoHeight || 32);
-        setFooterLogoAlign(res.data.footerLogoAlign || "left");
-        setFooterSocialIcons(Array.isArray(res.data.footerSocialIcons) ? res.data.footerSocialIcons : []);
-        setFooterSocialIconSize(res.data.footerSocialIconSize || 36);
-        setFooterSocialIconRadius(res.data.footerSocialIconRadius || 10);
-        setFooterSocialIconBgColor(res.data.footerSocialIconBgColor || "#ffffff");
-        setFooterSocialIconBorderColor(res.data.footerSocialIconBorderColor || "#ffffff00");
-        setFooterSocialIconBorderWidth(res.data.footerSocialIconBorderWidth || 0);
-        setFooterColumns(Array.isArray(res.data.footerColumns) ? res.data.footerColumns : []);
-        setFooterLinkFontSize(res.data.footerLinkFontSize || 14);
-        setFooterContactTitle(res.data.footerContactTitle || "Contact");
-        setFooterContactLines(Array.isArray(res.data.footerContactLines) ? res.data.footerContactLines : []);
-        setFooterContactTextStyle(res.data.footerContactTextStyle || { color: "#ffffff", bold: false, italic: false, size: 14 });
-        setFooterRatingNoteTitle(res.data.footerRatingNoteTitle || "");
-        setFooterRatingNoteText(res.data.footerRatingNoteText || "");
-        setFooterRatingNoteLink(res.data.footerRatingNoteLink || "");
-        setFooterRatingNoteBgColor(res.data.footerRatingNoteBgColor || "rgba(255,255,255,0.08)");
-        setFooterRatingNoteTextColor(res.data.footerRatingNoteTextColor || "#ffffff");
-        setCopyrightEnabled(!!res.data.copyrightEnabled);
-        setCopyrightText(res.data.copyrightText || "");
-        setCopyrightColor(res.data.copyrightColor || "#f8f9fa");
-        setCopyrightTextColor(res.data.copyrightTextColor || "#000000");
-        setCopyrightHeight(res.data.copyrightHeight || 32);
-        setCopyrightFontSize(res.data.copyrightFontSize || 14);
+        setFooterStyle(data.footerStyle || {});
+        setFooterUseSplitColor(!!data.footerUseSplitColor);
+        setFooterNamePart1(data.footerNamePart1 || "");
+        setFooterNamePart1Color(data.footerNamePart1Color || "#ffffff");
+        setFooterNamePart2(data.footerNamePart2 || "");
+        setFooterNamePart2Color(data.footerNamePart2Color || "#fbbf24");
+        setFooterBgColor(data.footerBgColor || "#212529");
+        setFooterBgImage(data.footerBgImage || "");
+        setFooterLogoUrl(data.footerLogoUrl || "");
+        setFooterLogoHeight(data.footerLogoHeight || 32);
+        setFooterLogoAlign(data.footerLogoAlign || "left");
+        setFooterSocialIcons(Array.isArray(data.footerSocialIcons) ? data.footerSocialIcons : []);
+        setFooterSocialIconSize(data.footerSocialIconSize || 36);
+        setFooterSocialIconRadius(data.footerSocialIconRadius || 10);
+        setFooterSocialIconBgColor(data.footerSocialIconBgColor || "#ffffff");
+        setFooterSocialIconBorderColor(data.footerSocialIconBorderColor || "#ffffff00");
+        setFooterSocialIconBorderWidth(data.footerSocialIconBorderWidth || 0);
+        setFooterColumns(Array.isArray(data.footerColumns) ? data.footerColumns : []);
+        setFooterLinkFontSize(data.footerLinkFontSize || 14);
+        setFooterContactTitle(data.footerContactTitle || "Contact");
+        setFooterContactLines(Array.isArray(data.footerContactLines) ? data.footerContactLines : []);
+        setFooterContactTextStyle(data.footerContactTextStyle || { color: "#ffffff", bold: false, italic: false, size: 14 });
+        setFooterRatingNoteTitle(data.footerRatingNoteTitle || "");
+        setFooterRatingNoteText(data.footerRatingNoteText || "");
+        setFooterRatingNoteLink(data.footerRatingNoteLink || "");
+        setFooterRatingNoteBgColor(data.footerRatingNoteBgColor || "rgba(255,255,255,0.08)");
+        setFooterRatingNoteTextColor(data.footerRatingNoteTextColor || "#ffffff");
+        setCopyrightEnabled(!!data.copyrightEnabled);
+        setCopyrightText(data.copyrightText || "");
+        setCopyrightColor(data.copyrightColor || "#f8f9fa");
+        setCopyrightTextColor(data.copyrightTextColor || "#000000");
+        setCopyrightHeight(data.copyrightHeight || 32);
+        setCopyrightFontSize(data.copyrightFontSize || 14);
         setReady(true);
       })
       .catch(() => setReady(false));
@@ -192,7 +192,7 @@ export default function Footer() {
                       key={`icon-${idx}`}
                       href={icon.link || "#"}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="footer-social-link"
                       style={{
                         width: `${footerSocialIconSize}px`,
@@ -235,7 +235,7 @@ export default function Footer() {
                             className="text-white text-decoration-none"
                             style={{ fontSize: footerLinkFontSize ? `${footerLinkFontSize}px` : undefined }}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                           >
                             {link.label || "Link"}
                           </a>
@@ -262,7 +262,7 @@ export default function Footer() {
                     className="footer-rating-note"
                     href={footerRatingNoteLink || "#"}
                     target={footerRatingNoteLink && footerRatingNoteLink.startsWith("http") ? "_blank" : undefined}
-                    rel={footerRatingNoteLink && footerRatingNoteLink.startsWith("http") ? "noreferrer" : undefined}
+                    rel={footerRatingNoteLink && footerRatingNoteLink.startsWith("http") ? "noopener noreferrer" : undefined}
                     style={{
                       background: footerRatingNoteBgColor || "rgba(255,255,255,0.08)",
                       color: footerRatingNoteTextColor || "#ffffff",

@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl } from "../config/api";
 import { applySeoByRoute } from "../utils/seo";
+import { getSettings } from "../utils/siteData";
 
 const FALLBACK_SEO = {
   title: "Privacy Policy | All Previous Paper Hub",
@@ -75,11 +76,11 @@ export default function PrivacyPolicy() {
     const load = async () => {
       try {
         const [settingsRes, pageRes] = await Promise.all([
-          axios.get(`${API_BASE}/api/settings`),
+          getSettings({ ttlMs: 45_000 }),
           axios.get(`${API_BASE}/api/pages/slug/privacy-policy`).catch(() => ({ data: null }))
         ]);
         if (!mounted) return;
-        setSettings(settingsRes.data || {});
+        setSettings(settingsRes || {});
         setManagedPage(pageRes.data || null);
       } catch (err) {
         if (!mounted) return;

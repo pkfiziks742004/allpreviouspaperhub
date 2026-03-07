@@ -7,6 +7,7 @@ import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
+import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 
 export default function Courses(){
   const { universitySlug } = useParams();
@@ -37,11 +38,11 @@ export default function Courses(){
 
   useEffect(()=>{
 
-    axios.get(`${API_BASE}/api/courses`)
-    .then(res=>setCourses(res.data));
+    getCourses({ ttlMs: 45_000 })
+    .then(data=>setCourses(data || []));
 
-    axios.get(`${API_BASE}/api/universities`)
-    .then(res => setUniversities(res.data || []))
+    getUniversities({ ttlMs: 45_000 })
+    .then(data => setUniversities(data || []))
     .finally(() => setUniversitiesLoaded(true));
 
   },[]);
@@ -80,21 +81,21 @@ export default function Courses(){
   }, [location.state, navigate, universitySlug]);
 
   useEffect(() => {
-    axios.get(`${API_BASE}/api/settings`).then(res => {
-      setSettingsSnapshot(res.data || {});
-      setCoursesSectionTitle(res.data.coursesSectionTitle || "");
-      setCoursesTitleStyle(res.data.coursesTitleStyle || {});
-      setCardStyles(res.data.cardStyles || {});
-      setCourseNameStyle(res.data.courseNameStyle || {});
-      setCourseButtonStyle(res.data.courseButtonStyle || {});
-      setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
+    getSettings({ ttlMs: 45_000 }).then(data => {
+      setSettingsSnapshot(data || {});
+      setCoursesSectionTitle(data.coursesSectionTitle || "");
+      setCoursesTitleStyle(data.coursesTitleStyle || {});
+      setCardStyles(data.cardStyles || {});
+      setCourseNameStyle(data.courseNameStyle || {});
+      setCourseButtonStyle(data.courseButtonStyle || {});
+      setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
       setTypeActionLabels({
         university: "View Semesters",
         college: "View Semesters",
         school: "View Classes",
         entranceExam: "View Exam Papers",
         other: "View Details",
-        ...(res.data.typeActionLabels || {})
+        ...(data.typeActionLabels || {})
       });
     });
   }, []);

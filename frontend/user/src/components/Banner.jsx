@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import { Carousel } from "react-bootstrap";
 import { API_BASE, resolveApiUrl } from "../config/api";
+import { getSettings } from "../utils/siteData";
 
 const BADGE_SHAPE_SET = new Set([
   "custom", "pill", "square", "rounded-square", "soft-rounded", "notch",
@@ -124,13 +124,12 @@ export default function Banner() {
   };
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
+    getSettings({ ttlMs: 45_000 })
+      .then(data => {
         const rawItems =
-          Array.isArray(res.data?.bannerItems) && res.data.bannerItems.length > 0
-            ? res.data.bannerItems
-            : (Array.isArray(res.data?.bannerImages) ? res.data.bannerImages.map(src => ({ imageUrl: src })) : []);
+          Array.isArray(data?.bannerItems) && data.bannerItems.length > 0
+            ? data.bannerItems
+            : (Array.isArray(data?.bannerImages) ? data.bannerImages.map(src => ({ imageUrl: src })) : []);
         const normalized = rawItems
           .map(item => {
             const imageUrl = String(item?.imageUrl || item?.src || item || "").trim();
@@ -178,11 +177,11 @@ export default function Banner() {
           })
           .filter(Boolean);
         setItems(normalized);
-        if (res.data && res.data.bannerMargin !== undefined) {
-          setBannerMargin(Number(res.data.bannerMargin || 0));
+        if (data && data.bannerMargin !== undefined) {
+          setBannerMargin(Number(data.bannerMargin || 0));
         }
-        if (res.data && res.data.bannerRadius !== undefined) {
-          setBannerRadius(Number(res.data.bannerRadius || 0));
+        if (data && data.bannerRadius !== undefined) {
+          setBannerRadius(Number(data.bannerRadius || 0));
         }
       })
       .catch(() => {
@@ -351,7 +350,7 @@ export default function Banner() {
       <a
         href={item.linkUrl}
         target={item.openInNewTab ? "_blank" : "_self"}
-        rel={item.openInNewTab ? "noreferrer" : undefined}
+        rel={item.openInNewTab ? "noopener noreferrer" : undefined}
         className="banner-link-wrap"
       >
         {image}

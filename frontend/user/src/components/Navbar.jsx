@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
+import { getSettings } from "../utils/siteData";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -82,47 +82,46 @@ function Navbar() {
   const isLightHeader = luminance > 0.62;
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
-        if (res.data && res.data.siteName) {
-          setSiteName(res.data.siteName);
+    getSettings({ ttlMs: 45_000 })
+      .then(data => {
+        if (data && data.siteName) {
+          setSiteName(data.siteName);
         }
-        if (res.data && res.data.logoUrl) {
-          setLogoUrl(res.data.logoUrl);
+        if (data && data.logoUrl) {
+          setLogoUrl(data.logoUrl);
         } else {
           setLogoUrl("");
         }
-        if (res.data && res.data.logoHeight) {
-          setLogoHeight(res.data.logoHeight);
+        if (data && data.logoHeight) {
+          setLogoHeight(data.logoHeight);
         }
-        if (res.data && res.data.headerHeight) {
-          setHeaderHeight(res.data.headerHeight);
+        if (data && data.headerHeight) {
+          setHeaderHeight(data.headerHeight);
         }
-        if (res.data && res.data.headerColor) {
-          setHeaderColor(res.data.headerColor);
+        if (data && data.headerColor) {
+          setHeaderColor(data.headerColor);
         }
-        setHeaderLinks(Array.isArray(res.data.headerLinks) ? res.data.headerLinks : []);
-        setHeaderLinkColor(res.data.headerLinkColor || "#ffffff");
-        setHeaderLinkHoverColor(res.data.headerLinkHoverColor || "#fbbf24");
-        setHeaderMenuIconColor(res.data.headerMenuIconColor || "#ffffff");
-        setHeaderMenuBgColor(res.data.headerMenuBgColor || "#0f172a");
-        setHeaderMenuTextColor(res.data.headerMenuTextColor || res.data.headerLinkColor || "#f8fafc");
-        setAlertEnabled(!!res.data.alertEnabled);
-        setAlertText(res.data.alertText || "");
-        setAlertColor(res.data.alertColor || "#fff3cd");
-        setAlertHeight(res.data.alertHeight || 32);
-        setAlertFontSize(res.data.alertFontSize || 14);
-        setAlertMarqueeDirection(res.data.alertMarqueeDirection === "ltr" ? "ltr" : "rtl");
-        setAlertMarqueeSpeed(Number(res.data.alertMarqueeSpeed || 18));
-        setAlertMarqueeGap(Number(res.data.alertMarqueeGap || 2));
-        setAlertStyle(res.data.alertStyle || {});
-        setSiteNameStyle(res.data.siteNameStyle || {});
-        setUseSplitColor(res.data.useSplitColor || false);
-        setSiteNamePart1(res.data.siteNamePart1 || "");
-        setSiteNamePart1Color(res.data.siteNamePart1Color || "#ffffff");
-        setSiteNamePart2(res.data.siteNamePart2 || "");
-        setSiteNamePart2Color(res.data.siteNamePart2Color || "#fbbf24");
+        setHeaderLinks(Array.isArray(data.headerLinks) ? data.headerLinks : []);
+        setHeaderLinkColor(data.headerLinkColor || "#ffffff");
+        setHeaderLinkHoverColor(data.headerLinkHoverColor || "#fbbf24");
+        setHeaderMenuIconColor(data.headerMenuIconColor || "#ffffff");
+        setHeaderMenuBgColor(data.headerMenuBgColor || "#0f172a");
+        setHeaderMenuTextColor(data.headerMenuTextColor || data.headerLinkColor || "#f8fafc");
+        setAlertEnabled(!!data.alertEnabled);
+        setAlertText(data.alertText || "");
+        setAlertColor(data.alertColor || "#fff3cd");
+        setAlertHeight(data.alertHeight || 32);
+        setAlertFontSize(data.alertFontSize || 14);
+        setAlertMarqueeDirection(data.alertMarqueeDirection === "ltr" ? "ltr" : "rtl");
+        setAlertMarqueeSpeed(Number(data.alertMarqueeSpeed || 18));
+        setAlertMarqueeGap(Number(data.alertMarqueeGap || 2));
+        setAlertStyle(data.alertStyle || {});
+        setSiteNameStyle(data.siteNameStyle || {});
+        setUseSplitColor(data.useSplitColor || false);
+        setSiteNamePart1(data.siteNamePart1 || "");
+        setSiteNamePart1Color(data.siteNamePart1Color || "#ffffff");
+        setSiteNamePart2(data.siteNamePart2 || "");
+        setSiteNamePart2Color(data.siteNamePart2Color || "#fbbf24");
         setReady(true);
       })
       .catch(() => setReady(false));
@@ -401,7 +400,7 @@ function Navbar() {
                     className={className}
                     href={rawUrl}
                     target={link.newTab ? "_blank" : "_self"}
-                    rel={link.newTab ? "noreferrer" : undefined}
+                    rel={link.newTab ? "noopener noreferrer" : undefined}
                     onClick={() => setMenuOpen(false)}
                   >
                     {link.label || "Link"}

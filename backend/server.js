@@ -152,6 +152,7 @@ app.use((req, res, next) => {
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+  res.setHeader("X-DNS-Prefetch-Control", "off");
   if (process.env.NODE_ENV === "production") {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
@@ -211,9 +212,19 @@ app.get("/og-image", async (req, res) => {
       (Array.isArray(settings?.bannerImages) ? String(settings.bannerImages[0] || "").trim() : "");
 
     if (!candidate) return res.status(404).json("OG image not configured");
+    let safeUrl = "";
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        safeUrl = parsed.toString();
+      }
+    } catch {
+      safeUrl = "";
+    }
+    if (!safeUrl) return res.status(400).json("Invalid OG image URL");
 
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    return res.redirect(302, candidate);
+    return res.redirect(302, safeUrl);
   } catch (err) {
     return res.status(500).json("Failed to resolve OG image");
   }

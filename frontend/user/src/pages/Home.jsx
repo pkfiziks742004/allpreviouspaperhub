@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
+import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
@@ -42,55 +43,48 @@ export default function Home() {
   });
 
   const loadCourses = useCallback(() => {
-    return axios
-      .get(`${API_BASE}/api/courses`)
-      .then(res => setCourses(res.data || []));
+    return getCourses({ ttlMs: 45_000 }).then(data => setCourses(data || []));
   }, []);
 
   const loadUniversities = useCallback(() => {
-    return axios
-      .get(`${API_BASE}/api/universities`)
-      .then(res => {
-        const data = res.data || [];
-        setUniversities(data);
-      });
+    return getUniversities({ ttlMs: 45_000 }).then(data => {
+      setUniversities(data || []);
+    });
   }, []);
 
   const loadSettings = useCallback(() => {
-    return axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
-        if (res.data && res.data.homeTitle) {
-          setHomeTitle(res.data.homeTitle);
+    return getSettings({ ttlMs: 45_000 }).then(data => {
+        if (data && data.homeTitle) {
+          setHomeTitle(data.homeTitle);
         }
-        if (res.data && res.data.homeSubtitle) {
-          setHomeSubtitle(res.data.homeSubtitle);
+        if (data && data.homeSubtitle) {
+          setHomeSubtitle(data.homeSubtitle);
         }
-        setHomeTitleStyle(res.data.homeTitleStyle || {});
-        setHomeSubtitleStyle(res.data.homeSubtitleStyle || {});
-        setCourseSections(Array.isArray(res.data.courseSections) ? res.data.courseSections : []);
-        setCardStyles(res.data.cardStyles || {});
-        setUniversityNameStyle(res.data.universityNameStyle || {});
-        setUniversitiesSectionTitle(res.data.universitiesSectionTitle || "");
-        setUniversitiesSectionSubtitle(res.data.universitiesSectionSubtitle || "");
-        setUniversitiesTitleStyle(res.data.universitiesTitleStyle || {});
-        setCourseButtonStyle(res.data.courseButtonStyle || {});
-        setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
+        setHomeTitleStyle(data.homeTitleStyle || {});
+        setHomeSubtitleStyle(data.homeSubtitleStyle || {});
+        setCourseSections(Array.isArray(data.courseSections) ? data.courseSections : []);
+        setCardStyles(data.cardStyles || {});
+        setUniversityNameStyle(data.universityNameStyle || {});
+        setUniversitiesSectionTitle(data.universitiesSectionTitle || "");
+        setUniversitiesSectionSubtitle(data.universitiesSectionSubtitle || "");
+        setUniversitiesTitleStyle(data.universitiesTitleStyle || {});
+        setCourseButtonStyle(data.courseButtonStyle || {});
+        setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
         setSectionCardButtonEnabled(
-          typeof res.data.sectionCardButtonEnabled === "boolean"
-            ? res.data.sectionCardButtonEnabled
+          typeof data.sectionCardButtonEnabled === "boolean"
+            ? data.sectionCardButtonEnabled
             : true
         );
-        setSectionCardButtonText(res.data.sectionCardButtonText || "View Details");
+        setSectionCardButtonText(data.sectionCardButtonText || "View Details");
         setTypeActionLabels({
           university: "View Semesters",
           college: "View Semesters",
           school: "View Classes",
           entranceExam: "View Exam Papers",
           other: "View Details",
-          ...(res.data.typeActionLabels || {})
+          ...(data.typeActionLabels || {})
         });
-        const settings = res.data || {};
+        const settings = data || {};
         const hasRouteSeo = applySeoByRoute({
           settings,
           context: {},

@@ -1,17 +1,19 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import axios from "axios";
 
-import Home from "./pages/Home";
-import Courses from "./pages/Courses";
-import Semesters from "./pages/Semesters";
-import Papers from "./pages/Papers";
-import PaperOpen from "./pages/PaperOpen";
-import CustomPage from "./pages/CustomPage";
-import AboutUs from "./pages/AboutUs";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { API_BASE, resolveApiUrl } from "./config/api";
 import { AdsProvider } from "./context/AdsContext";
+import { getSettings } from "./utils/siteData";
+
+const Home = lazy(() => import("./pages/Home"));
+const Courses = lazy(() => import("./pages/Courses"));
+const Semesters = lazy(() => import("./pages/Semesters"));
+const Papers = lazy(() => import("./pages/Papers"));
+const PaperOpen = lazy(() => import("./pages/PaperOpen"));
+const CustomPage = lazy(() => import("./pages/CustomPage"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 
 const DEFAULT_SITE_TITLE = "All Previous Paper Hub";
 const DEFAULT_SEO_DESCRIPTION =
@@ -100,36 +102,33 @@ function App() {
   useEffect(() => {
     const applyFavicon = iconUrl => {
       if (!iconUrl) return;
-      const cacheBusted = `${iconUrl}${iconUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
       const ids = ["dynamic-favicon", "dynamic-shortcut-icon", "dynamic-apple-touch-icon"];
       ids.forEach(id => {
         const link = document.getElementById(id);
-        if (link) link.href = cacheBusted;
+        if (link) link.href = iconUrl;
       });
     };
 
     const applySettings = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/settings`, {
-          params: { _ts: Date.now() }
-        });
-        if (res.data) {
-          setMaintenanceEnabled(!!res.data.maintenanceEnabled);
+        const data = await getSettings({ ttlMs: 45_000 });
+        if (data) {
+          setMaintenanceEnabled(!!data.maintenanceEnabled);
           setMaintenanceMessage(
-            res.data.maintenanceMessage ||
+            data.maintenanceMessage ||
               "We are under maintenance. Please check back soon."
           );
         }
 
-        if (res.data && res.data.faviconUrl) {
-          applyFavicon(resolveApiUrl(res.data.faviconUrl));
+        if (data && data.faviconUrl) {
+          applyFavicon(resolveApiUrl(data.faviconUrl));
         }
 
-        if (res.data && res.data.pageBgColor) {
-          document.body.style.backgroundColor = res.data.pageBgColor;
+        if (data && data.pageBgColor) {
+          document.body.style.backgroundColor = data.pageBgColor;
         }
 
-        const resolvedTitle = (res.data?.userPageTitle || res.data?.seoTitle || DEFAULT_SITE_TITLE).trim();
+        const resolvedTitle = (data?.userPageTitle || data?.seoTitle || DEFAULT_SITE_TITLE).trim();
         if (resolvedTitle) {
           document.title = resolvedTitle;
           try {
@@ -156,47 +155,47 @@ function App() {
           tag.setAttribute("content", value || "");
         };
 
-        const resolvedDescription = (res.data?.seoDescription || DEFAULT_SEO_DESCRIPTION).trim();
+        const resolvedDescription = (data?.seoDescription || DEFAULT_SEO_DESCRIPTION).trim();
         ensureMeta("description", resolvedDescription);
-        ensureMeta("keywords", res.data?.seoKeywords || "");
-        ensureMeta("og:title", res.data?.seoTitle || resolvedTitle, "property");
+        ensureMeta("keywords", data?.seoKeywords || "");
+        ensureMeta("og:title", data?.seoTitle || resolvedTitle, "property");
         ensureMeta("og:description", resolvedDescription, "property");
         ensureMeta("og:site_name", resolvedTitle, "property");
-        ensureMeta("twitter:title", res.data?.seoTitle || resolvedTitle);
+        ensureMeta("twitter:title", data?.seoTitle || resolvedTitle);
         ensureMeta("twitter:description", resolvedDescription);
         try {
           localStorage.setItem("user_seo_description_cache", resolvedDescription);
         } catch (e) {
           // ignore storage errors
         }
-        if (res.data?.ogImage) {
-          ensureMeta("og:image", resolveApiUrl(res.data.ogImage), "property");
-          ensureMeta("twitter:image", resolveApiUrl(res.data.ogImage));
+        if (data?.ogImage) {
+          ensureMeta("og:image", resolveApiUrl(data.ogImage), "property");
+          ensureMeta("twitter:image", resolveApiUrl(data.ogImage));
         }
 
-        if (res.data?.canonicalUrl) {
+        if (data?.canonicalUrl) {
           let link = document.querySelector("link[rel='canonical']");
           if (!link) {
             link = document.createElement("link");
             link.setAttribute("rel", "canonical");
             document.head.appendChild(link);
           }
-          link.setAttribute("href", res.data.canonicalUrl);
-          ensureMeta("og:url", res.data.canonicalUrl, "property");
+          link.setAttribute("href", data.canonicalUrl);
+          ensureMeta("og:url", data.canonicalUrl, "property");
         }
 
-        if (res.data?.analyticsHeadScript) {
+        if (data?.analyticsHeadScript) {
           injectSnippetOnce(
-            res.data.analyticsHeadScript,
+            data.analyticsHeadScript,
             document.head,
             "analytics-head",
             "data-analytics-snippet"
           );
         }
 
-        if (res.data?.analyticsBodyScript) {
+        if (data?.analyticsBodyScript) {
           injectSnippetOnce(
-            res.data.analyticsBodyScript,
+            data.analyticsBodyScript,
             document.body,
             "analytics-body",
             "data-analytics-snippet"
@@ -235,16 +234,18 @@ function App() {
   return (
     <AdsProvider value={adsSettings}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/:universitySlug" element={<Courses />} />
-          <Route path="/:universitySlug/:courseSlug" element={<Semesters />} />
-          <Route path="/:universitySlug/:courseSlug/:semesterSlug" element={<Papers />} />
-          <Route path="/:universitySlug/:courseSlug/:semesterSlug/:paperSlug" element={<PaperOpen />} />
-          <Route path="/page/:slug" element={<CustomPage />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        </Routes>
+        <Suspense fallback={<div style={{ padding: "20px" }}>Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/:universitySlug" element={<Courses />} />
+            <Route path="/:universitySlug/:courseSlug" element={<Semesters />} />
+            <Route path="/:universitySlug/:courseSlug/:semesterSlug" element={<Papers />} />
+            <Route path="/:universitySlug/:courseSlug/:semesterSlug/:paperSlug" element={<PaperOpen />} />
+            <Route path="/page/:slug" element={<CustomPage />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AdsProvider>
   );

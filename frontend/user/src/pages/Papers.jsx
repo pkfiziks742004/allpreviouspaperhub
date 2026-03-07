@@ -8,6 +8,7 @@ import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessSemester, markPaperFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
+import { getCourses, getSemesters, getSettings, getUniversities } from "../utils/siteData";
 
 export default function Papers(){
 
@@ -37,14 +38,14 @@ export default function Papers(){
       }
 
       const [uniRes, courseRes, semRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/universities`),
-        axios.get(`${API_BASE}/api/courses`),
-        axios.get(`${API_BASE}/api/semesters`)
+        getUniversities({ ttlMs: 45_000 }),
+        getCourses({ ttlMs: 45_000 }),
+        getSemesters({ ttlMs: 45_000 })
       ]);
 
-      const universities = uniRes.data || [];
-      const courses = courseRes.data || [];
-      const semesters = semRes.data || [];
+      const universities = uniRes || [];
+      const courses = courseRes || [];
+      const semesters = semRes || [];
 
       const uni = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
       const course = courses.find(c =>
@@ -88,16 +89,15 @@ export default function Papers(){
   }, [courseSlug, navigate, semesterSlug, universitySlug]);
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
-        setSettingsSnapshot(res.data || {});
-        setPaperNameStyle(res.data.paperNameStyle || {});
-        setQuestionPapersSectionTitle(res.data.questionPapersSectionTitle || "");
-        setQuestionPapersTitleStyle(res.data.questionPapersTitleStyle || {});
-        setQuestionPaperCardStyle(res.data.questionPaperCardStyle || {});
-        setQuestionPaperButtonStyle(res.data.questionPaperButtonStyle || {});
-        setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
+    getSettings({ ttlMs: 45_000 })
+      .then(data => {
+        setSettingsSnapshot(data || {});
+        setPaperNameStyle(data.paperNameStyle || {});
+        setQuestionPapersSectionTitle(data.questionPapersSectionTitle || "");
+        setQuestionPapersTitleStyle(data.questionPapersTitleStyle || {});
+        setQuestionPaperCardStyle(data.questionPaperCardStyle || {});
+        setQuestionPaperButtonStyle(data.questionPaperButtonStyle || {});
+        setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
       });
   }, []);
 

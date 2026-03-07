@@ -8,6 +8,7 @@ import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessCourse, markSemesterFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
+import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 
 export default function Semesters(){
 
@@ -32,12 +33,12 @@ export default function Semesters(){
       }
 
       const [uniRes, courseRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/universities`),
-        axios.get(`${API_BASE}/api/courses`)
+        getUniversities({ ttlMs: 45_000 }),
+        getCourses({ ttlMs: 45_000 })
       ]);
 
-      const universities = uniRes.data || [];
-      const courses = courseRes.data || [];
+      const universities = uniRes || [];
+      const courses = courseRes || [];
       const uni = universities.find(u => toRouteSegment(u.name, "university") === universitySlug) || null;
       const course = courses.find(c =>
         String(c.universityId || "") === String(uni?._id || "") &&
@@ -74,14 +75,14 @@ export default function Semesters(){
   }, [courseSlug, navigate, universitySlug]);
 
   useEffect(() => {
-    axios.get(`${API_BASE}/api/settings`).then(res => {
-      setSettingsSnapshot(res.data || {});
-      setTitle(res.data.semestersSectionTitle || "");
-      setTitleStyle(res.data.semestersTitleStyle || {});
-      setCardStyle(res.data.semesterCardStyle || {});
-      setButtonStyle(res.data.semesterButtonStyle || {});
-      setSemesterNameStyle(res.data.semesterNameStyle || {});
-      setSectionPanelBgColor(res.data.sectionPanelBgColor || "#ffffff");
+    getSettings({ ttlMs: 45_000 }).then(data => {
+      setSettingsSnapshot(data || {});
+      setTitle(data.semestersSectionTitle || "");
+      setTitleStyle(data.semestersTitleStyle || {});
+      setCardStyle(data.semesterCardStyle || {});
+      setButtonStyle(data.semesterButtonStyle || {});
+      setSemesterNameStyle(data.semesterNameStyle || {});
+      setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
     });
   }, []);
 

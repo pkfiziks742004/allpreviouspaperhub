@@ -25,6 +25,7 @@ const upload = multer({
 });
 
 const isAbsoluteUrl = value => /^https?:\/\//i.test(String(value || ""));
+const escapeRegex = value => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const toSafePdfName = value =>
   `${String(value || "paper")
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
@@ -123,9 +124,11 @@ router.get("/download/:id", async (req,res)=>{
 // ✅ Search
 router.get("/search/:key", async (req,res)=>{
   try{
+    const rawKey = String(req.params.key || "").trim().slice(0, 80);
+    if (!rawKey) return res.json([]);
 
     const data = await Paper.find({
-      title: { $regex: req.params.key, $options:"i" }
+      title: { $regex: escapeRegex(rawKey), $options:"i" }
     });
 
     res.json(data);
@@ -177,7 +180,12 @@ router.get("/download-file/:id", async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="${downloadName}"`);
 
     if (isAbsoluteUrl(paper.file)) {
-      const remote = await axios.get(paper.file, { responseType: "arraybuffer" });
+      const remote = await axios.get(paper.file, {
+        responseType: "arraybuffer",
+        timeout: 12_000,
+        maxContentLength: Number(process.env.MAX_REMOTE_PDF_BYTES || 30 * 1024 * 1024),
+        maxBodyLength: Number(process.env.MAX_REMOTE_PDF_BYTES || 30 * 1024 * 1024)
+      });
       return res.send(Buffer.from(remote.data));
     }
 
@@ -199,7 +207,12 @@ router.get("/open-file/:id", async (req, res) => {
     res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
 
     if (isAbsoluteUrl(paper.file)) {
-      const remote = await axios.get(paper.file, { responseType: "arraybuffer" });
+      const remote = await axios.get(paper.file, {
+        responseType: "arraybuffer",
+        timeout: 12_000,
+        maxContentLength: Number(process.env.MAX_REMOTE_PDF_BYTES || 30 * 1024 * 1024),
+        maxBodyLength: Number(process.env.MAX_REMOTE_PDF_BYTES || 30 * 1024 * 1024)
+      });
       return res.send(Buffer.from(remote.data));
     }
 

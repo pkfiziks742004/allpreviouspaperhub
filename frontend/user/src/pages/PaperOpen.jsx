@@ -5,6 +5,7 @@ import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { canAccessPaper } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
+import { getPapers, getSettings } from "../utils/siteData";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -52,16 +53,15 @@ export default function PaperOpen() {
   useEffect(() => {
     const loadPaper = async () => {
       try {
-        const paperRequest = axios.get(`${API_BASE}/api/papers`);
-        const [paperRes, settingsRes] = await Promise.all([
-          paperRequest,
-          axios.get(`${API_BASE}/api/settings`).catch(() => ({ data: {} }))
+        const [all, settings] = await Promise.all([
+          getPapers({ ttlMs: 30_000 }),
+          getSettings({ ttlMs: 45_000 }).catch(() => ({}))
         ]);
 
         let resolvedPaper = null;
-        const all = Array.isArray(paperRes.data) ? paperRes.data : [];
+        const papers = Array.isArray(all) ? all : [];
         resolvedPaper =
-          all.find(p => {
+          papers.find(p => {
             const uniName = p?.courseId?.universityId?.name || p?.universityName || "";
             const courseName = p?.courseId?.name || p?.courseName || "";
             const semName = p?.semId?.name || p?.semesterName || "";
@@ -76,9 +76,9 @@ export default function PaperOpen() {
         setPaper(resolvedPaper);
         setPaperOpenViewer({
           ...defaultPaperOpenViewer,
-          ...((settingsRes && settingsRes.data && settingsRes.data.paperOpenViewer) || {})
+          ...((settings && settings.paperOpenViewer) || {})
         });
-        const settings = (settingsRes && settingsRes.data) || {};
+        const seoSettings = settings || {};
         const context = {
           university: resolvedPaper?.courseId?.universityId?.name || resolvedPaper?.universityName || "",
           course: resolvedPaper?.courseId?.name || resolvedPaper?.courseName || "",
@@ -90,13 +90,13 @@ export default function PaperOpen() {
           paperSlug: paperSlug || ""
         };
         const hasRouteSeo = applySeoByRoute({
-          settings,
+          settings: seoSettings,
           context,
           pathname: window.location.pathname
         });
         if (!hasRouteSeo) {
           applySeoByPage({
-            settings,
+            settings: seoSettings,
             pageKey: "paperOpen",
             context,
             fallback: {
@@ -107,7 +107,7 @@ export default function PaperOpen() {
         }
         if (!resolvedPaper) {
           setError(
-            ((settingsRes && settingsRes.data && settingsRes.data.paperOpenViewer?.notFoundText) ||
+            ((settings && settings.paperOpenViewer?.notFoundText) ||
               defaultPaperOpenViewer.notFoundText)
           );
         }
@@ -199,7 +199,7 @@ export default function PaperOpen() {
           {paperOpenViewer.mobileHelpText}
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <a href={pdfBlobUrl || openUrl} target="_blank" rel="noreferrer" className="btn btn-light">
+          <a href={pdfBlobUrl || openUrl} target="_blank" rel="noopener noreferrer" className="btn btn-light">
             {paperOpenViewer.openPdfText}
           </a>
           <button type="button" className="btn btn-outline-light" onClick={handleDownload}>

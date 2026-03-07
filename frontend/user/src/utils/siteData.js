@@ -1,0 +1,49 @@
+import axios from "axios";
+import { API_BASE } from "../config/api";
+
+const cache = new Map();
+const inflight = new Map();
+
+const DEFAULT_TTL_MS = 60 * 1000;
+
+const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } = {}) => {
+  const now = Date.now();
+  const existing = cache.get(key);
+  if (!force && existing && now - existing.at < ttlMs) {
+    return existing.value;
+  }
+
+  if (inflight.has(key)) {
+    return inflight.get(key);
+  }
+
+  const request = axios
+    .get(url, { timeout: 12_000 })
+    .then(res => {
+      const value = res.data;
+      cache.set(key, { value, at: Date.now() });
+      return value;
+    })
+    .finally(() => {
+      inflight.delete(key);
+    });
+
+  inflight.set(key, request);
+  return request;
+};
+
+export const getSettings = options => fetchCached("settings", `${API_BASE}/api/settings`, options);
+export const getUniversities = options => fetchCached("universities", `${API_BASE}/api/universities`, options);
+export const getCourses = options => fetchCached("courses", `${API_BASE}/api/courses`, options);
+export const getSemesters = options => fetchCached("semesters", `${API_BASE}/api/semesters`, options);
+export const getPapers = options => fetchCached("papers", `${API_BASE}/api/papers`, options);
+
+export const clearSiteDataCache = key => {
+  if (!key) {
+    cache.clear();
+    inflight.clear();
+    return;
+  }
+  cache.delete(key);
+  inflight.delete(key);
+};
