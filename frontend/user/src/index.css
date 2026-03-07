@@ -536,15 +536,20 @@ body {
 
 .cards-grid {
   display: grid;
-  gap: 16px;
+  gap: 18px;
+  align-items: stretch;
 }
 
 .cards-grid-4-6 {
-  grid-template-columns: repeat(auto-fit, minmax(clamp(150px, 22vw, 230px), 1fr));
+  /* Fixed track band prevents a single card from stretching full section width. */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 280px));
+  justify-content: center;
 }
 
 .cards-grid-item {
   min-width: 0;
+  width: 100%;
+  max-width: 280px;
 }
 
 .cards-grid-item > .card {
@@ -552,6 +557,14 @@ body {
 }
 
 @media (max-width: 991px) {
+  .cards-grid-4-6 {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .cards-grid-item {
+    max-width: none;
+  }
+
   .cards-grid-item .modern-card {
     min-height: 170px !important;
   }
@@ -609,11 +622,15 @@ body {
   }
 
   .cards-grid-4-6 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .cards-grid {
     gap: 12px;
+  }
+
+  .cards-grid-item {
+    max-width: none;
   }
 
   .cards-grid-item .modern-card {

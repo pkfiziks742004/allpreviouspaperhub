@@ -1,4 +1,4 @@
-import{a as c,c as v,j as t,b,d as f,A as k}from"./index-Dqgkyjh_.js";import{N as x,F as P}from"./Footer-DwaAv0ZJ.js";import{a as w}from"./seo-B-MkBiul.js";const u={title:"Privacy Policy | All Previous Paper Hub",description:"Privacy Policy for All Previous Paper Hub: data collection, usage, cookies, and contact information.",keywords:"privacy policy, all previous paper hub, data policy, cookies policy"},A=`
+import{a as c,c as v,j as t,b,d as f,A as k}from"./index-BmnTDZZ6.js";import{N as x,F as P}from"./Footer-CqjtAWo2.js";import{a as w}from"./seo-CmklEv-e.js";const u={title:"Privacy Policy | All Previous Paper Hub",description:"Privacy Policy for All Previous Paper Hub: data collection, usage, cookies, and contact information.",keywords:"privacy policy, all previous paper hub, data policy, cookies policy"},A=`
   <h2>Privacy Policy</h2>
   <p>
     All Previous Paper Hub par aapki privacy important hai. Hum basic usage data sirf service improve karne ke liye use karte hain.
