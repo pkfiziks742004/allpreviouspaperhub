@@ -48,6 +48,7 @@ router.post("/", verifyAdmin, verifyPermission("courses"), async (req,res)=>{
 // GET ALL COURSES (USER + ADMIN)
 router.get("/", async (req,res)=>{
   try {
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=120");
 
     const courses = await Course.find({ status:true });
 

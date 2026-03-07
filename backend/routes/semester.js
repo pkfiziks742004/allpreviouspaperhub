@@ -43,6 +43,7 @@ const enrichSemesters = async semesters => {
 // ✅ GET All Semesters
 router.get("/", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=120");
     const data = await Semester.find();
     res.json(await enrichSemesters(data));
   } catch (err) {
@@ -53,6 +54,7 @@ router.get("/", async (req, res) => {
 // ✅ GET Semesters by Course
 router.get("/:courseId", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=120");
     const data = await Semester.find({ courseId: req.params.courseId });
 
     res.json(await enrichSemesters(data));

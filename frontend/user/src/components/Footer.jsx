@@ -156,6 +156,8 @@ export default function Footer() {
                     src={resolveUrl(footerLogoUrl)}
                     alt="Footer Logo"
                     style={{ height: `${footerLogoHeight}px`, width: "auto" }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               )}
@@ -211,6 +213,8 @@ export default function Footer() {
                             width: `${Math.max(14, footerSocialIconSize - 8)}px`,
                             objectFit: "contain"
                           }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                     </a>

@@ -156,6 +156,7 @@ router.get("/search/:key", async (req,res)=>{
 // ✅ All Papers
 router.get("/", async (req,res)=>{
   try{
+    res.setHeader("Cache-Control", "public, max-age=45, s-maxage=90, stale-while-revalidate=120");
     const data = await Paper.find();
     res.json(await enrichPapers(data));
 
@@ -168,6 +169,7 @@ router.get("/", async (req,res)=>{
 // ✅ By Semester
 router.get("/semester/:semId", async (req,res)=>{
   try{
+    res.setHeader("Cache-Control", "public, max-age=45, s-maxage=90, stale-while-revalidate=120");
 
     const data = await Paper.find({
       semId: req.params.semId
@@ -242,6 +244,7 @@ router.get("/open-file/:id", async (req, res) => {
 // Resolve paper by public route segments for direct/shared URL support.
 router.get("/resolve-route/:universitySlug/:courseSlug/:semesterSlug/:paperSlug", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "public, max-age=45, s-maxage=90, stale-while-revalidate=120");
     const { universitySlug, courseSlug, semesterSlug, paperSlug } = req.params;
 
     const universities = await University.find({});

@@ -52,6 +52,7 @@ router.post("/", verifyAdmin, verifyPermission("universities"), async (req, res)
 // GET UNIVERSITIES (USER + ADMIN)
 router.get("/", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=120");
     const list = await University.find({ status: true });
     res.json(list);
   } catch (err) {

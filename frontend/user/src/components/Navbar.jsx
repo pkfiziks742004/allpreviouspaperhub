@@ -300,6 +300,8 @@ function Navbar() {
                   alt={siteName}
                   className="user-navbar-logo"
                   style={{ "--logo-height": `${logoHeight}px` }}
+                  loading="eager"
+                  decoding="async"
                 />
               </span>
             ) : useSplitColor ? (

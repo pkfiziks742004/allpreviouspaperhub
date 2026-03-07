@@ -251,6 +251,8 @@ export default function Home() {
                         src={resolveUrl(u.logoUrl)}
                         alt={u.name}
                         className="card-logo"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="card-logo-fallback">
@@ -333,6 +335,8 @@ export default function Home() {
                               src={resolveUrl(u.logoUrl)}
                               alt={u.name}
                               className="card-logo"
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <div className="card-logo-fallback">
