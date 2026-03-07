@@ -28,18 +28,8 @@ export default function Home() {
   const [universitiesSectionTitle, setUniversitiesSectionTitle] = useState("");
   const [universitiesSectionSubtitle, setUniversitiesSectionSubtitle] = useState("");
   const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState({});
-  const [courseButtonStyle, setCourseButtonStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
-  const [sectionCardButtonEnabled, setSectionCardButtonEnabled] = useState(true);
-  const [sectionCardButtonText, setSectionCardButtonText] = useState("View Details");
   const [notices, setNotices] = useState([]);
-  const [typeActionLabels, setTypeActionLabels] = useState({
-    university: "View Semesters",
-    college: "View Semesters",
-    school: "View Classes",
-    entranceExam: "View Exam Papers",
-    other: "View Details"
-  });
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -63,22 +53,7 @@ export default function Home() {
         setUniversitiesSectionTitle(data.universitiesSectionTitle || "");
         setUniversitiesSectionSubtitle(data.universitiesSectionSubtitle || "");
         setUniversitiesTitleStyle(data.universitiesTitleStyle || {});
-        setCourseButtonStyle(data.courseButtonStyle || {});
         setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
-        setSectionCardButtonEnabled(
-          typeof data.sectionCardButtonEnabled === "boolean"
-            ? data.sectionCardButtonEnabled
-            : true
-        );
-        setSectionCardButtonText(data.sectionCardButtonText || "View Details");
-        setTypeActionLabels({
-          university: "View Semesters",
-          college: "View Semesters",
-          school: "View Classes",
-          entranceExam: "View Exam Papers",
-          other: "View Details",
-          ...(data.typeActionLabels || {})
-        });
         const settings = data || {};
         const hasRouteSeo = applySeoByRoute({
           settings,
@@ -222,33 +197,6 @@ export default function Home() {
     textDecoration: style && style.underline ? "underline" : "none"
   });
 
-  const courseBtnStyle = {
-    backgroundColor: courseButtonStyle.bgColor || undefined,
-    color: courseButtonStyle.textColor || undefined,
-    minWidth: courseButtonStyle.minWidth ? `${courseButtonStyle.minWidth}px` : undefined,
-    fontSize: courseButtonStyle.size ? `${courseButtonStyle.size}px` : undefined,
-    fontWeight: courseButtonStyle.bold ? "700" : "normal",
-    fontStyle: courseButtonStyle.italic ? "italic" : "normal",
-    borderColor: courseButtonStyle.bgColor || undefined
-  };
-
-  const getTypeKey = type => {
-    const t = String(type || "").toLowerCase();
-    if (t.includes("entrance")) return "entranceExam";
-    if (t.includes("school")) return "school";
-    if (t.includes("college")) return "college";
-    if (t.includes("university")) return "university";
-    return "other";
-  };
-
-  const getActionLabelByType = type => {
-    const key = getTypeKey(type);
-    return (
-      (typeActionLabels && typeActionLabels[key]) ||
-      "View Semesters"
-    );
-  };
-
   return (
     <div className="page-shell">
       <RatingPopup />
@@ -369,7 +317,7 @@ export default function Home() {
                   {sectionUniversities.map(u => (
                     <div key={u._id} className="cards-grid-item">
                       <div
-                        className="card modern-card h-100 text-center"
+                        className="card modern-card modern-card--large h-100 text-center"
                         style={{ ...buildCardStyle("section"), cursor: "pointer" }}
                         onClick={() => {
                           if (u.comingSoon) return;
@@ -379,33 +327,23 @@ export default function Home() {
                         }}
                       >
                         <div className="card-body">
-                          <h5 className="card-title" style={buildTextStyle("section")}>{u.name}</h5>
+                          {u.logoUrl ? (
+                            <img
+                              src={resolveUrl(u.logoUrl)}
+                              alt={u.name}
+                              className="card-logo"
+                            />
+                          ) : (
+                            <div className="card-logo-fallback">
+                              {(u.name || "").slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          {renderName(u.name, universityNameStyle, "h5")}
                           <div className="card-subtitle" style={buildTextStyle("section")}>{u.type || "University"}</div>
-                          {sectionCardButtonEnabled && (
-                            <button
-                              type="button"
-                              className="btn btn-outline-primary btn-sm mt-2"
-                              style={courseBtnStyle}
-                              onClick={e => {
-                                e.stopPropagation();
-                                if (u.comingSoon) return;
-                                const uniSlug = toRouteSegment(u.name, "university");
-                                markUniversityFlow(uniSlug);
-                                navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
-                              }}
-                              onMouseEnter={e => {
-                                if (courseButtonStyle.hoverColor) {
-                                  e.currentTarget.style.backgroundColor = courseButtonStyle.hoverColor;
-                                  e.currentTarget.style.borderColor = courseButtonStyle.hoverColor;
-                                }
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.backgroundColor = courseButtonStyle.bgColor || "";
-                                e.currentTarget.style.borderColor = courseButtonStyle.bgColor || "";
-                              }}
-                            >
-                              {sectionCardButtonText || getActionLabelByType(u.type) || "View Details"}
-                            </button>
+                          {u.comingSoon && (
+                            <div className="badge bg-warning text-dark mt-2">
+                              {u.comingSoonText || "Coming soon"}
+                            </div>
                           )}
                         </div>
                       </div>
