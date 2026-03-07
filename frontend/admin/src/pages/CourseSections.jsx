@@ -177,13 +177,31 @@ export default function CourseSections() {
     updateSection(idx, key, { ...current, [styleKey]: value });
   };
 
-  const toggleCourseInSection = (idx, courseId) => {
-    const section = courseSections[idx] || {};
-    const safeId = String(courseId || "");
-    const ids = new Set((section.itemIds || []).map(id => String(id || "")));
-    if (ids.has(safeId)) ids.delete(safeId);
-    else ids.add(safeId);
-    updateSection(idx, "itemIds", Array.from(ids));
+  const toggleCourseInSection = (idx, itemId) => {
+    const safeId = String(itemId || "");
+    if (!safeId) return;
+    setCourseSections(prev => {
+      const current = prev[idx] || {};
+      const type = String(current.sectionType || "course").toLowerCase();
+      const currentIds = new Set((current.itemIds || []).map(id => String(id || "")));
+      const isRemoving = currentIds.has(safeId);
+
+      return prev.map((section, sectionIdx) => {
+        const sectionType = String(section?.sectionType || "course").toLowerCase();
+        const ids = new Set((section?.itemIds || []).map(id => String(id || "")));
+        if (sectionIdx === idx) {
+          if (isRemoving) ids.delete(safeId);
+          else ids.add(safeId);
+          return { ...section, itemIds: Array.from(ids) };
+        }
+        // Enforce unique assignment inside same type sections.
+        if (!isRemoving && sectionType === type && ids.has(safeId)) {
+          ids.delete(safeId);
+          return { ...section, itemIds: Array.from(ids) };
+        }
+        return section;
+      });
+    });
   };
 
   const removeSection = idx => {
@@ -247,6 +265,16 @@ export default function CourseSections() {
   })();
 
   const getItemId = item => String(item?._id || "");
+  const isAssignedElsewhere = id => {
+    const safeId = String(id || "");
+    if (!safeId || !selectedSection) return false;
+    const type = String(selectedSection.sectionType || "course").toLowerCase();
+    return courseSections.some((section, idx) => {
+      if (idx === activeSection) return false;
+      if (String(section?.sectionType || "course").toLowerCase() !== type) return false;
+      return (section?.itemIds || []).includes(safeId);
+    });
+  };
   const getItemLabel = item => {
     if (selectedSectionType === "university") {
       const type = String(item?.type || "").trim();
@@ -622,10 +650,11 @@ export default function CourseSections() {
                         type="checkbox"
                         id={`section-${activeSection}-item-${getItemId(item)}`}
                         checked={(selectedSection.itemIds || []).includes(getItemId(item))}
+                        disabled={isAssignedElsewhere(getItemId(item))}
                         onChange={() => toggleCourseInSection(activeSection, getItemId(item))}
                       />
                       <label className="form-check-label" htmlFor={`section-${activeSection}-item-${getItemId(item)}`}>
-                        {getItemLabel(item)}
+                        {getItemLabel(item)}{isAssignedElsewhere(getItemId(item)) ? " (Already in another section)" : ""}
                       </label>
                     </div>
                   </div>

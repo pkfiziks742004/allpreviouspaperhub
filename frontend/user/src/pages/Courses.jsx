@@ -224,9 +224,21 @@ export default function Courses(){
     return `/${toRouteSegment(uni.name, "university")}/${toRouteSegment(course.name, "course")}`;
   };
 
+  const assignedCourseIds = new Set(
+    (courseSections || [])
+      .filter(section => {
+        const sectionType = String(section?.sectionType || "course").toLowerCase();
+        const isVisible = section?.active !== false && !section?.comingSoon;
+        return sectionType === "course" && isVisible;
+      })
+      .flatMap(section => (section.itemIds || section.courseIds || []).map(id => String(id || "")))
+      .filter(Boolean)
+  );
+
   const visibleCourses = courses
     .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
     .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const baseCourses = visibleCourses.filter(c => !assignedCourseIds.has(String(c._id || "")));
 
   const visibleCourseSections = (courseSections || [])
     .filter(section => String(section?.sectionType || "course").toLowerCase() === "course")
@@ -267,7 +279,7 @@ export default function Courses(){
 
         <div className="cards-grid cards-grid-4-6">
 
-  {visibleCourses.map(c => (
+  {baseCourses.map(c => (
 
 
     <div key={c._id} className="cards-grid-item">

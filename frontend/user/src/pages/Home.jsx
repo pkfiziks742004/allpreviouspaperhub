@@ -145,6 +145,19 @@ export default function Home() {
     const matchesType = searchType === "all" || uniType === searchType;
     return matchesText && matchesType;
   });
+  const assignedUniversityIds = new Set(
+    (courseSections || [])
+      .filter(section => {
+        const sectionType = String(section?.sectionType || "course").toLowerCase();
+        const isVisible = section?.active !== false && !section?.comingSoon;
+        return sectionType === "university" && isVisible;
+      })
+      .flatMap(section => (section.itemIds || section.courseIds || []).map(id => String(id || "")))
+      .filter(Boolean)
+  );
+  const visibleUniversities = filteredUniversities.filter(
+    uni => !assignedUniversityIds.has(String(uni._id || ""))
+  );
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -271,7 +284,7 @@ export default function Home() {
           </div>
 
           <div className="cards-grid cards-grid-4-6">
-            {filteredUniversities.map(u => (
+            {visibleUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
                   className="card modern-card modern-card--large h-100 text-center"
@@ -307,7 +320,7 @@ export default function Home() {
               </div>
             ))}
 
-            {filteredUniversities.length === 0 && (
+            {visibleUniversities.length === 0 && (
               <div className="col-12 text-muted">
                 No matching results. Try another search or change filter.
               </div>
@@ -322,6 +335,7 @@ export default function Home() {
 
           const sectionUniversities = ((section.itemIds || section.courseIds || []))
             .map(id => universities.find(u => String(u._id) === String(id)))
+            .filter(u => filteredUniversities.some(row => String(row._id) === String(u?._id || "")))
             .filter(Boolean);
 
           const isActive = section.active !== false;

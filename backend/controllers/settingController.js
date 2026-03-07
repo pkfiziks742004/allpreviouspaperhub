@@ -400,6 +400,12 @@ const sanitizeSectionTextStyle = (style, fallback) => {
 const sanitizeCourseSections = value => {
   if (!Array.isArray(value)) return defaults.courseSections;
 
+  const usedByType = {
+    university: new Set(),
+    course: new Set(),
+    semester: new Set()
+  };
+
   return value.slice(0, 40).map(raw => {
     const section = raw && typeof raw === "object" ? raw : {};
     const sectionType = ["university", "course", "semester"].includes(String(section.sectionType || "").toLowerCase())
@@ -410,7 +416,12 @@ const sanitizeCourseSections = value => {
       : Array.isArray(section.courseIds)
         ? section.courseIds
         : [];
-    const itemIds = [...new Set(rawIds.map(id => String(id || "").trim()).filter(Boolean))].slice(0, 120);
+    const uniqueIds = [...new Set(rawIds.map(id => String(id || "").trim()).filter(Boolean))].slice(0, 120);
+    const itemIds = uniqueIds.filter(id => {
+      if (usedByType[sectionType].has(id)) return false;
+      usedByType[sectionType].add(id);
+      return true;
+    });
 
     return {
       title: cleanText(section.title, 140) || "New Section",

@@ -203,6 +203,18 @@ export default function Semesters(){
     return `/${toRouteSegment(selectedUniversity.name, "university")}/${toRouteSegment(selectedCourse.name, "course")}/${toRouteSegment(semester.name, "semester")}`;
   };
 
+  const assignedSemesterIds = new Set(
+    (courseSections || [])
+      .filter(section => {
+        const sectionType = String(section?.sectionType || "").toLowerCase();
+        const isVisible = section?.active !== false && !section?.comingSoon;
+        return sectionType === "semester" && isVisible;
+      })
+      .flatMap(section => (section.itemIds || section.courseIds || []).map(id => String(id || "")))
+      .filter(Boolean)
+  );
+  const baseSemesters = list.filter(sem => !assignedSemesterIds.has(String(sem._id || "")));
+
   const visibleSemesterSections = (courseSections || [])
     .filter(section => String(section?.sectionType || "").toLowerCase() === "semester")
     .map(section => {
@@ -232,7 +244,7 @@ export default function Semesters(){
 
         <div className="cards-grid cards-grid-4-6 semesters-grid">
 
-          {list.map(s=>(
+          {baseSemesters.map(s=>(
             <div className="cards-grid-item" key={s._id}>
 
                 <div
