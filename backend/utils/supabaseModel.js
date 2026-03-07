@@ -52,6 +52,62 @@ const normalizeError = error => {
   return generic;
 };
 
+const isSimpleValue = value =>
+  value === null ||
+  ["string", "number", "boolean"].includes(typeof value);
+
+const analyzeFilter = filter => {
+  const constraints = [];
+  if (!filter || typeof filter !== "object" || Array.isArray(filter)) {
+    return { serverSupported: true, constraints };
+  }
+
+  const keys = Object.keys(filter);
+  for (const key of keys) {
+    if (key === "$or") return { serverSupported: false, constraints: [] };
+    const value = filter[key];
+    const column = camelToSnake(key);
+
+    if (isSimpleValue(value)) {
+      constraints.push({ type: "eq", column, value });
+      continue;
+    }
+
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return { serverSupported: false, constraints: [] };
+    }
+
+    const operators = Object.keys(value);
+    if (!operators.length) {
+      constraints.push({ type: "eq", column, value });
+      continue;
+    }
+
+    for (const operator of operators) {
+      if (operator === "$in" && Array.isArray(value.$in)) {
+        constraints.push({ type: "in", column, value: value.$in });
+        continue;
+      }
+      if (operator === "$ne") {
+        constraints.push({ type: "neq", column, value: value.$ne });
+        continue;
+      }
+      // Regex and unknown operators fallback to in-memory filtering.
+      return { serverSupported: false, constraints: [] };
+    }
+  }
+
+  return { serverSupported: true, constraints };
+};
+
+const applyConstraints = (query, constraints) =>
+  constraints.reduce((acc, item) => {
+    if (item.type === "eq") return acc.eq(item.column, item.value);
+    if (item.type === "in") return acc.in(item.column, item.value);
+    if (item.type === "neq") return acc.neq(item.column, item.value);
+    return acc;
+  }, query);
+
 const matchFilter = (row, filter) => {
   if (!filter || typeof filter !== "object") return true;
 
@@ -136,7 +192,18 @@ const createSupabaseModel = tableName => {
     }
 
     static async find(filter = {}) {
-      const { data, error } = await supabaseAdmin.from(this.tableName).select("*");
+      const { serverSupported, constraints } = analyzeFilter(filter);
+      if (!serverSupported) {
+        const { data, error } = await supabaseAdmin.from(this.tableName).select("*");
+        if (error) throw normalizeError(error);
+        return (data || [])
+          .map(row => mapRowToDoc(row))
+          .filter(doc => matchFilter(doc, filter))
+          .map(doc => new this(doc));
+      }
+
+      const query = applyConstraints(supabaseAdmin.from(this.tableName).select("*"), constraints);
+      const { data, error } = await query;
       if (error) throw normalizeError(error);
       return (data || [])
         .map(row => mapRowToDoc(row))
@@ -187,8 +254,19 @@ const createSupabaseModel = tableName => {
     }
 
     static async countDocuments(filter = {}) {
-      const list = await this.find(filter);
-      return list.length;
+      const { serverSupported, constraints } = analyzeFilter(filter);
+      if (!serverSupported) {
+        const list = await this.find(filter);
+        return list.length;
+      }
+
+      const query = applyConstraints(
+        supabaseAdmin.from(this.tableName).select("id", { count: "exact", head: true }),
+        constraints
+      );
+      const { count, error } = await query;
+      if (error) throw normalizeError(error);
+      return Number(count || 0);
     }
 
     static async exists(filter = {}) {

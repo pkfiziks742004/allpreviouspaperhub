@@ -57,6 +57,41 @@ const toNumber = value => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const isUnsafeHost = hostname => {
+  const host = String(hostname || "").toLowerCase().trim();
+  if (!host) return true;
+  if (host === "localhost" || host === "127.0.0.1" || host === "::1") return true;
+  if (host.endsWith(".localhost")) return true;
+
+  if (/^10\./.test(host)) return true;
+  if (/^192\.168\./.test(host)) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)) return true;
+  if (/^169\.254\./.test(host)) return true;
+  if (/^0\./.test(host)) return true;
+
+  if (host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:")) return true;
+  return false;
+};
+
+const canProxyRemoteUrl = rawUrl => {
+  try {
+    const parsed = new URL(String(rawUrl || ""));
+    if (!["http:", "https:"].includes(parsed.protocol)) return false;
+    if (isUnsafeHost(parsed.hostname)) return false;
+
+    const allowList = String(process.env.ALLOWED_FILE_PROXY_HOSTS || "")
+      .split(",")
+      .map(item => item.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!allowList.length) return true;
+    const host = String(parsed.hostname || "").toLowerCase();
+    return allowList.some(allowed => host === allowed || host.endsWith(`.${allowed}`));
+  } catch {
+    return false;
+  }
+};
+
 const collator = new Intl.Collator("en", { sensitivity: "base", numeric: true });
 
 const enrichPapers = async papers => {
@@ -196,6 +231,9 @@ router.get("/download-file/:id", async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="${downloadName}"`);
 
     if (isAbsoluteUrl(paper.file)) {
+      if (!canProxyRemoteUrl(paper.file)) {
+        return res.status(400).json("Blocked remote file host");
+      }
       const remote = await axios.get(paper.file, {
         responseType: "arraybuffer",
         timeout: 12_000,
@@ -223,6 +261,9 @@ router.get("/open-file/:id", async (req, res) => {
     res.setHeader("Content-Disposition", `inline; filename="${fileName}"`);
 
     if (isAbsoluteUrl(paper.file)) {
+      if (!canProxyRemoteUrl(paper.file)) {
+        return res.status(400).json("Blocked remote file host");
+      }
       const remote = await axios.get(paper.file, {
         responseType: "arraybuffer",
         timeout: 12_000,

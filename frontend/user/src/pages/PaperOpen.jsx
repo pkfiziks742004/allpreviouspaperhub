@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
+import { resolveApiUrl } from "../config/api";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -21,11 +22,9 @@ const defaultPaperOpenViewer = {
 
 export default function PaperOpen() {
   const { universitySlug, courseSlug, semesterSlug, paperSlug } = useParams();
-  const navigate = useNavigate();
   const [paper, setPaper] = useState(null);
   const [error, setError] = useState("");
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [paperOpenViewer, setPaperOpenViewer] = useState(defaultPaperOpenViewer);
 
@@ -94,33 +93,6 @@ export default function PaperOpen() {
     loadPaper();
   }, [courseSlug, paperSlug, semesterSlug, universitySlug]);
 
-  useEffect(() => {
-    if (!paper?._id) return undefined;
-    let active = true;
-    let objectUrl = "";
-
-    const loadPdfBlob = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/papers/open-file/${paper._id}`, {
-          responseType: "arraybuffer"
-        });
-        if (!active) return;
-        const blob = new Blob([res.data], { type: "application/pdf" });
-        objectUrl = URL.createObjectURL(blob);
-        setPdfBlobUrl(objectUrl);
-      } catch (e) {
-        setPdfBlobUrl("");
-      }
-    };
-
-    loadPdfBlob();
-
-    return () => {
-      active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [paper?._id]);
-
   const openWebsite = () => {
     window.open("/", "_blank", "noopener,noreferrer");
   };
@@ -164,8 +136,12 @@ export default function PaperOpen() {
     return <div style={{ padding: 20 }}>{paperOpenViewer.loadingText || "Loading PDF..."}</div>;
   }
 
-  const openUrl = `${API_BASE}/api/papers/open-file/${paper._id}`;
-  const embeddedPdfUrl = pdfBlobUrl ? `${pdfBlobUrl}#toolbar=0&navpanes=0&pagemode=none` : "";
+  const openUrl = paper?.file
+    ? (String(paper.file).startsWith("http://") || String(paper.file).startsWith("https://")
+      ? paper.file
+      : resolveApiUrl(paper.file))
+    : `${API_BASE}/api/papers/open-file/${paper._id}`;
+  const embeddedPdfUrl = `${openUrl}#toolbar=0&navpanes=0&pagemode=none`;
 
   if (isMobileOrTablet) {
     return (
@@ -175,7 +151,7 @@ export default function PaperOpen() {
           {paperOpenViewer.mobileHelpText}
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <a href={pdfBlobUrl || openUrl} target="_blank" rel="noopener noreferrer" className="btn btn-light">
+          <a href={openUrl} target="_blank" rel="noopener noreferrer" className="btn btn-light">
             {paperOpenViewer.openPdfText}
           </a>
           <button type="button" className="btn btn-outline-light" onClick={handleDownload}>
@@ -215,12 +191,9 @@ export default function PaperOpen() {
       </div>
 
       <div style={{ position: "relative", height: "calc(100vh - 64px)", overflow: "hidden" }}>
-        {!embeddedPdfUrl && (
-          <div style={{ padding: 20, color: paperOpenViewer.textColor }}>{paperOpenViewer.loadingText}</div>
-        )}
         <iframe
           title={paper.title}
-          src={embeddedPdfUrl || "about:blank"}
+          src={embeddedPdfUrl}
           style={{
             width: "100%",
             height: "calc(100% + 56px)",
