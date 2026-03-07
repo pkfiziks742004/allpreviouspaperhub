@@ -253,10 +253,9 @@ export default function PaperOpen() {
           src={embeddedPdfUrl || "about:blank"}
           style={{
             width: "100%",
-            height: "calc(100% + 56px)",
+            height: "100%",
             border: 0,
-            background: paperOpenViewer.viewerBgColor,
-            transform: "translateY(-56px)"
+            background: paperOpenViewer.viewerBgColor
           }}
         />
 
