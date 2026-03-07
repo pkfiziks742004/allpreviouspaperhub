@@ -17,6 +17,7 @@ export default function Courses(){
   const [courses,setCourses]=useState([]);
   const [search,setSearch]=useState("");
   const [coursesSectionTitle, setCoursesSectionTitle] = useState("");
+  const [courseSections, setCourseSections] = useState([]);
   const [coursesTitleStyle, setCoursesTitleStyle] = useState({});
   const [cardStyles, setCardStyles] = useState({});
   const [courseNameStyle, setCourseNameStyle] = useState({});
@@ -84,6 +85,7 @@ export default function Courses(){
     getSettings({ ttlMs: 45_000 }).then(data => {
       setSettingsSnapshot(data || {});
       setCoursesSectionTitle(data.coursesSectionTitle || "");
+      setCourseSections(Array.isArray(data.courseSections) ? data.courseSections : []);
       setCoursesTitleStyle(data.coursesTitleStyle || {});
       setCardStyles(data.cardStyles || {});
       setCourseNameStyle(data.courseNameStyle || {});
@@ -226,6 +228,23 @@ export default function Courses(){
     .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
     .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
+  const visibleCourseSections = (courseSections || [])
+    .filter(section => String(section?.sectionType || "course").toLowerCase() === "course")
+    .map(section => {
+      const ids = Array.isArray(section?.itemIds)
+        ? section.itemIds
+        : Array.isArray(section?.courseIds)
+          ? section.courseIds
+          : [];
+      const sectionCourses = ids
+        .map(id => courses.find(c => String(c._id) === String(id)))
+        .filter(Boolean)
+        .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
+        .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+      return { section, sectionCourses };
+    })
+    .filter(block => (block.sectionCourses || []).length > 0 || block.section?.comingSoon);
+
   return(
     <div className="page-shell">
       <Navbar/>
@@ -294,6 +313,55 @@ export default function Courses(){
 
 </div>
         </div>
+
+        {visibleCourseSections.map((block, idx) => (
+          <div
+            key={`course-section-${idx}`}
+            className="home-section section-panel mt-4"
+            style={{ background: sectionPanelBgColor || "#ffffff" }}
+          >
+            {block.section?.title && (
+              <h4 className="section-title">
+                {block.section.title}
+              </h4>
+            )}
+            {block.section?.description && (
+              <p className="section-subtitle">{block.section.description}</p>
+            )}
+
+            {(block.section?.active === false || block.section?.comingSoon) ? (
+              <div className="alert alert-warning text-center">
+                {block.section?.comingSoonText || "Coming soon"}
+              </div>
+            ) : (
+              <div className="cards-grid cards-grid-4-6">
+                {block.sectionCourses.map(c => (
+                  <div key={`sec-course-${c._id}`} className="cards-grid-item">
+                    <div className="card modern-card h-100 text-center" style={buildCardStyle()}>
+                      <div className="card-body">
+                        {renderCourseName(c.name)}
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary btn-sm mt-3"
+                          style={courseBtnStyle}
+                          onClick={() => {
+                            const targetPath = buildCoursePath(c);
+                            const courseRouteSlug = toRouteSegment(c.name, "course");
+                            if (!selectedUniversity || !courseRouteSlug) return;
+                            markCourseFlow(universitySlug, courseRouteSlug);
+                            navigate(targetPath);
+                          }}
+                        >
+                          {getCourseButtonLabel(c)}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
 
 
       </div>

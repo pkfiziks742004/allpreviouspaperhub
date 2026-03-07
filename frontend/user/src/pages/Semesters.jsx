@@ -18,6 +18,7 @@ export default function Semesters(){
   const [selectedUniversity, setSelectedUniversity] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [title, setTitle] = useState("");
+  const [courseSections, setCourseSections] = useState([]);
   const [titleStyle, setTitleStyle] = useState({});
   const [cardStyle, setCardStyle] = useState({});
   const [buttonStyle, setButtonStyle] = useState({});
@@ -78,6 +79,7 @@ export default function Semesters(){
     getSettings({ ttlMs: 45_000 }).then(data => {
       setSettingsSnapshot(data || {});
       setTitle(data.semestersSectionTitle || "");
+      setCourseSections(Array.isArray(data.courseSections) ? data.courseSections : []);
       setTitleStyle(data.semestersTitleStyle || {});
       setCardStyle(data.semesterCardStyle || {});
       setButtonStyle(data.semesterButtonStyle || {});
@@ -201,6 +203,21 @@ export default function Semesters(){
     return `/${toRouteSegment(selectedUniversity.name, "university")}/${toRouteSegment(selectedCourse.name, "course")}/${toRouteSegment(semester.name, "semester")}`;
   };
 
+  const visibleSemesterSections = (courseSections || [])
+    .filter(section => String(section?.sectionType || "").toLowerCase() === "semester")
+    .map(section => {
+      const ids = Array.isArray(section?.itemIds)
+        ? section.itemIds
+        : Array.isArray(section?.courseIds)
+          ? section.courseIds
+          : [];
+      const sectionSemesters = ids
+        .map(id => list.find(sem => String(sem._id) === String(id)))
+        .filter(Boolean);
+      return { section, sectionSemesters };
+    })
+    .filter(block => (block.sectionSemesters || []).length > 0 || block.section?.comingSoon);
+
 
   return(
     <div className="page-shell">
@@ -270,6 +287,64 @@ export default function Semesters(){
 
         </div>
         </div>
+
+        {visibleSemesterSections.map((block, idx) => (
+          <div
+            className="home-section section-panel mt-4"
+            style={{ background: sectionPanelBgColor || "#ffffff" }}
+            key={`sem-section-${idx}`}
+          >
+            {block.section?.title && <h4 className="section-title">{block.section.title}</h4>}
+            {block.section?.description && <p className="section-subtitle">{block.section.description}</p>}
+
+            {(block.section?.active === false || block.section?.comingSoon) ? (
+              <div className="alert alert-warning text-center">
+                {block.section?.comingSoonText || "Coming soon"}
+              </div>
+            ) : (
+              <div className="cards-grid cards-grid-4-6 semesters-grid">
+                {block.sectionSemesters.map(s => (
+                  <div className="cards-grid-item" key={`section-sem-${s._id}`}>
+                    <div
+                      className="card modern-card semester-card h-100"
+                      style={{
+                        background: cardBg,
+                        minHeight: cardStyle.minHeight ? `${cardStyle.minHeight}px` : undefined,
+                        maxWidth: safeCardMaxWidth,
+                        width: "100%"
+                      }}
+                    >
+                      <div className="card-body">
+                        <div className="semester-card-head">
+                          {(() => {
+                            const Tag = semesterNameStyle.variant || "h6";
+                            return <Tag style={cardTextStyle}>{s.name}</Tag>;
+                          })()}
+                          {getYearLabel(s.name) && (
+                            <span className="semester-year-chip" style={{ color: cardStyle.textColor || "#334155" }}>
+                              {getYearLabel(s.name)}
+                            </span>
+                          )}
+                        </div>
+                        <Link
+                          to={buildPapersPath(s)}
+                          className="btn btn-outline-primary btn-sm mt-2 semester-view-btn"
+                          style={semesterBtnStyle}
+                          onClick={() => {
+                            const semesterRouteSlug = toRouteSegment(s.name, "semester");
+                            markSemesterFlow(universitySlug, courseSlug, semesterRouteSlug);
+                          }}
+                        >
+                          View Papers
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
         <AdSlot className="mt-3" label="Sponsored" />
 
       </div>

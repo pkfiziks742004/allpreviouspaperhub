@@ -3,6 +3,11 @@ import axios from "axios";
 import Layout from "../components/Layout";
 
 const API = import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || "http://localhost:5000";
+const SECTION_TYPE_OPTIONS = [
+  { value: "university", label: "University Section (Home Page)" },
+  { value: "course", label: "Course Section (Courses Page)" },
+  { value: "semester", label: "Semester Section (Semesters Page)" }
+];
 const defaultSectionTitleStyle = {
   color: "#0f172a",
   size: 32,
@@ -27,6 +32,14 @@ const normalizeTextStyle = (style, fallback) => ({
 
 const normalizeSection = section => ({
   ...section,
+  sectionType: ["university", "course", "semester"].includes(String(section?.sectionType || "").toLowerCase())
+    ? String(section.sectionType).toLowerCase()
+    : "course",
+  itemIds: Array.isArray(section?.itemIds)
+    ? section.itemIds.map(id => String(id || "")).filter(Boolean)
+    : Array.isArray(section?.courseIds)
+      ? section.courseIds.map(id => String(id || "")).filter(Boolean)
+      : [],
   titleStyle: normalizeTextStyle(section?.titleStyle, defaultSectionTitleStyle),
   descriptionStyle: normalizeTextStyle(section?.descriptionStyle, defaultSectionDescriptionStyle)
 });
@@ -34,6 +47,8 @@ const normalizeSection = section => ({
 export default function CourseSections() {
   const [courseSections, setCourseSections] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [universities, setUniversities] = useState([]);
+  const [semesters, setSemesters] = useState([]);
   const [activeSection, setActiveSection] = useState(0);
   const [newCourseName, setNewCourseName] = useState("");
   const [courseNameEdits, setCourseNameEdits] = useState({});
@@ -63,6 +78,18 @@ export default function CourseSections() {
     });
   }, []);
 
+  const loadUniversities = useCallback(() => {
+    axios.get(`${API}/api/universities`).then(res => {
+      setUniversities(Array.isArray(res.data) ? res.data : []);
+    });
+  }, []);
+
+  const loadSemesters = useCallback(() => {
+    axios.get(`${API}/api/semesters`).then(res => {
+      setSemesters(Array.isArray(res.data) ? res.data : []);
+    });
+  }, []);
+
   const loadSections = useCallback(() => {
     axios.get(`${API}/api/settings`).then(res => {
       setCourseSections(
@@ -87,8 +114,10 @@ export default function CourseSections() {
 
   useEffect(() => {
     loadCourses();
+    loadUniversities();
+    loadSemesters();
     loadSections();
-  }, [loadCourses, loadSections]);
+  }, [loadCourses, loadSections, loadSemesters, loadUniversities]);
 
   const save = async () => {
     setSaving(true);
@@ -122,7 +151,8 @@ export default function CourseSections() {
       normalizeSection({
         title: "New Section",
         description: "",
-        courseIds: [],
+        sectionType: "course",
+        itemIds: [],
         active: true,
         comingSoon: false,
         comingSoonText: "Coming soon"
@@ -148,11 +178,12 @@ export default function CourseSections() {
   };
 
   const toggleCourseInSection = (idx, courseId) => {
-    const section = courseSections[idx];
-    const ids = new Set(section.courseIds || []);
-    if (ids.has(courseId)) ids.delete(courseId);
-    else ids.add(courseId);
-    updateSection(idx, "courseIds", Array.from(ids));
+    const section = courseSections[idx] || {};
+    const safeId = String(courseId || "");
+    const ids = new Set((section.itemIds || []).map(id => String(id || "")));
+    if (ids.has(safeId)) ids.delete(safeId);
+    else ids.add(safeId);
+    updateSection(idx, "itemIds", Array.from(ids));
   };
 
   const removeSection = idx => {
@@ -197,7 +228,7 @@ export default function CourseSections() {
       await axios.delete(`${API}/api/courses/${courseId}`, headers);
       const next = courseSections.map(s => ({
         ...s,
-        courseIds: (s.courseIds || []).filter(id => id !== courseId)
+        itemIds: (s.itemIds || []).filter(id => id !== courseId)
       }));
       setCourseSections(next);
       loadCourses();
@@ -207,6 +238,28 @@ export default function CourseSections() {
   };
 
   const selectedSection = courseSections[activeSection];
+  const selectedSectionType = selectedSection?.sectionType || "course";
+  const selectedItems = (() => {
+    if (!selectedSection) return [];
+    if (selectedSectionType === "university") return universities;
+    if (selectedSectionType === "semester") return semesters;
+    return courses;
+  })();
+
+  const getItemId = item => String(item?._id || "");
+  const getItemLabel = item => {
+    if (selectedSectionType === "university") {
+      const type = String(item?.type || "").trim();
+      return type ? `${item?.name || "University"} (${type})` : item?.name || "University";
+    }
+    if (selectedSectionType === "semester") {
+      const semName = item?.name || "Semester";
+      const courseName = item?.courseName || item?.courseId?.name || "";
+      const uniName = item?.universityName || item?.courseId?.universityId?.name || "";
+      return [semName, courseName, uniName].filter(Boolean).join(" | ");
+    }
+    return item?.name || "Course";
+  };
 
   return (
     <Layout>
@@ -332,6 +385,38 @@ export default function CourseSections() {
                 value={selectedSection.description || ""}
                 onChange={e => updateSection(activeSection, "description", e.target.value)}
               />
+            </div>
+
+            <div className="mt-2">
+              <label className="form-label">Section Type</label>
+              <select
+                className="form-select"
+                value={selectedSection.sectionType || "course"}
+                onChange={e => {
+                  const nextType = String(e.target.value || "course");
+                  const currentIds = Array.isArray(selectedSection.itemIds) ? selectedSection.itemIds : [];
+                  const allowedIds = new Set(
+                    (nextType === "university" ? universities : nextType === "semester" ? semesters : courses)
+                      .map(item => String(item?._id || ""))
+                      .filter(Boolean)
+                  );
+                  updateSection(activeSection, "sectionType", nextType);
+                  updateSection(
+                    activeSection,
+                    "itemIds",
+                    currentIds.map(id => String(id || "")).filter(id => allowedIds.has(id))
+                  );
+                }}
+              >
+                {SECTION_TYPE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="form-text">
+                Section same type ke page par show hoga.
+              </div>
             </div>
 
             <div className="mt-3 border rounded p-3">
@@ -502,47 +587,57 @@ export default function CourseSections() {
               />
             </div>
 
-            <div className="mt-3">
-              <label className="form-label">Add New Course</label>
-              <div className="d-flex gap-2">
-                <input
-                  className="form-control"
-                  value={newCourseName}
-                  onChange={e => setNewCourseName(e.target.value)}
-                  placeholder="Course name"
-                />
-                <button className="btn btn-outline-primary" onClick={addCourse}>
-                  Add
-                </button>
+            {selectedSectionType === "course" && (
+              <div className="mt-3">
+                <label className="form-label">Add New Course</label>
+                <div className="d-flex gap-2">
+                  <input
+                    className="form-control"
+                    value={newCourseName}
+                    onChange={e => setNewCourseName(e.target.value)}
+                    placeholder="Course name"
+                  />
+                  <button className="btn btn-outline-primary" onClick={addCourse}>
+                    Add
+                  </button>
+                </div>
+                <div className="form-text">Course will be added globally, then you can select it.</div>
               </div>
-              <div className="form-text">Course will be added globally, then you can select it.</div>
-            </div>
+            )}
 
             <div className="mt-3">
-              <label className="form-label">Select Courses for This Section</label>
+              <label className="form-label">
+                {selectedSectionType === "university"
+                  ? "Select Universities for This Section"
+                  : selectedSectionType === "semester"
+                    ? "Select Semesters for This Section"
+                    : "Select Courses for This Section"}
+              </label>
               <div className="row">
-                {courses.map(c => (
-                  <div key={c._id} className="col-md-4">
+                {selectedItems.map(item => (
+                  <div key={getItemId(item)} className="col-md-6">
                     <div className="form-check">
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        id={`section-${activeSection}-course-${c._id}`}
-                        checked={(selectedSection.courseIds || []).includes(c._id)}
-                        onChange={() => toggleCourseInSection(activeSection, c._id)}
+                        id={`section-${activeSection}-item-${getItemId(item)}`}
+                        checked={(selectedSection.itemIds || []).includes(getItemId(item))}
+                        onChange={() => toggleCourseInSection(activeSection, getItemId(item))}
                       />
-                      <label className="form-check-label" htmlFor={`section-${activeSection}-course-${c._id}`}>{c.name}</label>
+                      <label className="form-check-label" htmlFor={`section-${activeSection}-item-${getItemId(item)}`}>
+                        {getItemLabel(item)}
+                      </label>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {(selectedSection.courseIds || []).length > 0 && (
+            {selectedSectionType === "course" && (selectedSection.itemIds || []).length > 0 && (
               <div className="mt-3">
                 <label className="form-label">Edit or Remove Courses in This Section</label>
                 <div className="row">
-                  {(selectedSection.courseIds || []).map(id => {
+                  {(selectedSection.itemIds || []).map(id => {
                     const course = courses.find(c => c._id === id);
                     if (!course) return null;
                     return (

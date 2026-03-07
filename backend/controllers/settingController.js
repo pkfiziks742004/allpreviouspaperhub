@@ -374,6 +374,73 @@ const defaults = {
   feedbackRequests: []
 };
 
+const clamp = (value, min, max, fallback) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+};
+
+const cleanText = (value, maxLen = 200) => String(value || "").trim().slice(0, maxLen);
+
+const sanitizeSectionTextStyle = (style, fallback) => {
+  const safe = style && typeof style === "object" ? style : {};
+  const align = ["left", "center", "right", "justify"].includes(String(safe.align || "").toLowerCase())
+    ? String(safe.align).toLowerCase()
+    : fallback.align;
+  return {
+    color: cleanText(safe.color || fallback.color, 30) || fallback.color,
+    size: clamp(safe.size, 10, 72, fallback.size),
+    align,
+    bold: !!safe.bold,
+    italic: !!safe.italic,
+    underline: !!safe.underline
+  };
+};
+
+const sanitizeCourseSections = value => {
+  if (!Array.isArray(value)) return defaults.courseSections;
+
+  return value.slice(0, 40).map(raw => {
+    const section = raw && typeof raw === "object" ? raw : {};
+    const sectionType = ["university", "course", "semester"].includes(String(section.sectionType || "").toLowerCase())
+      ? String(section.sectionType).toLowerCase()
+      : "course";
+    const rawIds = Array.isArray(section.itemIds)
+      ? section.itemIds
+      : Array.isArray(section.courseIds)
+        ? section.courseIds
+        : [];
+    const itemIds = [...new Set(rawIds.map(id => String(id || "").trim()).filter(Boolean))].slice(0, 120);
+
+    return {
+      title: cleanText(section.title, 140) || "New Section",
+      description: cleanText(section.description, 400),
+      titleStyle: sanitizeSectionTextStyle(section.titleStyle, {
+        color: "#0f172a",
+        size: 32,
+        align: "left",
+        bold: false,
+        italic: false,
+        underline: false
+      }),
+      descriptionStyle: sanitizeSectionTextStyle(section.descriptionStyle, {
+        color: "#475569",
+        size: 20,
+        align: "left",
+        bold: false,
+        italic: false,
+        underline: false
+      }),
+      active: section.active !== false,
+      comingSoon: !!section.comingSoon,
+      comingSoonText: cleanText(section.comingSoonText || "Coming soon", 120) || "Coming soon",
+      sectionType,
+      itemIds,
+      courseIds: sectionType === "course" ? itemIds : []
+    };
+  });
+};
+
 const getSettings = async (req, res) => {
   try {
     let settings = await Setting.findOne();
@@ -508,10 +575,14 @@ const updateSettings = async (req, res) => {
       searchKeywords: req.body.searchKeywords,
       feedbackRequests: req.body.feedbackRequests
     };
+    const sanitizedCourseSections =
+      payload.courseSections !== undefined
+        ? sanitizeCourseSections(payload.courseSections)
+        : defaults.courseSections;
 
     let settings = await Setting.findOne();
     if (!settings) {
-      settings = await Setting.create({ ...defaults, ...payload });
+      settings = await Setting.create({ ...defaults, ...payload, courseSections: sanitizedCourseSections });
     } else {
       const previousSettings = JSON.parse(JSON.stringify(settings || {}));
       const removedFiles = [];
@@ -724,13 +795,13 @@ const updateSettings = async (req, res) => {
         settings.bannerImages = nextBannerItems.map(item => item.imageUrl);
       }
       settings.courseSections = Array.isArray(payload.courseSections)
-        ? payload.courseSections
+        ? sanitizedCourseSections
         : settings.courseSections;
       if (typeof payload.sectionCardButtonEnabled === "boolean") {
         settings.sectionCardButtonEnabled = payload.sectionCardButtonEnabled;
       }
       if (payload.sectionCardButtonText !== undefined) {
-        settings.sectionCardButtonText = payload.sectionCardButtonText;
+        settings.sectionCardButtonText = cleanText(payload.sectionCardButtonText, 80);
       }
       await settings.save();
       await Promise.all([...new Set(removedFiles)].map(removeUploadByUrl));

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveApiUrl } from "../config/api";
-import { getCourses, getSettings, getUniversities } from "../utils/siteData";
+import { getSettings, getUniversities } from "../utils/siteData";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
@@ -17,7 +17,6 @@ export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [courses, setCourses] = useState([]);
   const [universities, setUniversities] = useState([]);
   const [homeTitle, setHomeTitle] = useState("");
   const [homeSubtitle, setHomeSubtitle] = useState("");
@@ -41,10 +40,6 @@ export default function Home() {
     entranceExam: "View Exam Papers",
     other: "View Details"
   });
-
-  const loadCourses = useCallback(() => {
-    return getCourses({ ttlMs: 45_000 }).then(data => setCourses(data || []));
-  }, []);
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -105,10 +100,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    Promise.allSettled([loadCourses(), loadSettings(), loadUniversities()]).finally(() => {
+    Promise.allSettled([loadSettings(), loadUniversities()]).finally(() => {
       setLoading(false);
     });
-  }, [loadCourses, loadSettings, loadUniversities]);
+  }, [loadSettings, loadUniversities]);
 
   useEffect(() => {
     axios
@@ -128,7 +123,6 @@ export default function Home() {
     return <Tag style={textStyle}>{text}</Tag>;
   };
 
-  const courseMap = new Map(courses.map(c => [c._id, c]));
   const queryParams = new URLSearchParams(location.search || "");
   const searchQuery = String(queryParams.get("q") || "").trim().toLowerCase();
   const searchType = String(queryParams.get("type") || "all").trim().toLowerCase();
@@ -242,26 +236,6 @@ export default function Home() {
     );
   };
 
-  const getCourseButtonLabel = course => {
-    if (course && course.buttonLabel && String(course.buttonLabel).trim()) {
-      return course.buttonLabel;
-    }
-    const uniType = universities.find(u => String(u._id) === String(course.universityId))?.type;
-    return getActionLabelByType(uniType);
-  };
-
-  const findUniversity = universityId =>
-    universities.find(u => String(u._id) === String(universityId));
-
-  const openUniversityFromCourse = course => {
-    const uni = findUniversity(course?.universityId);
-    if (!uni) return;
-    if (uni.comingSoon) return;
-    const uniSlug = toRouteSegment(uni.name, "university");
-    markUniversityFlow(uniSlug);
-    navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
-  };
-
   return (
     <div className="page-shell">
       <RatingPopup />
@@ -343,8 +317,11 @@ export default function Home() {
         </div>
 
         {courseSections.map((section, idx) => {
-          const sectionCourses = (section.courseIds || [])
-            .map(id => courseMap.get(id))
+          const sectionType = String(section?.sectionType || "").toLowerCase() || "course";
+          if (sectionType !== "university") return null;
+
+          const sectionUniversities = ((section.itemIds || section.courseIds || []))
+            .map(id => universities.find(u => String(u._id) === String(id)))
             .filter(Boolean);
 
           const isActive = section.active !== false;
@@ -375,17 +352,21 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="cards-grid cards-grid-4-6">
-                  {sectionCourses.map(c => (
-                    <div key={c._id} className="cards-grid-item">
+                  {sectionUniversities.map(u => (
+                    <div key={u._id} className="cards-grid-item">
                       <div
                         className="card modern-card h-100 text-center"
                         style={{ ...buildCardStyle("section"), cursor: "pointer" }}
                         onClick={() => {
-                          openUniversityFromCourse(c);
+                          if (u.comingSoon) return;
+                          const uniSlug = toRouteSegment(u.name, "university");
+                          markUniversityFlow(uniSlug);
+                          navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
                         }}
                       >
                         <div className="card-body">
-                          <h5 className="card-title" style={buildTextStyle("section")}>{c.name}</h5>
+                          <h5 className="card-title" style={buildTextStyle("section")}>{u.name}</h5>
+                          <div className="card-subtitle" style={buildTextStyle("section")}>{u.type || "University"}</div>
                           {sectionCardButtonEnabled && (
                             <button
                               type="button"
@@ -393,7 +374,10 @@ export default function Home() {
                               style={courseBtnStyle}
                               onClick={e => {
                                 e.stopPropagation();
-                                openUniversityFromCourse(c);
+                                if (u.comingSoon) return;
+                                const uniSlug = toRouteSegment(u.name, "university");
+                                markUniversityFlow(uniSlug);
+                                navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
                               }}
                               onMouseEnter={e => {
                                 if (courseButtonStyle.hoverColor) {
@@ -406,7 +390,7 @@ export default function Home() {
                                 e.currentTarget.style.borderColor = courseButtonStyle.bgColor || "";
                               }}
                             >
-                              {c.buttonLabel || sectionCardButtonText || getCourseButtonLabel(c) || "View Details"}
+                              {sectionCardButtonText || getActionLabelByType(u.type) || "View Details"}
                             </button>
                           )}
                         </div>
