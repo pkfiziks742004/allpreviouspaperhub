@@ -31,6 +31,20 @@ const toSafePdfName = value =>
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, " ")
     .replace(/\s+/g, " ")
     .trim() || "paper"}.pdf`;
+const RESERVED_SLUGS = new Set(["about", "privacy-policy", "courses", "course", "papers", "paper-open", "page"]);
+const toSlug = value =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const toRouteSegment = (value, fallback = "item") => {
+  const slug = toSlug(value);
+  if (!slug) return fallback;
+  if (RESERVED_SLUGS.has(slug)) return `${slug}-item`;
+  return slug;
+};
 
 const getId = value => {
   if (!value) return "";
@@ -224,6 +238,42 @@ router.get("/open-file/:id", async (req, res) => {
 });
 
 // ✅ Single Paper
+
+// Resolve paper by public route segments for direct/shared URL support.
+router.get("/resolve-route/:universitySlug/:courseSlug/:semesterSlug/:paperSlug", async (req, res) => {
+  try {
+    const { universitySlug, courseSlug, semesterSlug, paperSlug } = req.params;
+
+    const universities = await University.find({});
+    const selectedUniversity = (universities || []).find(
+      u => toRouteSegment(u?.name, "university") === String(universitySlug || "")
+    );
+    if (!selectedUniversity?._id) return res.status(404).json("Not Found");
+
+    const courses = await Course.find({ universityId: selectedUniversity._id });
+    const selectedCourse = (courses || []).find(
+      c => toRouteSegment(c?.name, "course") === String(courseSlug || "")
+    );
+    if (!selectedCourse?._id) return res.status(404).json("Not Found");
+
+    const semesters = await Semester.find({ courseId: selectedCourse._id });
+    const selectedSemester = (semesters || []).find(
+      s => toRouteSegment(s?.name, "semester") === String(semesterSlug || "")
+    );
+    if (!selectedSemester?._id) return res.status(404).json("Not Found");
+
+    const papers = await Paper.find({ semId: selectedSemester._id });
+    const selectedPaper = (papers || []).find(
+      p => toRouteSegment(p?.title, "paper") === String(paperSlug || "")
+    );
+    if (!selectedPaper?._id) return res.status(404).json("Not Found");
+
+    const rows = await enrichPapers([selectedPaper]);
+    return res.json(rows[0] || selectedPaper);
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
+});
 router.get("/:id", async (req, res) => {
   try {
     const data = await Paper.findById(req.params.id);

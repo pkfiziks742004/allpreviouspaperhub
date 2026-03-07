@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
-import { canAccessSemester, markPaperFlow } from "../utils/navigationFlow";
+import { markPaperFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSemesters, getSettings, getUniversities } from "../utils/siteData";
 
@@ -77,16 +77,6 @@ export default function Papers(){
     });
 
 },[courseSlug, navigate, semesterSlug, universitySlug]);
-
-  useEffect(() => {
-    if (!universitySlug || !courseSlug || !semesterSlug) {
-      navigate("/", { replace: true });
-      return;
-    }
-    if (!canAccessSemester(universitySlug, courseSlug, semesterSlug)) {
-      navigate("/", { replace: true });
-    }
-  }, [courseSlug, navigate, semesterSlug, universitySlug]);
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 })

@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../config/api";
-import { toRouteSegment } from "../utils/slugs";
-import { canAccessPaper } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
-import { getPapers, getSettings } from "../utils/siteData";
+import { getSettings } from "../utils/siteData";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -41,37 +39,15 @@ export default function PaperOpen() {
   }, []);
 
   useEffect(() => {
-    if (!universitySlug || !courseSlug || !semesterSlug || !paperSlug) {
-      navigate("/", { replace: true });
-      return;
-    }
-    if (!canAccessPaper(universitySlug, courseSlug, semesterSlug, paperSlug)) {
-      navigate("/", { replace: true });
-    }
-  }, [courseSlug, navigate, paperSlug, semesterSlug, universitySlug]);
-
-  useEffect(() => {
     const loadPaper = async () => {
       try {
-        const [all, settings] = await Promise.all([
-          getPapers({ ttlMs: 30_000 }),
+        const [paperRes, settings] = await Promise.all([
+          axios.get(
+            `${API_BASE}/api/papers/resolve-route/${encodeURIComponent(universitySlug)}/${encodeURIComponent(courseSlug)}/${encodeURIComponent(semesterSlug)}/${encodeURIComponent(paperSlug)}`
+          ),
           getSettings({ ttlMs: 45_000 }).catch(() => ({}))
         ]);
-
-        let resolvedPaper = null;
-        const papers = Array.isArray(all) ? all : [];
-        resolvedPaper =
-          papers.find(p => {
-            const uniName = p?.courseId?.universityId?.name || p?.universityName || "";
-            const courseName = p?.courseId?.name || p?.courseName || "";
-            const semName = p?.semId?.name || p?.semesterName || "";
-            return (
-              toRouteSegment(uniName, "university") === universitySlug &&
-              toRouteSegment(courseName, "course") === courseSlug &&
-              toRouteSegment(semName, "semester") === semesterSlug &&
-              toRouteSegment(p?.title, "paper") === paperSlug
-            );
-          }) || null;
+        const resolvedPaper = paperRes?.data || null;
 
         setPaper(resolvedPaper);
         setPaperOpenViewer({

@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import AdSlot from "../components/AdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
-import { canAccessCourse, markSemesterFlow } from "../utils/navigationFlow";
+import { markSemesterFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 
@@ -64,16 +64,6 @@ export default function Semesters(){
       navigate("/", { replace: true });
     });
   },[courseSlug, navigate, universitySlug]);
-
-  useEffect(() => {
-    if (!universitySlug || !courseSlug) {
-      navigate("/", { replace: true });
-      return;
-    }
-    if (!canAccessCourse(universitySlug, courseSlug)) {
-      navigate("/", { replace: true });
-    }
-  }, [courseSlug, navigate, universitySlug]);
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 }).then(data => {

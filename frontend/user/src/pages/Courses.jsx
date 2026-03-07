@@ -1,18 +1,17 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
-import { canAccessUniversity, markCourseFlow } from "../utils/navigationFlow";
+import { markCourseFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 
 export default function Courses(){
   const { universitySlug } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [courses,setCourses]=useState([]);
   const [search,setSearch]=useState("");
@@ -66,20 +65,6 @@ export default function Courses(){
     }
     setSelectedUniversity(found);
   }, [navigate, universities, universitiesLoaded, universitySlug]);
-
-  useEffect(() => {
-    if (!universitySlug) {
-      navigate("/", { replace: true });
-      return;
-    }
-    const cameFromUniversityClick = !!location.state?.fromUniversityClick;
-    if (cameFromUniversityClick) {
-      return;
-    }
-    if (!canAccessUniversity(universitySlug)) {
-      navigate("/", { replace: true });
-    }
-  }, [location.state, navigate, universitySlug]);
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 }).then(data => {
