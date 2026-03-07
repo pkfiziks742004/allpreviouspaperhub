@@ -42,6 +42,7 @@ export const PATH_PERMISSION_MAP = [
   { pathPrefix: "/admin/footer-settings", key: "footerSettings" },
   { pathPrefix: "/admin/pages", key: "pages" },
   { pathPrefix: "/admin/about-settings", key: "pages" },
+  { pathPrefix: "/admin/privacy-policy-settings", key: "pages" },
   { pathPrefix: "/admin/course-sections", key: "courseSections" },
   { pathPrefix: "/admin/card-settings", key: "cardSettings" },
   { pathPrefix: "/admin/traffic-settings", key: "trafficSettings" },

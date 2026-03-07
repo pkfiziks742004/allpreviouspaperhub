@@ -28,6 +28,7 @@ const QuestionPaperSettings = lazy(() => import("./pages/QuestionPaperSettings")
 const Pages = lazy(() => import("./pages/Pages"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AboutSettings = lazy(() => import("./pages/AboutSettings"));
+const PrivacyPolicySettings = lazy(() => import("./pages/PrivacyPolicySettings"));
 const CategoryManagement = lazy(() => import("./pages/CategoryManagement"));
 const NoticeUpdates = lazy(() => import("./pages/NoticeUpdates"));
 const DownloadAnalytics = lazy(() => import("./pages/DownloadAnalytics"));
@@ -255,6 +256,15 @@ function App() {
           element={
             <PrivateRoute>
               <AboutSettings />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/admin/privacy-policy-settings"
+          element={
+            <PrivateRoute>
+              <PrivacyPolicySettings />
             </PrivateRoute>
           }
         />

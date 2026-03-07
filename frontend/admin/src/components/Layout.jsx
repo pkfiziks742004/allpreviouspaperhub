@@ -74,6 +74,7 @@ const NAV_GROUPS = [
       { key: "footerSettings", to: "/admin/footer-settings", icon: MdInfo, label: "Footer Settings" },
       { key: "pages", to: "/admin/pages", icon: MdArticle, label: "Pages" },
       { key: "pages", to: "/admin/about-settings", icon: MdArticle, label: "About Settings" },
+      { key: "pages", to: "/admin/privacy-policy-settings", icon: MdArticle, label: "Privacy Policy Settings" },
       { key: "cardSettings", to: "/admin/card-settings", icon: MdPalette, label: "Card Settings" },
       { key: "trafficSettings", to: "/admin/traffic-settings", icon: MdAnalytics, label: "SEO & Traffic" },
       { key: "adsSettings", to: "/admin/ads-settings", icon: MdCampaign, label: "Google Ads Settings" }
@@ -114,6 +115,7 @@ function getPageTitle(pathname) {
   if (pathname.includes("/papers")) return "Upload PDF";
   if (pathname.includes("/pages")) return "Pages";
   if (pathname.includes("/about-settings")) return "About Settings";
+  if (pathname.includes("/privacy-policy-settings")) return "Privacy Policy Settings";
   if (pathname.includes("/settings")) return "Website Settings";
   return "Admin Panel";
 }
