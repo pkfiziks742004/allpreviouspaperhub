@@ -264,6 +264,28 @@ app.get("/sitemap.xml", async (req, res) => {
     const Page = require("./models/Page");
     const settings = await Setting.findOne();
     const baseUrl = (settings?.sitemapBaseUrl || "").replace(/\/+$/, "");
+    const toPath = value => {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      try {
+        if (/^https?:\/\//i.test(raw)) {
+          const parsed = new URL(raw);
+          return (parsed.pathname || "/").replace(/\/+$/, "") || "/";
+        }
+      } catch {
+        // fallback below
+      }
+      const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
+      return withSlash.replace(/\/+$/, "") || "/";
+    };
+    const escapeXml = value =>
+      String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+
     if (!baseUrl) {
       return res.status(200).type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`);
@@ -282,16 +304,22 @@ app.get("/sitemap.xml", async (req, res) => {
         if (slug === "privacy-policy") return "/privacy-policy";
         return `/page/${slug}`;
       });
+    const seoRulePaths = Array.isArray(settings?.seoRoutes)
+      ? settings.seoRoutes
+          .flatMap(rule => [rule?.path, rule?.canonicalPath])
+          .map(toPath)
+          .filter(Boolean)
+      : [];
 
-    const paths = [...new Set([...corePaths, ...extraPaths, ...pagePaths])];
+    const paths = [...new Set([...corePaths, ...extraPaths, ...pagePaths, ...seoRulePaths])];
     const urls = paths
       .filter(p => typeof p === "string" && p.trim())
-      .map(p => (p.startsWith("/") ? p : `/${p}`))
+      .map(toPath)
       .map(p => `${baseUrl}${p}`);
 
     const body = urls
       .map(
-        u => `<url><loc>${u}</loc></url>`
+        u => `<url><loc>${escapeXml(u)}</loc></url>`
       )
       .join("");
 
