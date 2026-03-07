@@ -35,6 +35,39 @@ const DownloadAnalytics = lazy(() => import("./pages/DownloadAnalytics"));
 const SearchTracker = lazy(() => import("./pages/SearchTracker"));
 const FeedbackRequests = lazy(() => import("./pages/FeedbackRequests"));
 
+const ADMIN_BASES = ["/admin", "/sub-admin"];
+
+const PROTECTED_ROUTES = [
+  { path: "/dashboard", element: <Dashboard /> },
+  { path: "/download-analytics", element: <DownloadAnalytics /> },
+  { path: "/courses", element: <Courses /> },
+  { path: "/universities", element: <Universities /> },
+  { path: "/categories", element: <CategoryManagement /> },
+  { path: "/semesters", element: <Semesters /> },
+  { path: "/papers", element: <Papers /> },
+  { path: "/settings", element: <Settings /> },
+  { path: "/header-settings", element: <HeaderSettings /> },
+  { path: "/banner-settings", element: <BannerSettings /> },
+  { path: "/university-settings", element: <UniversitySettings /> },
+  { path: "/course-settings", element: <CourseSettings /> },
+  { path: "/question-paper-settings", element: <QuestionPaperSettings /> },
+  { path: "/semester-settings", element: <SemesterSettings /> },
+  { path: "/account-settings", element: <AccountSettings /> },
+  { path: "/footer-settings", element: <FooterSettings /> },
+  { path: "/ads-settings", element: <AdsSettings /> },
+  { path: "/pages", element: <Pages /> },
+  { path: "/about-settings", element: <AboutSettings /> },
+  { path: "/privacy-policy-settings", element: <PrivacyPolicySettings /> },
+  { path: "/notices", element: <NoticeUpdates /> },
+  { path: "/search-tracker", element: <SearchTracker /> },
+  { path: "/feedback-requests", element: <FeedbackRequests /> },
+  { path: "/admin-users", element: <AdminUsers /> },
+  { path: "/traffic-settings", element: <TrafficSettings /> },
+  { path: "/course-sections", element: <CourseSections /> },
+  { path: "/card-settings", element: <CardSettings /> },
+  { path: "/ratings", element: <Ratings /> }
+];
+
 function App() {
   useEffect(() => {
     const applyFavicon = iconUrl => {
@@ -83,263 +116,19 @@ function App() {
       <Suspense fallback={<div style={{ padding: "20px" }}>Loading...</div>}>
         <Routes>
           <Route path="/" element={<Navigate to="/admin/login" />} />
-
-          <Route path="/admin/login" element={<Login />} />
-
-          <Route
-            path="/admin/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-
-          <Route
-            path="/admin/download-analytics"
-            element={
-              <PrivateRoute>
-                <DownloadAnalytics />
-              </PrivateRoute>
-            }
-          />
-
-        <Route
-          path="/admin/courses"
-          element={
-            <PrivateRoute>
-              <Courses />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/universities"
-          element={
-            <PrivateRoute>
-              <Universities />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/categories"
-          element={
-            <PrivateRoute>
-              <CategoryManagement />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/semesters"
-          element={
-            <PrivateRoute>
-              <Semesters />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/papers"
-          element={
-            <PrivateRoute>
-              <Papers />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/settings"
-          element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/header-settings"
-          element={
-            <PrivateRoute>
-              <HeaderSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/banner-settings"
-          element={
-            <PrivateRoute>
-              <BannerSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/university-settings"
-          element={
-            <PrivateRoute>
-              <UniversitySettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/course-settings"
-          element={
-            <PrivateRoute>
-              <CourseSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/question-paper-settings"
-          element={
-            <PrivateRoute>
-              <QuestionPaperSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/semester-settings"
-          element={
-            <PrivateRoute>
-              <SemesterSettings />
-            </PrivateRoute>
-          }
-        />
-
-
-
-        <Route
-          path="/admin/account-settings"
-          element={
-            <PrivateRoute>
-              <AccountSettings />
-            </PrivateRoute>
-          }
-        />
-
-
-        <Route
-          path="/admin/footer-settings"
-          element={
-            <PrivateRoute>
-              <FooterSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/ads-settings"
-          element={
-            <PrivateRoute>
-              <AdsSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/pages"
-          element={
-            <PrivateRoute>
-              <Pages />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/about-settings"
-          element={
-            <PrivateRoute>
-              <AboutSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/privacy-policy-settings"
-          element={
-            <PrivateRoute>
-              <PrivacyPolicySettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/notices"
-          element={
-            <PrivateRoute>
-              <NoticeUpdates />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/search-tracker"
-          element={
-            <PrivateRoute>
-              <SearchTracker />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/feedback-requests"
-          element={
-            <PrivateRoute>
-              <FeedbackRequests />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/admin-users"
-          element={
-            <PrivateRoute>
-              <AdminUsers />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/traffic-settings"
-          element={
-            <PrivateRoute>
-              <TrafficSettings />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/course-sections"
-          element={
-            <PrivateRoute>
-              <CourseSections />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/card-settings"
-          element={
-            <PrivateRoute>
-              <CardSettings />
-            </PrivateRoute>
-          }
-        />
-
-          <Route
-            path="/admin/ratings"
-            element={
-              <PrivateRoute>
-                <Ratings />
-              </PrivateRoute>
-            }
-          />
+          {ADMIN_BASES.map(base => (
+            <Route key={`${base}-login`} path={`${base}/login`} element={<Login />} />
+          ))}
+          {ADMIN_BASES.flatMap(base =>
+            PROTECTED_ROUTES.map(route => (
+              <Route
+                key={`${base}${route.path}`}
+                path={`${base}${route.path}`}
+                element={<PrivateRoute>{route.element}</PrivateRoute>}
+              />
+            ))
+          )}
+          <Route path="*" element={<Navigate to="/admin/login" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

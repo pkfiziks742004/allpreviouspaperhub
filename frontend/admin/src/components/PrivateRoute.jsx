@@ -4,8 +4,17 @@ import { Navigate, useLocation } from "react-router-dom";
 import { PATH_PERMISSION_MAP, hasPermission, getStoredRole } from "../config/permissions";
 import { API_BASE } from "../config/api";
 
+const getRouteBaseFromPath = pathname =>
+  pathname.startsWith("/sub-admin") ? "/sub-admin" : "/admin";
+
+const normalizePathname = pathname => {
+  const trimmed = pathname.replace(/^\/(admin|sub-admin)/, "");
+  return trimmed || "/";
+};
+
 export default function PrivateRoute({children}){
   const location = useLocation();
+  const routeBase = getRouteBaseFromPath(location.pathname);
   const [ready, setReady] = useState(false);
   const [authOk, setAuthOk] = useState(true);
 
@@ -49,7 +58,7 @@ export default function PrivateRoute({children}){
   }
 
   if (!authOk) {
-    return <Navigate to="/admin/login" />;
+    return <Navigate to={`${routeBase}/login`} />;
   }
 
   const role = getStoredRole();
@@ -57,20 +66,29 @@ export default function PrivateRoute({children}){
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("permissions");
-    return <Navigate to="/admin/login" />;
+    return <Navigate to={`${routeBase}/login`} />;
+  }
+
+  const expectedBase = role === "sub_admin" ? "/sub-admin" : "/admin";
+  if (location.pathname.startsWith("/admin") || location.pathname.startsWith("/sub-admin")) {
+    if (!location.pathname.startsWith(expectedBase)) {
+      const nextPath = location.pathname.replace(/^\/(admin|sub-admin)/, expectedBase);
+      return <Navigate to={`${nextPath}${location.search}${location.hash}`} replace />;
+    }
   }
 
   const getFallbackPath = () => {
-    if (role === "super_admin") return "/admin/dashboard";
+    if (role === "super_admin") return `${expectedBase}/dashboard`;
     const firstAllowed = PATH_PERMISSION_MAP.find(item => {
       if (item.key === "__super_only__") return false;
       return hasPermission(item.key);
     });
-    return firstAllowed ? firstAllowed.pathPrefix : "/admin/login";
+    return firstAllowed ? `${expectedBase}${firstAllowed.pathPrefix}` : `${expectedBase}/login`;
   };
 
+  const normalizedPath = normalizePathname(location.pathname);
   const matched = PATH_PERMISSION_MAP.find(item =>
-    location.pathname.startsWith(item.pathPrefix)
+    normalizedPath.startsWith(item.pathPrefix)
   );
 
   if (matched) {

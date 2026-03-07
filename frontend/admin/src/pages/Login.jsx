@@ -21,10 +21,11 @@ export default function Login(){
       );
 
       localStorage.setItem("token",res.data.token);
-      localStorage.setItem("role", res.data.role || "sub_admin");
+      const role = res.data.role || "sub_admin";
+      localStorage.setItem("role", role);
       localStorage.setItem("permissions", JSON.stringify(res.data.permissions || {}));
 
-      nav("/admin/dashboard");
+      nav(role === "sub_admin" ? "/sub-admin/dashboard" : "/admin/dashboard");
 
     }catch(err){
       alert(err?.response?.data || "Invalid Login");

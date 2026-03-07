@@ -34,58 +34,58 @@ const NAV_GROUPS = [
   {
     title: "Overview",
     items: [
-      { key: "dashboard", to: "/admin/dashboard", icon: MdDashboard, label: "Dashboard" },
-      { key: "dashboard", to: "/admin/download-analytics", icon: MdBarChart, label: "Download Analytics" },
-      { key: "ratings", to: "/admin/ratings", icon: MdBarChart, label: "Ratings" }
+      { key: "dashboard", to: "/dashboard", icon: MdDashboard, label: "Dashboard" },
+      { key: "dashboard", to: "/download-analytics", icon: MdBarChart, label: "Download Analytics" },
+      { key: "ratings", to: "/ratings", icon: MdBarChart, label: "Ratings" }
     ]
   },
   {
     title: "Paper Control",
     items: [
-      { key: "papers", to: "/admin/papers", icon: MdFileUpload, label: "Papers Management" },
-      { key: "universities", to: "/admin/categories", icon: MdCategory, label: "Category Management" }
+      { key: "papers", to: "/papers", icon: MdFileUpload, label: "Papers Management" },
+      { key: "universities", to: "/categories", icon: MdCategory, label: "Category Management" }
     ]
   },
   {
     title: "Signals",
     items: [
-      { key: "websiteSettings", to: "/admin/notices", icon: MdNotificationsActive, label: "Notice & Updates" },
-      { key: "trafficSettings", to: "/admin/search-tracker", icon: MdSearch, label: "Search Tracker" },
-      { key: "pages", to: "/admin/feedback-requests", icon: MdFeedback, label: "Feedback Requests" }
+      { key: "websiteSettings", to: "/notices", icon: MdNotificationsActive, label: "Notice & Updates" },
+      { key: "trafficSettings", to: "/search-tracker", icon: MdSearch, label: "Search Tracker" },
+      { key: "pages", to: "/feedback-requests", icon: MdFeedback, label: "Feedback Requests" }
     ]
   },
   {
     title: "Category Data",
     items: [
-      { key: "universities", to: "/admin/universities", icon: MdSchool, label: "Universities" },
-      { key: "courses", to: "/admin/courses", icon: MdBook, label: "Courses" },
-      { key: "semesters", to: "/admin/semesters", icon: MdDateRange, label: "Semesters" },
-      { key: "courseSections", to: "/admin/course-sections", icon: MdViewList, label: "Course Sections" }
+      { key: "universities", to: "/universities", icon: MdSchool, label: "Universities" },
+      { key: "courses", to: "/courses", icon: MdBook, label: "Courses" },
+      { key: "semesters", to: "/semesters", icon: MdDateRange, label: "Semesters" },
+      { key: "courseSections", to: "/course-sections", icon: MdViewList, label: "Course Sections" }
     ]
   },
   {
     title: "Website Settings",
     items: [
-      { key: "websiteSettings", to: "/admin/settings", icon: MdSettings, label: "Website Settings" },
-      { key: "headerSettings", to: "/admin/header-settings", icon: MdViewAgenda, label: "Header Settings" },
-      { key: "bannerSettings", to: "/admin/banner-settings", icon: MdImage, label: "Banner Settings" },
-      { key: "universitySettings", to: "/admin/university-settings", icon: MdEvent, label: "University Settings" },
-      { key: "courseSettings", to: "/admin/course-settings", icon: MdEvent, label: "Course Settings" },
-      { key: "questionPaperSettings", to: "/admin/question-paper-settings", icon: MdEvent, label: "Question Paper Settings" },
-      { key: "semesterSettings", to: "/admin/semester-settings", icon: MdEvent, label: "Semester Settings" },
-      { key: "footerSettings", to: "/admin/footer-settings", icon: MdInfo, label: "Footer Settings" },
-      { key: "pages", to: "/admin/pages", icon: MdArticle, label: "Pages" },
-      { key: "pages", to: "/admin/about-settings", icon: MdArticle, label: "About Settings" },
-      { key: "pages", to: "/admin/privacy-policy-settings", icon: MdArticle, label: "Privacy Policy Settings" },
-      { key: "cardSettings", to: "/admin/card-settings", icon: MdPalette, label: "Card Settings" },
-      { key: "trafficSettings", to: "/admin/traffic-settings", icon: MdAnalytics, label: "SEO & Traffic" },
-      { key: "adsSettings", to: "/admin/ads-settings", icon: MdCampaign, label: "Google Ads Settings" }
+      { key: "websiteSettings", to: "/settings", icon: MdSettings, label: "Website Settings" },
+      { key: "headerSettings", to: "/header-settings", icon: MdViewAgenda, label: "Header Settings" },
+      { key: "bannerSettings", to: "/banner-settings", icon: MdImage, label: "Banner Settings" },
+      { key: "universitySettings", to: "/university-settings", icon: MdEvent, label: "University Settings" },
+      { key: "courseSettings", to: "/course-settings", icon: MdEvent, label: "Course Settings" },
+      { key: "questionPaperSettings", to: "/question-paper-settings", icon: MdEvent, label: "Question Paper Settings" },
+      { key: "semesterSettings", to: "/semester-settings", icon: MdEvent, label: "Semester Settings" },
+      { key: "footerSettings", to: "/footer-settings", icon: MdInfo, label: "Footer Settings" },
+      { key: "pages", to: "/pages", icon: MdArticle, label: "Pages" },
+      { key: "pages", to: "/about-settings", icon: MdArticle, label: "About Settings" },
+      { key: "pages", to: "/privacy-policy-settings", icon: MdArticle, label: "Privacy Policy Settings" },
+      { key: "cardSettings", to: "/card-settings", icon: MdPalette, label: "Card Settings" },
+      { key: "trafficSettings", to: "/traffic-settings", icon: MdAnalytics, label: "SEO & Traffic" },
+      { key: "adsSettings", to: "/ads-settings", icon: MdCampaign, label: "Google Ads Settings" }
     ]
   },
   {
     title: "Security",
     items: [
-      { key: "accountSettings", to: "/admin/account-settings", icon: MdPerson, label: "Account Settings" }
+      { key: "accountSettings", to: "/account-settings", icon: MdPerson, label: "Account Settings" }
     ]
   }
 ];
@@ -127,6 +127,7 @@ export default function Layout({ children }) {
   const location = useLocation();
   const role = getStoredRole();
   const superAdmin = role === "super_admin";
+  const basePath = role === "sub_admin" ? "/sub-admin" : "/admin";
   const roleLabel = role === "super_admin" ? "Super Admin" : "Sub Admin";
   const [siteName, setSiteName] = useState("Admin Panel");
   const [siteLogo, setSiteLogo] = useState("");
@@ -252,7 +253,7 @@ export default function Layout({ children }) {
       if (showIdleMessage) {
         alert("Session expired due to 30 minutes inactivity. Please login again.");
       }
-      nav("/admin/login");
+      nav(`${basePath}/login`);
     }
   };
 
@@ -345,7 +346,7 @@ export default function Layout({ children }) {
 
       <div className="admin-main-shell">
         <aside className="admin-sidebar">
-          <Link to="/admin/account-settings" className="admin-brand-link">
+          <Link to={`${basePath}/account-settings`} className="admin-brand-link">
             <div className="admin-brand">
               <div className="admin-mark">AP</div>
               <div>
@@ -367,9 +368,9 @@ export default function Layout({ children }) {
                   const Icon = item.icon;
                   return (
                     <NavLink
-                      key={item.to}
+                      key={`${group.title}-${item.to}`}
                       className={({ isActive }) => `admin-link${isActive ? " active" : ""}`}
-                      to={item.to}
+                      to={`${basePath}${item.to}`}
                     >
                       <Icon className="me-2" /> {item.label}
                     </NavLink>
@@ -380,7 +381,7 @@ export default function Layout({ children }) {
           })}
 
           {superAdmin && (
-            <NavLink className={({ isActive }) => `admin-link${isActive ? " active" : ""}`} to="/admin/admin-users">
+            <NavLink className={({ isActive }) => `admin-link${isActive ? " active" : ""}`} to={`${basePath}/admin-users`}>
               <MdPerson className="me-2" /> Sub Admins
             </NavLink>
           )}

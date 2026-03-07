@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
 import { API_BASE } from "../config/api";
+import { getStoredRole } from "../config/permissions";
 
 export default function Dashboard() {
+  const basePath = getStoredRole() === "sub_admin" ? "/sub-admin" : "/admin";
   const [stats, setStats] = useState({});
   const [papers, setPapers] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -362,9 +364,9 @@ export default function Dashboard() {
                 ))
               )}
               <div className="mt-3 d-flex flex-wrap gap-2">
-                <a className="btn btn-sm btn-outline-primary" href="/admin/papers">Open Papers</a>
-                <a className="btn btn-sm btn-outline-primary" href="/admin/feedback-requests">Open Feedback</a>
-                <a className="btn btn-sm btn-outline-primary" href="/admin/notice-updates">Open Notices</a>
+                <a className="btn btn-sm btn-outline-primary" href={`${basePath}/papers`}>Open Papers</a>
+                <a className="btn btn-sm btn-outline-primary" href={`${basePath}/feedback-requests`}>Open Feedback</a>
+                <a className="btn btn-sm btn-outline-primary" href={`${basePath}/notices`}>Open Notices</a>
               </div>
             </div>
           </div>

@@ -1,17 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import { getStoredRole } from "../config/permissions";
 
 const CATEGORY_LINKS = [
-  { title: "Universities / Boards", desc: "Manage University, College, School, Entrance Exam", to: "/admin/universities" },
-  { title: "Courses", desc: "Manage courses like B.Tech, Diploma, 12th, SSC, UPSC", to: "/admin/courses" },
-  { title: "Semesters / Classes", desc: "Manage semester and class level options", to: "/admin/semesters" },
-  { title: "Course Sections", desc: "Manage branch-like sections and card grouping", to: "/admin/course-sections" },
-  { title: "University Types", desc: "Control type labels and action button text", to: "/admin/university-settings" },
-  { title: "Question Paper Labels", desc: "Control paper section labels and buttons", to: "/admin/question-paper-settings" }
+  { title: "Universities / Boards", desc: "Manage University, College, School, Entrance Exam", to: "/universities" },
+  { title: "Courses", desc: "Manage courses like B.Tech, Diploma, 12th, SSC, UPSC", to: "/courses" },
+  { title: "Semesters / Classes", desc: "Manage semester and class level options", to: "/semesters" },
+  { title: "Course Sections", desc: "Manage branch-like sections and card grouping", to: "/course-sections" },
+  { title: "University Types", desc: "Control type labels and action button text", to: "/university-settings" },
+  { title: "Question Paper Labels", desc: "Control paper section labels and buttons", to: "/question-paper-settings" }
 ];
 
 export default function CategoryManagement() {
   const navigate = useNavigate();
+  const basePath = getStoredRole() === "sub_admin" ? "/sub-admin" : "/admin";
 
   return (
     <Layout>
@@ -25,7 +27,7 @@ export default function CategoryManagement() {
               <div className="card-body">
                 <h5 className="card-title">{item.title}</h5>
                 <p className="card-text text-muted">{item.desc}</p>
-                <button className="btn btn-primary btn-sm" onClick={() => navigate(item.to)}>
+                <button className="btn btn-primary btn-sm" onClick={() => navigate(`${basePath}${item.to}`)}>
                   Open
                 </button>
               </div>
