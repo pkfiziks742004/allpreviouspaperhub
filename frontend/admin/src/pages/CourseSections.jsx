@@ -310,8 +310,8 @@ export default function CourseSections() {
     <Layout>
 
       <div className="card p-4 shadow w-100 course-sections-editor" style={{ maxWidth: "1080px" }}>
-        <div className="border rounded p-3 mb-3">
-          <div className="fw-bold mb-2">Universities Section</div>
+        <div className="border rounded p-3 mb-3 course-sections-block">
+          <div className="fw-bold mb-2 course-sections-block-title">Universities Section</div>
           <div className="mb-3">
             <label className="form-label">Section Title</label>
             <input
@@ -352,7 +352,7 @@ export default function CourseSections() {
               onChange={e => setQuestionPapersSectionTitle(e.target.value)}
             />
           </div>
-          <div className="mt-3 d-flex gap-3 align-items-center">
+          <div className="mt-3 d-flex gap-3 align-items-center flex-wrap">
             <div className="form-check">
               <input
                 className="form-check-input"
@@ -365,7 +365,7 @@ export default function CourseSections() {
                 Show button on section cards
               </label>
             </div>
-            <div style={{ minWidth: "260px", flex: 1 }}>
+            <div className="course-sections-button-text-wrap">
               <input
                 className="form-control"
                 placeholder="Button text"
@@ -377,8 +377,8 @@ export default function CourseSections() {
           </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <div className="fw-bold">Manage Sections</div>
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div className="fw-bold course-sections-block-title">Manage Sections</div>
           <button className="btn btn-sm btn-outline-primary" onClick={addSection}>
             Add Section
           </button>
@@ -406,9 +406,9 @@ export default function CourseSections() {
         )}
 
         {selectedSection && (
-          <div className="border rounded p-3 mb-3">
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="fw-bold">Editing Section</div>
+          <div className="border rounded p-3 mb-3 course-sections-block">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div className="fw-bold course-sections-block-title">Editing Section</div>
               <button className="btn btn-sm btn-outline-danger" onClick={() => removeSection(activeSection)}>
                 Remove Section
               </button>
@@ -472,19 +472,19 @@ export default function CourseSections() {
                 Section same type ke page par show hoga.
               </div>
               <div className="mt-2 d-flex gap-2 flex-wrap">
-                <span className="badge text-bg-secondary">
+                <span className="badge text-bg-secondary course-sections-badge">
                   Unassigned Universities: {unassignedByType.university.length}
                 </span>
-                <span className="badge text-bg-secondary">
+                <span className="badge text-bg-secondary course-sections-badge">
                   Unassigned Courses: {unassignedByType.course.length}
                 </span>
-                <span className="badge text-bg-secondary">
+                <span className="badge text-bg-secondary course-sections-badge">
                   Unassigned Semesters: {unassignedByType.semester.length}
                 </span>
               </div>
             </div>
 
-            <div className="mt-3 border rounded p-3">
+            <div className="mt-3 border rounded p-3 course-style-panel">
               <div className="fw-semibold mb-2">Section Title Style</div>
               <div className="row">
                 <div className="col-md-3 mb-2">
@@ -555,7 +555,7 @@ export default function CourseSections() {
               </div>
             </div>
 
-            <div className="mt-3 border rounded p-3">
+            <div className="mt-3 border rounded p-3 course-style-panel">
               <div className="fw-semibold mb-2">Section Description Style</div>
               <div className="row">
                 <div className="col-md-3 mb-2">
@@ -626,7 +626,7 @@ export default function CourseSections() {
               </div>
             </div>
 
-            <div className="mt-3 d-flex gap-3">
+            <div className="mt-3 d-flex gap-3 flex-wrap align-items-center">
               <div className="form-check">
                 <input
                   className="form-check-input"
