@@ -309,7 +309,7 @@ export default function CourseSections() {
   return (
     <Layout>
 
-      <div className="card p-4 shadow" style={{ maxWidth: "900px" }}>
+      <div className="card p-4 shadow w-100 course-sections-editor" style={{ maxWidth: "1080px" }}>
         <div className="border rounded p-3 mb-3">
           <div className="fw-bold mb-2">Universities Section</div>
           <div className="mb-3">
@@ -517,36 +517,39 @@ export default function CourseSections() {
                     <option value="right">right</option>
                   </select>
                 </div>
-                <div className="col-md-3 mb-2 d-flex align-items-end">
-                  <div className="form-check me-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-title-bold-${activeSection}`}
-                      checked={!!selectedSection.titleStyle?.bold}
-                      onChange={e => updateSectionStyle(activeSection, "titleStyle", "bold", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-title-bold-${activeSection}`}>Bold</label>
-                  </div>
-                  <div className="form-check me-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-title-italic-${activeSection}`}
-                      checked={!!selectedSection.titleStyle?.italic}
-                      onChange={e => updateSectionStyle(activeSection, "titleStyle", "italic", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-title-italic-${activeSection}`}>Italic</label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-title-underline-${activeSection}`}
-                      checked={!!selectedSection.titleStyle?.underline}
-                      onChange={e => updateSectionStyle(activeSection, "titleStyle", "underline", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-title-underline-${activeSection}`}>Underline</label>
+                <div className="col-md-12 col-lg-3 mb-2">
+                  <label className="form-label d-block">Styles</label>
+                  <div className="section-style-flags">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-title-bold-${activeSection}`}
+                        checked={!!selectedSection.titleStyle?.bold}
+                        onChange={e => updateSectionStyle(activeSection, "titleStyle", "bold", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-title-bold-${activeSection}`}>Bold</label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-title-italic-${activeSection}`}
+                        checked={!!selectedSection.titleStyle?.italic}
+                        onChange={e => updateSectionStyle(activeSection, "titleStyle", "italic", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-title-italic-${activeSection}`}>Italic</label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-title-underline-${activeSection}`}
+                        checked={!!selectedSection.titleStyle?.underline}
+                        onChange={e => updateSectionStyle(activeSection, "titleStyle", "underline", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-title-underline-${activeSection}`}>Underline</label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -585,36 +588,39 @@ export default function CourseSections() {
                     <option value="right">right</option>
                   </select>
                 </div>
-                <div className="col-md-3 mb-2 d-flex align-items-end">
-                  <div className="form-check me-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-desc-bold-${activeSection}`}
-                      checked={!!selectedSection.descriptionStyle?.bold}
-                      onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "bold", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-desc-bold-${activeSection}`}>Bold</label>
-                  </div>
-                  <div className="form-check me-3">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-desc-italic-${activeSection}`}
-                      checked={!!selectedSection.descriptionStyle?.italic}
-                      onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "italic", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-desc-italic-${activeSection}`}>Italic</label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`sec-desc-underline-${activeSection}`}
-                      checked={!!selectedSection.descriptionStyle?.underline}
-                      onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "underline", e.target.checked)}
-                    />
-                    <label className="form-check-label" htmlFor={`sec-desc-underline-${activeSection}`}>Underline</label>
+                <div className="col-md-12 col-lg-3 mb-2">
+                  <label className="form-label d-block">Styles</label>
+                  <div className="section-style-flags">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-desc-bold-${activeSection}`}
+                        checked={!!selectedSection.descriptionStyle?.bold}
+                        onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "bold", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-desc-bold-${activeSection}`}>Bold</label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-desc-italic-${activeSection}`}
+                        checked={!!selectedSection.descriptionStyle?.italic}
+                        onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "italic", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-desc-italic-${activeSection}`}>Italic</label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id={`sec-desc-underline-${activeSection}`}
+                        checked={!!selectedSection.descriptionStyle?.underline}
+                        onChange={e => updateSectionStyle(activeSection, "descriptionStyle", "underline", e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor={`sec-desc-underline-${activeSection}`}>Underline</label>
+                    </div>
                   </div>
                 </div>
               </div>

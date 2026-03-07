@@ -380,6 +380,19 @@ code {
   box-shadow: 0 0 0 2px rgba(34, 113, 177, 0.2);
 }
 
+.course-sections-editor .section-style-flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  min-height: 38px;
+}
+
+.course-sections-editor .section-style-flags .form-check {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
 .tiptap-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -529,5 +542,9 @@ code {
 
   .admin-page-title {
     font-size: 19px;
+  }
+
+  .course-sections-editor .section-style-flags {
+    gap: 10px;
   }
 }
