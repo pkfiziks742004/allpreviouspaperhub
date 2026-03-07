@@ -4,7 +4,6 @@ import axios from "axios";
 import { API_BASE } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
-import { resolveApiUrl } from "../config/api";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -29,8 +28,16 @@ export default function PaperOpen() {
   const [paperOpenViewer, setPaperOpenViewer] = useState(defaultPaperOpenViewer);
 
   useEffect(() => {
+    const isMobileDevice = () => {
+      const ua = navigator.userAgent || "";
+      const mobileByUA =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(ua) ||
+        (navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua));
+      return mobileByUA;
+    };
+
     const checkDevice = () => {
-      setIsMobileOrTablet(window.innerWidth <= 1024);
+      setIsMobileOrTablet(isMobileDevice());
     };
     checkDevice();
     window.addEventListener("resize", checkDevice);
@@ -136,11 +143,7 @@ export default function PaperOpen() {
     return <div style={{ padding: 20 }}>{paperOpenViewer.loadingText || "Loading PDF..."}</div>;
   }
 
-  const openUrl = paper?.file
-    ? (String(paper.file).startsWith("http://") || String(paper.file).startsWith("https://")
-      ? paper.file
-      : resolveApiUrl(paper.file))
-    : `${API_BASE}/api/papers/open-file/${paper._id}`;
+  const openUrl = `${API_BASE}/api/papers/open-file/${paper._id}`;
   const embeddedPdfUrl = `${openUrl}#toolbar=0&navpanes=0&pagemode=none`;
 
   if (isMobileOrTablet) {
