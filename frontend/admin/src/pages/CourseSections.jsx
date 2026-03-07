@@ -257,6 +257,23 @@ export default function CourseSections() {
 
   const selectedSection = courseSections[activeSection];
   const selectedSectionType = selectedSection?.sectionType || "course";
+  const assignedIdsByType = courseSections.reduce(
+    (acc, section) => {
+      const type = String(section?.sectionType || "course").toLowerCase();
+      if (!acc[type]) return acc;
+      (section?.itemIds || []).forEach(id => {
+        const safeId = String(id || "");
+        if (safeId) acc[type].add(safeId);
+      });
+      return acc;
+    },
+    { university: new Set(), course: new Set(), semester: new Set() }
+  );
+  const unassignedByType = {
+    university: universities.filter(item => !assignedIdsByType.university.has(String(item?._id || ""))),
+    course: courses.filter(item => !assignedIdsByType.course.has(String(item?._id || ""))),
+    semester: semesters.filter(item => !assignedIdsByType.semester.has(String(item?._id || "")))
+  };
   const selectedItems = (() => {
     if (!selectedSection) return [];
     if (selectedSectionType === "university") return universities;
@@ -444,6 +461,17 @@ export default function CourseSections() {
               </select>
               <div className="form-text">
                 Section same type ke page par show hoga.
+              </div>
+              <div className="mt-2 d-flex gap-2 flex-wrap">
+                <span className="badge text-bg-secondary">
+                  Unassigned Universities: {unassignedByType.university.length}
+                </span>
+                <span className="badge text-bg-secondary">
+                  Unassigned Courses: {unassignedByType.course.length}
+                </span>
+                <span className="badge text-bg-secondary">
+                  Unassigned Semesters: {unassignedByType.semester.length}
+                </span>
               </div>
             </div>
 

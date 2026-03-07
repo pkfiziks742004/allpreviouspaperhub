@@ -1,4 +1,4 @@
-import{r,j as e}from"./react-vendor-Dp7HqDum.js";import{a6 as v}from"./vendor-D2pK3sWr.js";import{u as ye,E as Se,i as Ce,a as Ae}from"./tiptap-LT38fwcY.js";import{L as we}from"./Layout-DCf9E1Ea.js";import{r as ie,A as j}from"./index-BIIAZBKj.js";import"./router-BXkvJqkZ.js";const me=`
+import{r,j as e}from"./react-vendor-Dp7HqDum.js";import{a6 as v}from"./vendor-D2pK3sWr.js";import{u as ye,E as Se,i as Ce,a as Ae}from"./tiptap-LT38fwcY.js";import{L as we}from"./Layout-CBsBBaDa.js";import{r as ie,A as j}from"./index-BrgfXmJH.js";import"./router-BXkvJqkZ.js";const me=`
   <h2>Yeh Website Kya Karti Hai?</h2>
   <p>
     Study Portal students ko previous year papers, notes, syllabus aur exam prep resources

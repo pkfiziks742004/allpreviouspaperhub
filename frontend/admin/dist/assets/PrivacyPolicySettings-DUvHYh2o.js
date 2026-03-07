@@ -1,4 +1,4 @@
-import{r as s,j as e}from"./react-vendor-Dp7HqDum.js";import{a6 as v}from"./vendor-D2pK3sWr.js";import{u as J,E as Q,i as X,a as Z}from"./tiptap-LT38fwcY.js";import{L as ee}from"./Layout-DCf9E1Ea.js";import{r as W,A as j}from"./index-BIIAZBKj.js";import"./router-BXkvJqkZ.js";const S=`
+import{r as s,j as e}from"./react-vendor-Dp7HqDum.js";import{a6 as v}from"./vendor-D2pK3sWr.js";import{u as J,E as Q,i as X,a as Z}from"./tiptap-LT38fwcY.js";import{L as ee}from"./Layout-CBsBBaDa.js";import{r as W,A as j}from"./index-BrgfXmJH.js";import"./router-BXkvJqkZ.js";const S=`
   <h2>Privacy Policy</h2>
   <p>
     All Previous Paper Hub par aapki privacy important hai. Hum basic usage data sirf service improve karne ke liye use karte hain.
