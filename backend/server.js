@@ -147,8 +147,24 @@ const loginRateLimit = createRateLimiter({
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use((req, res, next) => {
+  const isEmbeddablePdfOpenRoute = /^\/api\/papers\/open-file\/[^/]+$/.test(req.path || "");
+  const allowedFrameAncestors = [
+    "'self'",
+    "https://www.allpreviouspaperhub.in",
+    "https://allpreviouspaperhub.in"
+  ];
+  if (process.env.NODE_ENV !== "production") {
+    allowedFrameAncestors.push("http://localhost:3001");
+    allowedFrameAncestors.push("http://127.0.0.1:3001");
+  }
+
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  if (!isEmbeddablePdfOpenRoute) {
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  } else {
+    // Allow trusted website origin to embed PDF viewer response in iframe.
+    res.setHeader("Content-Security-Policy", `frame-ancestors ${allowedFrameAncestors.join(" ")}`);
+  }
   res.setHeader("Referrer-Policy", "no-referrer");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.setHeader("Cross-Origin-Resource-Policy", "same-site");
