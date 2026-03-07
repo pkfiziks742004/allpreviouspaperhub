@@ -24,6 +24,8 @@ export default function PaperOpen() {
   const [paper, setPaper] = useState(null);
   const [error, setError] = useState("");
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState("");
+  const [viewerLoading, setViewerLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [paperOpenViewer, setPaperOpenViewer] = useState(defaultPaperOpenViewer);
 
@@ -100,6 +102,42 @@ export default function PaperOpen() {
     loadPaper();
   }, [courseSlug, paperSlug, semesterSlug, universitySlug]);
 
+  useEffect(() => {
+    if (!paper?._id || isMobileOrTablet) {
+      setPdfBlobUrl("");
+      setViewerLoading(false);
+      return undefined;
+    }
+
+    let active = true;
+    let objectUrl = "";
+
+    const loadViewerBlob = async () => {
+      try {
+        setViewerLoading(true);
+        const res = await axios.get(`${API_BASE}/api/papers/open-file/${paper._id}`, {
+          responseType: "arraybuffer",
+          timeout: 20000
+        });
+        if (!active) return;
+        const blob = new Blob([res.data], { type: "application/pdf" });
+        objectUrl = URL.createObjectURL(blob);
+        setPdfBlobUrl(objectUrl);
+      } catch (e) {
+        if (active) setPdfBlobUrl("");
+      } finally {
+        if (active) setViewerLoading(false);
+      }
+    };
+
+    loadViewerBlob();
+
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [isMobileOrTablet, paper?._id]);
+
   const openWebsite = () => {
     window.open("/", "_blank", "noopener,noreferrer");
   };
@@ -144,7 +182,9 @@ export default function PaperOpen() {
   }
 
   const openUrl = `${API_BASE}/api/papers/open-file/${paper._id}`;
-  const embeddedPdfUrl = `${openUrl}#toolbar=0&navpanes=0&pagemode=none`;
+  const embeddedPdfUrl = pdfBlobUrl
+    ? `${pdfBlobUrl}#toolbar=0&navpanes=0&pagemode=none`
+    : "";
 
   if (isMobileOrTablet) {
     return (
@@ -194,9 +234,23 @@ export default function PaperOpen() {
       </div>
 
       <div style={{ position: "relative", height: "calc(100vh - 64px)", overflow: "hidden" }}>
+        {!embeddedPdfUrl && (
+          <div style={{ padding: 20, color: paperOpenViewer.textColor }}>
+            {viewerLoading
+              ? (paperOpenViewer.loadingText || "Loading PDF...")
+              : (
+                <>
+                  PDF viewer blocked on this browser/network.{" "}
+                  <a href={openUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#facc15" }}>
+                    Open PDF in new tab
+                  </a>
+                </>
+              )}
+          </div>
+        )}
         <iframe
           title={paper.title}
-          src={embeddedPdfUrl}
+          src={embeddedPdfUrl || "about:blank"}
           style={{
             width: "100%",
             height: "calc(100% + 56px)",
