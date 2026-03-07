@@ -6,6 +6,18 @@ const crypto = require("crypto");
 const { verifyAdmin, verifySuperAdmin, verifyPermission } = require("../middleware/auth");
 const { buildPermissions, ADMIN_PERMISSIONS } = require("../constants/adminPermissions");
 const normalizeEmail = value => String(value || "").trim().toLowerCase();
+const normalizeName = value => String(value || "").trim().replace(/\s+/g, " ");
+const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+const isStrongPassword = password => {
+  const text = String(password || "");
+  return (
+    text.length >= 8 &&
+    /[A-Z]/.test(text) &&
+    /[a-z]/.test(text) &&
+    /[0-9]/.test(text) &&
+    /[^A-Za-z0-9]/.test(text)
+  );
+};
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const sanitizeSubAdminPermissions = source => {
   const safePermissions = buildPermissions(false);
@@ -22,9 +34,16 @@ router.post("/register", async (req, res) => {
   try {
 
     const { name, email, password } = req.body;
+    const normalizedName = normalizeName(name);
     const normalizedEmail = normalizeEmail(email);
-    if (!password || String(password).length < 8) {
-      return res.status(400).json("Password must be at least 8 characters");
+    if (!normalizedName || normalizedName.length < 2) {
+      return res.status(400).json("Name must be at least 2 characters");
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json("Enter a valid email");
+    }
+    if (!isStrongPassword(password)) {
+      return res.status(400).json("Password must be 8+ chars with upper, lower, number and special character");
     }
 
     const totalUsers = await User.countDocuments();
@@ -38,7 +57,7 @@ router.post("/register", async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     const user = new User({
-      name,
+      name: normalizedName,
       email: normalizedEmail,
       password: hash,
       role: "super_admin",
@@ -157,6 +176,7 @@ router.put("/change-credentials", verifyAdmin, verifyPermission("accountSettings
   try {
     const { currentPassword, newEmail, newPassword, name } = req.body;
     const normalizedNewEmail = normalizeEmail(newEmail);
+    const normalizedName = normalizeName(name);
 
     if (!currentPassword) {
       return res.status(400).json("Current password required");
@@ -168,6 +188,9 @@ router.put("/change-credentials", verifyAdmin, verifyPermission("accountSettings
     const match = await bcrypt.compare(currentPassword, user.password);
     if (!match) return res.status(400).json("Wrong current password");
 
+    if (newEmail && !isValidEmail(normalizedNewEmail)) {
+      return res.status(400).json("Enter a valid email");
+    }
     if (newEmail && normalizedNewEmail !== user.email) {
       const exist = await User.findOne({ email: normalizedNewEmail });
       if (exist) return res.status(400).json("Email already in use");
@@ -175,8 +198,8 @@ router.put("/change-credentials", verifyAdmin, verifyPermission("accountSettings
     }
 
     if (newPassword) {
-      if (String(newPassword).length < 8) {
-        return res.status(400).json("New password must be at least 8 characters");
+      if (!isStrongPassword(newPassword)) {
+        return res.status(400).json("New password must be 8+ chars with upper, lower, number and special character");
       }
       const hash = await bcrypt.hash(newPassword, 10);
       user.password = hash;
@@ -187,7 +210,12 @@ router.put("/change-credentials", verifyAdmin, verifyPermission("accountSettings
       }
     }
 
-    if (name) user.name = name;
+    if (name !== undefined) {
+      if (!normalizedName || normalizedName.length < 2) {
+        return res.status(400).json("Name must be at least 2 characters");
+      }
+      user.name = normalizedName;
+    }
 
     await user.save();
 
@@ -237,9 +265,14 @@ router.get("/admins", verifyAdmin, verifySuperAdmin, async (req, res) => {
 router.post("/admins", verifyAdmin, verifySuperAdmin, async (req, res) => {
   try {
     const { name, email, password, permissions, gender } = req.body;
+    const normalizedName = normalizeName(name);
     const normalizedEmail = normalizeEmail(email);
-    if (!name || !email || !password) return res.status(400).json("Name, email, password required");
-    if (String(password).length < 8) return res.status(400).json("Password must be at least 8 characters");
+    if (!normalizedName || !normalizedEmail || !password) return res.status(400).json("Name, email, password required");
+    if (normalizedName.length < 2) return res.status(400).json("Name must be at least 2 characters");
+    if (!isValidEmail(normalizedEmail)) return res.status(400).json("Enter a valid email");
+    if (!isStrongPassword(password)) {
+      return res.status(400).json("Password must be 8+ chars with upper, lower, number and special character");
+    }
 
     const count = await User.countDocuments({ role: "sub_admin" });
     if (count >= 3) return res.status(400).json("Only 3 sub admins allowed");
@@ -251,7 +284,7 @@ router.post("/admins", verifyAdmin, verifySuperAdmin, async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
     const subAdmin = await User.create({
-      name,
+      name: normalizedName,
       email: normalizedEmail,
       password: hash,
       role: "sub_admin",
@@ -289,12 +322,21 @@ router.put("/admins/:id", verifyAdmin, verifySuperAdmin, async (req, res) => {
     if (!target || target.role !== "sub_admin") return res.status(404).json("Sub admin not found");
 
     const { name, email, password, permissions, isActive, gender } = req.body;
+    const normalizedName = normalizeName(name);
     const normalizedEmail = normalizeEmail(email);
 
-    if (name !== undefined) target.name = name;
+    if (name !== undefined) {
+      if (!normalizedName || normalizedName.length < 2) {
+        return res.status(400).json("Name must be at least 2 characters");
+      }
+      target.name = normalizedName;
+    }
     if (gender !== undefined) {
       const normalizedGender = String(gender || "").toLowerCase();
       target.gender = ["male", "female"].includes(normalizedGender) ? normalizedGender : "";
+    }
+    if (email !== undefined) {
+      if (!isValidEmail(normalizedEmail)) return res.status(400).json("Enter a valid email");
     }
     if (email !== undefined && normalizedEmail !== target.email) {
       const exists = await User.findOne({ email: normalizedEmail, _id: { $ne: target._id } });
@@ -303,7 +345,9 @@ router.put("/admins/:id", verifyAdmin, verifySuperAdmin, async (req, res) => {
     }
 
     if (password) {
-      if (String(password).length < 8) return res.status(400).json("Password must be at least 8 characters");
+      if (!isStrongPassword(password)) {
+        return res.status(400).json("Password must be 8+ chars with upper, lower, number and special character");
+      }
       target.password = await bcrypt.hash(password, 10);
       target.currentSessionId = "";
       target.currentSessionExpiresAt = null;
