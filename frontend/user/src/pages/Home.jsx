@@ -101,6 +101,7 @@ export default function Home() {
   const queryParams = new URLSearchParams(location.search || "");
   const searchQuery = String(queryParams.get("q") || "").trim().toLowerCase();
   const searchType = String(queryParams.get("type") || "all").trim().toLowerCase();
+  const isSearchMode = Boolean(searchQuery) || searchType !== "all";
 
   const normalizeType = value => {
     const t = String(value || "").toLowerCase();
@@ -130,9 +131,9 @@ export default function Home() {
       .flatMap(section => (section.itemIds || section.courseIds || []).map(id => String(id || "")))
       .filter(Boolean)
   );
-  const visibleUniversities = filteredUniversities.filter(
-    uni => !assignedUniversityIds.has(String(uni._id || ""))
-  );
+  const visibleUniversities = isSearchMode
+    ? filteredUniversities
+    : filteredUniversities.filter(uni => !assignedUniversityIds.has(String(uni._id || "")));
 
   const resolveUrl = url => {
     return resolveApiUrl(url);
@@ -277,7 +278,7 @@ export default function Home() {
 
         </div>
 
-        {courseSections.map((section, idx) => {
+        {!isSearchMode && courseSections.map((section, idx) => {
           const sectionType = String(section?.sectionType || "").toLowerCase() || "course";
           if (sectionType !== "university") return null;
 
