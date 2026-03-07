@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { buildPermissions } = require("../constants/adminPermissions");
+const SUB_ADMIN_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 
 const normalizeRole = role => (role === "admin" ? "super_admin" : role);
 const sanitizeSubAdminPermissions = permissions => ({
@@ -41,6 +42,10 @@ exports.verifyAdmin = async (req,res,next)=>{
         await user.save();
         return res.status(403).json("Session expired. Please login again.");
       }
+
+      // Sliding idle timeout: each valid activity extends session by 30 minutes.
+      user.currentSessionExpiresAt = new Date(Date.now() + SUB_ADMIN_IDLE_TIMEOUT_MS);
+      await user.save();
     }
 
     req.user = {

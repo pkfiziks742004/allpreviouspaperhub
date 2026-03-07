@@ -28,6 +28,8 @@ import { hasPermission, getStoredRole } from "../config/permissions";
 import axios from "axios";
 import { API_BASE, resolveApiUrl } from "../config/api";
 
+const SUB_ADMIN_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+
 const NAV_GROUPS = [
   {
     title: "Overview",
@@ -141,6 +143,8 @@ export default function Layout({ children }) {
   const [showAdminInfo, setShowAdminInfo] = useState(false);
   const profileRef = useRef(null);
   const closeLogoutSentRef = useRef(false);
+  const idleTimerRef = useRef(null);
+  const idleLogoutInProgressRef = useRef(false);
   const topbarTitle = siteName || "Admin Panel";
   const authHeaders = useMemo(() => {
     const token = localStorage.getItem("token");
@@ -225,7 +229,10 @@ export default function Layout({ children }) {
     return () => window.removeEventListener("pagehide", onPageHide);
   }, [role]);
 
-  const logout = async () => {
+  const performLogout = async (showIdleMessage = false) => {
+    if (idleLogoutInProgressRef.current) return;
+    idleLogoutInProgressRef.current = true;
+
     closeLogoutSentRef.current = true;
     const token = localStorage.getItem("token");
     try {
@@ -242,9 +249,46 @@ export default function Layout({ children }) {
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("permissions");
+      if (showIdleMessage) {
+        alert("Session expired due to 30 minutes inactivity. Please login again.");
+      }
       nav("/admin/login");
     }
   };
+
+  const logout = () => performLogout(false);
+
+  useEffect(() => {
+    if (role !== "sub_admin") return;
+
+    const clearIdleTimer = () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+    };
+
+    const scheduleIdleTimer = () => {
+      clearIdleTimer();
+      idleTimerRef.current = setTimeout(() => {
+        performLogout(true);
+      }, SUB_ADMIN_IDLE_TIMEOUT_MS);
+    };
+
+    const onActivity = () => {
+      if (idleLogoutInProgressRef.current) return;
+      scheduleIdleTimer();
+    };
+
+    const events = ["mousemove", "mousedown", "keydown", "touchstart", "scroll", "click"];
+    events.forEach(eventName => window.addEventListener(eventName, onActivity, { passive: true }));
+
+    scheduleIdleTimer();
+    return () => {
+      clearIdleTimer();
+      events.forEach(eventName => window.removeEventListener(eventName, onActivity));
+    };
+  }, [role]);
 
   const pageTitle = getPageTitle(location.pathname);
   const nameStyle = {

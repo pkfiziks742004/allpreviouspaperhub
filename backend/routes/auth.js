@@ -18,7 +18,7 @@ const isStrongPassword = password => {
     /[^A-Za-z0-9]/.test(text)
   );
 };
-const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const SUB_ADMIN_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 const sanitizeSubAdminPermissions = source => {
   const safePermissions = buildPermissions(false);
   ADMIN_PERMISSIONS.forEach(key => {
@@ -104,7 +104,7 @@ router.post("/login", async (req, res) => {
 
       sid = crypto.randomBytes(24).toString("hex");
       user.currentSessionId = sid;
-      user.currentSessionExpiresAt = new Date(Date.now() + SESSION_MAX_AGE_MS);
+      user.currentSessionExpiresAt = new Date(Date.now() + SUB_ADMIN_IDLE_TIMEOUT_MS);
       await user.save();
     }
 
