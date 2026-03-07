@@ -33,8 +33,15 @@ router.get("/", async (req, res) => {
 // Add rating
 router.post("/", async (req, res) => {
   try {
+    const value = Number(req.body?.rating);
+    if (!Number.isFinite(value)) return res.status(400).json("Rating is required");
+    const ratingValue = Math.round(value);
+    if (ratingValue < 1 || ratingValue > 5) {
+      return res.status(400).json("Rating must be between 1 and 5");
+    }
+
     const rating = new Rating({
-      rating: req.body.rating
+      rating: ratingValue
     });
 
     await rating.save();

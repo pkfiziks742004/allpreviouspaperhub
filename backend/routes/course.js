@@ -5,6 +5,15 @@ const Paper = require("../models/Paper");
 const { verifyAdmin, verifyPermission } = require("../middleware/auth");
 const { removeUploadByFileName } = require("../utils/uploadFile");
 
+const findDuplicateCourse = async ({ name, universityId, excludeId = "" }) => {
+  const scoped = await Course.find({ universityId: universityId || null });
+  return scoped.find(item => {
+    const sameName = String(item.name || "").trim().toLowerCase() === String(name || "").trim().toLowerCase();
+    const sameRow = String(item._id || "") === String(excludeId || "");
+    return sameName && !sameRow;
+  });
+};
+
 // ADD COURSE (ADMIN)
 router.post("/", verifyAdmin, verifyPermission("courses"), async (req,res)=>{
   try {
@@ -15,12 +24,7 @@ router.post("/", verifyAdmin, verifyPermission("courses"), async (req,res)=>{
 
     if (!safeName) return res.status(400).json("Course name is required");
 
-    const allCourses = await Course.find({});
-    const duplicate = allCourses.find(item => {
-      const sameName = String(item.name || "").trim().toLowerCase() === safeName.toLowerCase();
-      const sameUniversity = String(item.universityId || "") === String(safeUniversityId || "");
-      return sameName && sameUniversity;
-    });
+    const duplicate = await findDuplicateCourse({ name: safeName, universityId: safeUniversityId });
     if (duplicate) {
       return res.status(400).json("Course name already exists for selected university/board");
     }
@@ -70,12 +74,10 @@ router.put("/:id", verifyAdmin, verifyPermission("courses"), async (req,res)=>{
 
     if (!safeName) return res.status(400).json("Course name is required");
 
-    const allCourses = await Course.find({});
-    const duplicate = allCourses.find(item => {
-      const sameName = String(item.name || "").trim().toLowerCase() === safeName.toLowerCase();
-      const sameUniversity = String(item.universityId || "") === String(safeUniversityId || "");
-      const isSameRow = String(item._id || "") === String(req.params.id || "");
-      return sameName && sameUniversity && !isSameRow;
+    const duplicate = await findDuplicateCourse({
+      name: safeName,
+      universityId: safeUniversityId,
+      excludeId: req.params.id
     });
     if (duplicate) {
       return res.status(400).json("Course name already exists for selected university/board");

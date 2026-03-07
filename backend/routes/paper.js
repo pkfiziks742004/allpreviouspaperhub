@@ -93,13 +93,42 @@ const canProxyRemoteUrl = rawUrl => {
 };
 
 const collator = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+const REFERENCE_CACHE_TTL_MS = Number(process.env.REFERENCE_CACHE_TTL_MS || 30 * 1000);
+let referenceCache = {
+  at: 0,
+  semesters: [],
+  courses: [],
+  universities: []
+};
 
-const enrichPapers = async papers => {
+const getReferenceData = async () => {
+  const now = Date.now();
+  if (
+    referenceCache.at &&
+    now - referenceCache.at < REFERENCE_CACHE_TTL_MS &&
+    referenceCache.semesters.length &&
+    referenceCache.courses.length
+  ) {
+    return referenceCache;
+  }
+
   const [semesters, courses, universities] = await Promise.all([
     Semester.find({}),
     Course.find({}),
     University.find({})
   ]);
+
+  referenceCache = {
+    at: now,
+    semesters,
+    courses,
+    universities
+  };
+  return referenceCache;
+};
+
+const enrichPapers = async papers => {
+  const { semesters, courses, universities } = await getReferenceData();
 
   const semesterMap = new Map(semesters.map(item => [String(item._id), item]));
   const courseMap = new Map(courses.map(item => [String(item._id), item]));

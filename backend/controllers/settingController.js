@@ -452,12 +452,24 @@ const sanitizeCourseSections = value => {
   });
 };
 
+const SETTINGS_CACHE_TTL_MS = Number(process.env.SETTINGS_CACHE_TTL_MS || 15 * 1000);
+let settingsCache = { at: 0, value: null };
+const invalidateSettingsCache = () => {
+  settingsCache = { at: 0, value: null };
+};
+
 const getSettings = async (req, res) => {
   try {
+    const now = Date.now();
+    if (settingsCache.at && settingsCache.value && now - settingsCache.at < SETTINGS_CACHE_TTL_MS) {
+      return res.json(settingsCache.value);
+    }
+
     let settings = await Setting.findOne();
     if (!settings) {
       settings = await Setting.create(defaults);
     }
+    settingsCache = { at: now, value: settings };
     res.json(settings);
   } catch (err) {
     res.status(500).json(err.message);
@@ -818,6 +830,7 @@ const updateSettings = async (req, res) => {
       await Promise.all([...new Set(removedFiles)].map(removeUploadByUrl));
     }
 
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -843,6 +856,7 @@ const uploadLogo = async (req, res) => {
       await settings.save();
       await removeUploadByUrl(oldLogo);
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -923,6 +937,7 @@ const uploadBanners = async (req, res) => {
         await settings.save();
       }
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -948,6 +963,7 @@ const uploadFooterLogo = async (req, res) => {
       await settings.save();
       await removeUploadByUrl(oldFooterLogo);
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -973,6 +989,7 @@ const uploadFooterBg = async (req, res) => {
       await settings.save();
       await removeUploadByUrl(oldFooterBg);
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -1002,6 +1019,7 @@ const uploadFooterIcons = async (req, res) => {
       settings.footerSocialIcons = [...(settings.footerSocialIcons || []), ...newIcons];
       await settings.save();
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -1027,6 +1045,7 @@ const uploadFavicon = async (req, res) => {
       await settings.save();
       await removeUploadByUrl(oldFavicon);
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {
@@ -1052,6 +1071,7 @@ const uploadOgImage = async (req, res) => {
       await settings.save();
       await removeUploadByUrl(oldOg);
     }
+    invalidateSettingsCache();
     emitSettingsChanged();
     res.json(settings);
   } catch (err) {

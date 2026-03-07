@@ -52,9 +52,8 @@ const SETTINGS_PERMISSIONS = [
 
 // Public: get settings
 router.get("/", (req, res, next) => {
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
+  res.setHeader("Cache-Control", "public, max-age=15, s-maxage=30, stale-while-revalidate=60");
+  res.setHeader("Vary", "Origin");
   return getSettings(req, res, next);
 });
 
