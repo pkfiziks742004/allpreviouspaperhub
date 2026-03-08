@@ -201,6 +201,10 @@ app.use("/api/universities", require("./routes/university"));
 app.use("/api/pages", require("./routes/page"));
 
 // Health check (useful for Cloud Run / uptime monitors)
+app.get("/", (req, res) => {
+  res.status(200).json({ ok: true, service: "backend", hint: "Use /health for uptime checks" });
+});
+
 app.get("/health", (req, res) => {
   res.status(200).json({ ok: true, service: "backend" });
 });
