@@ -259,6 +259,15 @@ export default function Home() {
     <div className={className} style={{ minHeight: "96px" }} />
   );
 
+  const getHomeCardTitleClass = name => {
+    const text = String(name || "").trim();
+    const length = text.length;
+    if (length >= 28) return "home-card-title home-card-title--xs";
+    if (length >= 22) return "home-card-title home-card-title--sm";
+    if (length >= 16) return "home-card-title home-card-title--md";
+    return "home-card-title home-card-title--lg";
+  };
+
   return (
     <div className="page-shell">
       {deferredUiReady && <RatingPopup />}
@@ -333,7 +342,7 @@ export default function Home() {
                       )}
                     </div>
                     <div className="home-card-content">
-                      {renderName(u.name, universityNameStyle, "h5", "home-card-title")}
+                      {renderName(u.name, universityNameStyle, "h5", getHomeCardTitleClass(u.name))}
                       <div className="card-subtitle home-card-subtitle" style={buildTextStyle("university")}>{u.type || "University"}</div>
                     </div>
                     {u.comingSoon && (
@@ -438,7 +447,7 @@ export default function Home() {
                             )}
                           </div>
                           <div className="home-card-content">
-                            {renderName(u.name, universityNameStyle, "h5", "home-card-title")}
+                            {renderName(u.name, universityNameStyle, "h5", getHomeCardTitleClass(u.name))}
                             <div className="card-subtitle home-card-subtitle" style={buildTextStyle("section")}>{u.type || "University"}</div>
                           </div>
                           {u.comingSoon && (

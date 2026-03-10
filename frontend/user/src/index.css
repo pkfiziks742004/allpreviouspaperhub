@@ -896,7 +896,9 @@ img {
 }
 
 .home-card {
+  width: 100%;
   min-height: clamp(330px, 25vw, 390px);
+  aspect-ratio: 0.82 / 1;
   border-radius: 22px;
   border: 1px solid rgba(226, 232, 240, 0.9);
   background:
@@ -918,13 +920,13 @@ img {
 }
 
 .home-card-logo-slot {
-  width: clamp(90px, 64%, 132px);
-  min-height: clamp(84px, 7vw, 104px);
-  padding: 10px;
+  width: clamp(96px, 62%, 138px);
+  min-height: clamp(88px, 7vw, 108px);
+  padding: clamp(10px, 1vw, 12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
+  border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
   border: 1px solid rgba(226, 232, 240, 0.95);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
@@ -941,19 +943,33 @@ img {
 }
 
 .home-card-title {
-  width: min(100%, 12ch);
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   color: #0f172a;
-  font-size: clamp(1.12rem, 1.42vw, 1.6rem) !important;
-  line-height: 1.14;
+  line-height: 1.08;
   letter-spacing: -0.02em;
   font-weight: 800 !important;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+}
+
+.home-card-title--lg {
+  font-size: clamp(1.28rem, 1.5vw, 1.6rem) !important;
+}
+
+.home-card-title--md {
+  font-size: clamp(1.12rem, 1.25vw, 1.4rem) !important;
+}
+
+.home-card-title--sm {
+  font-size: clamp(0.98rem, 1.05vw, 1.18rem) !important;
+}
+
+.home-card-title--xs {
+  font-size: clamp(0.84rem, 0.9vw, 1rem) !important;
 }
 
 .home-card-subtitle {
@@ -963,16 +979,24 @@ img {
   line-height: 1.15;
   color: #526072;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-card-badge {
   margin-top: auto !important;
+  min-width: min(100%, 136px);
+  max-width: 100%;
   min-height: 34px;
   padding: 0.46rem 0.88rem;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   align-self: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2);
 }
 
@@ -983,6 +1007,7 @@ img {
 
   .home-card {
     min-height: 300px;
+    aspect-ratio: auto;
   }
 
   .home-card-body {
@@ -991,9 +1016,13 @@ img {
   }
 
   .home-card-title {
-    font-size: 1.08rem !important;
-    -webkit-line-clamp: 4;
+    line-height: 1.08;
   }
+
+  .home-card-title--lg { font-size: 1.08rem !important; }
+  .home-card-title--md { font-size: 1rem !important; }
+  .home-card-title--sm { font-size: 0.92rem !important; }
+  .home-card-title--xs { font-size: 0.84rem !important; }
 
   .home-card-subtitle {
     font-size: 0.88rem !important;
@@ -1085,6 +1114,7 @@ img {
 
   .home-card {
     min-height: 248px;
+    aspect-ratio: auto;
   }
 
   .home-card-body {
@@ -1093,20 +1123,27 @@ img {
   }
 
   .home-card-logo-slot {
-    min-height: 56px;
+    width: 100%;
+    max-width: 92px;
+    min-height: 72px;
   }
 
   .home-card-title {
-    font-size: 0.98rem !important;
     line-height: 1.16;
-    -webkit-line-clamp: 3;
   }
+
+  .home-card-title--lg { font-size: 0.98rem !important; }
+  .home-card-title--md { font-size: 0.9rem !important; }
+  .home-card-title--sm { font-size: 0.82rem !important; }
+  .home-card-title--xs { font-size: 0.74rem !important; }
 
   .home-card-subtitle {
     font-size: 0.76rem !important;
   }
 
   .home-card-badge {
+    width: 100%;
+    min-width: 0;
     min-height: 28px;
     font-size: 0.72rem;
     padding: 0.35rem 0.68rem;
@@ -1270,10 +1307,7 @@ img {
 
   .home-card {
     min-height: 310px;
-  }
-
-  .home-card-title {
-    font-size: 1.08rem !important;
+    aspect-ratio: auto;
   }
 
   .modern-card .card-title {
@@ -1303,10 +1337,7 @@ img {
 
   .home-card {
     min-height: 252px;
-  }
-
-  .home-card-title {
-    font-size: 1rem !important;
+    aspect-ratio: auto;
   }
 
   .modern-card .card-title {
@@ -1325,8 +1356,8 @@ img {
 }
 
 .card-logo {
-  height: clamp(58px, 5vw, 74px);
-  width: clamp(58px, 5vw, 74px);
+  height: clamp(58px, 4.6vw, 76px);
+  width: clamp(58px, 4.6vw, 76px);
   object-fit: contain;
   margin: 0 auto;
   display: block;
@@ -1335,8 +1366,8 @@ img {
 }
 
 .card-logo-fallback {
-  width: clamp(58px, 5vw, 74px);
-  height: clamp(58px, 5vw, 74px);
+  width: clamp(58px, 4.6vw, 76px);
+  height: clamp(58px, 4.6vw, 76px);
   border-radius: clamp(16px, 1.8vw, 22px);
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.04));
   display: grid;
