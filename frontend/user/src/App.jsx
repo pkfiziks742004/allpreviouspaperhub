@@ -70,15 +70,18 @@ function App() {
 
   useEffect(() => {
     const loadDeferredStyles = () => {
-      import("./deferred.css").catch(() => {});
+      Promise.all([
+        import("bootstrap/dist/css/bootstrap.min.css"),
+        import("./deferred.css")
+      ]).catch(() => {});
     };
 
     if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(loadDeferredStyles, { timeout: 2000 });
+      const id = window.requestIdleCallback(loadDeferredStyles, { timeout: 1200 });
       return () => window.cancelIdleCallback?.(id);
     }
 
-    const timer = window.setTimeout(loadDeferredStyles, 1200);
+    const timer = window.setTimeout(loadDeferredStyles, 250);
     return () => window.clearTimeout(timer);
   }, []);
 

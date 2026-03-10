@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Carousel } from "react-bootstrap";
 import { resolveImageUrl } from "../config/api";
 import { getSettings } from "../utils/siteData";
 
@@ -116,14 +115,15 @@ export default function Banner() {
   const [bannerRadius, setBannerRadius] = useState(0);
   const [isMobileView, setIsMobileView] = useState(false);
   const [badgeScaleMap, setBadgeScaleMap] = useState({});
+  const [activeIndex, setActiveIndex] = useState(0);
   const bannerImageRefs = useRef({});
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
 
   const resolveBannerUrl = url =>
     resolveImageUrl(url, {
-      width: isMobileView ? 840 : 1280,
+      width: isMobileView ? 680 : 1280,
       fit: "limit",
-      quality: "auto:eco"
+      quality: isMobileView ? "auto:low" : "auto:eco"
     });
   const resolveBadgeUrl = url =>
     resolveImageUrl(url, { width: 96, height: 96, fit: "limit" });
@@ -224,6 +224,16 @@ export default function Banner() {
     window.addEventListener("resize", updateScaleMap);
     return () => window.removeEventListener("resize", updateScaleMap);
   }, [items]);
+
+  useEffect(() => {
+    if (items.length <= 1) return undefined;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex(prev => (prev + 1) % items.length);
+    }, isMobileView ? 4200 : 3600);
+
+    return () => window.clearInterval(timer);
+  }, [items.length, isMobileView]);
 
   if (!ready || items.length === 0) return null;
 
@@ -380,15 +390,40 @@ export default function Banner() {
   return (
     <div className="banner-shell" style={bannerShellStyle}>
       <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
-        <Carousel interval={3000} pause={false} indicators={false} controls={items.length > 1}>
-          {items.map((item, i) => (
-            <Carousel.Item key={`${item.imageUrl}-${i}`}>
-              <div className="banner-item">
-                {renderBannerItem(item, i)}
+        <div className="banner-carousel">
+          <div
+            className="banner-track"
+            style={{ transform: `translate3d(-${activeIndex * 100}%, 0, 0)` }}
+          >
+            {items.map((item, i) => (
+              <div className="banner-slide" key={`${item.imageUrl}-${i}`} aria-hidden={i !== activeIndex}>
+                <div className="banner-item">
+                  {renderBannerItem(item, i)}
+                </div>
               </div>
-            </Carousel.Item>
-          ))}
-        </Carousel>
+            ))}
+          </div>
+          {items.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="banner-nav banner-nav--prev"
+                aria-label="Previous banner"
+                onClick={() => setActiveIndex(prev => (prev - 1 + items.length) % items.length)}
+              >
+                &#8249;
+              </button>
+              <button
+                type="button"
+                className="banner-nav banner-nav--next"
+                aria-label="Next banner"
+                onClick={() => setActiveIndex(prev => (prev + 1) % items.length)}
+              >
+                &#8250;
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
