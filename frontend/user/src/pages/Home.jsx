@@ -18,6 +18,9 @@ export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 767 : false
+  );
   const [universities, setUniversities] = useState([]);
   const [homeTitle, setHomeTitle] = useState("");
   const [homeSubtitle, setHomeSubtitle] = useState("");
@@ -32,6 +35,7 @@ export default function Home() {
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [notices, setNotices] = useState([]);
   const [deferredUiReady, setDeferredUiReady] = useState(false);
+  const [expandedMobileCards, setExpandedMobileCards] = useState(false);
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -83,6 +87,16 @@ export default function Home() {
   }, [loadSettings, loadUniversities]);
 
   useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileView(window.innerWidth <= 767);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
+
+  useEffect(() => {
     if ("requestIdleCallback" in window) {
       const id = window.requestIdleCallback(() => setDeferredUiReady(true), { timeout: 2500 });
       return () => window.cancelIdleCallback?.(id);
@@ -108,6 +122,24 @@ export default function Home() {
       active = false;
     };
   }, [deferredUiReady]);
+
+  useEffect(() => {
+    if (!isMobileView) {
+      setExpandedMobileCards(true);
+      return undefined;
+    }
+
+    setExpandedMobileCards(false);
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(() => {
+        setExpandedMobileCards(true);
+      }, { timeout: 3200 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timer = window.setTimeout(() => setExpandedMobileCards(true), 2500);
+    return () => window.clearTimeout(timer);
+  }, [isMobileView]);
 
   const renderText = (text, style, fallbackTag) => {
     const Tag = (style && style.variant) || fallbackTag || "p";
@@ -156,6 +188,10 @@ export default function Home() {
   const visibleUniversities = isSearchMode
     ? filteredUniversities
     : filteredUniversities.filter(uni => !assignedUniversityIds.has(String(uni._id || "")));
+  const displayedUniversities =
+    isMobileView && !expandedMobileCards && !isSearchMode
+      ? visibleUniversities.slice(0, 6)
+      : visibleUniversities;
 
   const resolveLogoUrl = url =>
     resolveImageUrl(url, { width: 112, height: 112, fit: "limit" });
@@ -274,7 +310,7 @@ export default function Home() {
           </div>
 
           <div className="cards-grid cards-grid-4-6">
-            {visibleUniversities.map(u => (
+            {displayedUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
                   className="card modern-card modern-card--large h-100 text-center"
@@ -314,7 +350,7 @@ export default function Home() {
               </div>
             ))}
 
-            {visibleUniversities.length === 0 && (
+            {displayedUniversities.length === 0 && (
               <div className="col-12 text-muted">
                 No matching results. Try another search or change filter.
               </div>
@@ -331,6 +367,10 @@ export default function Home() {
             .map(id => universities.find(u => String(u._id) === String(id)))
             .filter(u => filteredUniversities.some(row => String(row._id) === String(u?._id || "")))
             .filter(Boolean);
+          const displayedSectionUniversities =
+            isMobileView && !expandedMobileCards
+              ? sectionUniversities.slice(0, 4)
+              : sectionUniversities;
 
           const isActive = section.active !== false;
           const isComingSoon = !!section.comingSoon;
@@ -360,7 +400,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="cards-grid cards-grid-4-6">
-                  {sectionUniversities.map(u => (
+                  {displayedSectionUniversities.map(u => (
                     <div key={u._id} className="cards-grid-item">
                       <div
                         className="card modern-card modern-card--large h-100 text-center"

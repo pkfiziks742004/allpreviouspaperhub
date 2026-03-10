@@ -118,6 +118,7 @@ export default function Banner() {
   const [activeIndex, setActiveIndex] = useState(0);
   const bannerImageRefs = useRef({});
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
+  const mobileStaticItem = items[0] || null;
 
   const resolveBannerUrl = url =>
     resolveImageUrl(url, {
@@ -205,6 +206,8 @@ export default function Banner() {
   }, []);
 
   useEffect(() => {
+    if (isMobileView) return undefined;
+
     const updateScaleMap = () => {
       setBadgeScaleMap(prev => {
         const next = { ...prev };
@@ -223,17 +226,17 @@ export default function Banner() {
     updateScaleMap();
     window.addEventListener("resize", updateScaleMap);
     return () => window.removeEventListener("resize", updateScaleMap);
-  }, [items]);
+  }, [isMobileView, items]);
 
   useEffect(() => {
-    if (items.length <= 1) return undefined;
+    if (isMobileView || items.length <= 1) return undefined;
 
     const timer = window.setInterval(() => {
       setActiveIndex(prev => (prev + 1) % items.length);
     }, isMobileView ? 4200 : 3600);
 
     return () => window.clearInterval(timer);
-  }, [items.length, isMobileView]);
+  }, [isMobileView, items.length]);
 
   if (!ready || items.length === 0) return null;
 
@@ -381,6 +384,18 @@ export default function Banner() {
         <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
           <div className="banner-item">
             {renderBannerItem(items[0], 0)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isMobileView && mobileStaticItem) {
+    return (
+      <div className="banner-shell" style={bannerShellStyle}>
+        <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }}>
+          <div className="banner-item banner-item--mobile-static">
+            {renderBannerItem(mobileStaticItem, 0)}
           </div>
         </div>
       </div>

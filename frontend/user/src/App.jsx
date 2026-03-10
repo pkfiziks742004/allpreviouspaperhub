@@ -110,6 +110,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const injectDeferredFeatures = () => {
+      import("./reportWebVitals").then(({ default: reportWebVitals }) => {
+        if (typeof reportWebVitals === "function") {
+          reportWebVitals();
+        }
+      }).catch(() => {});
+    };
+
+    return scheduleDeferred(injectDeferredFeatures, 6000);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     const inject = async () => {

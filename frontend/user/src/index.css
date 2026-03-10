@@ -567,6 +567,15 @@ img {
   white-space: nowrap;
 }
 
+.site-alert-mobile {
+  width: 100%;
+  padding: 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
 @keyframes alertMarquee {
   from {
     transform: translate3d(0, 0, 0);
@@ -622,6 +631,11 @@ img {
 .banner-item {
   position: relative;
   height: 100%;
+}
+
+.banner-item--mobile-static .banner-link-wrap,
+.banner-item--mobile-static .banner-img {
+  transform: none !important;
 }
 
 .banner-carousel {
@@ -1336,6 +1350,20 @@ img {
     width: 28px;
     height: 28px;
     font-size: 18px;
+  }
+
+  .page-content,
+  .section-panel,
+  .modern-card,
+  .banner-img {
+    animation: none !important;
+  }
+
+  .card:hover,
+  .semester-view-btn:hover,
+  .user-brand-logo-wrap:hover {
+    transform: none;
+    box-shadow: inherit;
   }
 
   .card h5 {

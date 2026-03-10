@@ -39,6 +39,9 @@ function Navbar() {
   const [siteNamePart2Color, setSiteNamePart2Color] = useState("#fbbf24");
   const [menuOpen, setMenuOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 992 : false
+  );
   const [headerSearch, setHeaderSearch] = useState("");
   const [headerType, setHeaderType] = useState("all");
   const [alertRepeatCount, setAlertRepeatCount] = useState(2);
@@ -139,8 +142,10 @@ function Navbar() {
 
   useEffect(() => {
     const onResize = () => {
+      setIsMobileView(window.innerWidth <= 992);
       if (window.innerWidth > 992) setMenuOpen(false);
     };
+    onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
@@ -182,7 +187,7 @@ function Navbar() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!alertEnabled || !alertText) {
+    if (isMobileView || !alertEnabled || !alertText) {
       setAlertRepeatCount(2);
       return;
     }
@@ -206,7 +211,7 @@ function Navbar() {
     computeRepeatCount();
     window.addEventListener("resize", computeRepeatCount);
     return () => window.removeEventListener("resize", computeRepeatCount);
-  }, [alertEnabled, alertText, alertFontSize, alertStyle, alertMarqueeGap]);
+  }, [alertEnabled, alertText, alertFontSize, alertStyle, alertMarqueeGap, isMobileView]);
 
   const nameStyle = {
     color: siteNameStyle.color || "#ffffff",
@@ -335,58 +340,62 @@ function Navbar() {
             &#8801;
           </button>
 
-          <form className="header-search-form d-none d-lg-flex" onSubmit={runSearch}>
-            <select
-              className="header-search-type"
-              value={headerType}
-              onChange={e => setHeaderType(e.target.value)}
-              aria-label="Search category type"
-            >
-              <option value="all">All</option>
-              <option value="university">University</option>
-              <option value="college">College</option>
-              <option value="school">School</option>
-              <option value="other">Other</option>
-            </select>
-            <input
-              className="header-search-input"
-              type="search"
-              placeholder="Search university, school, college..."
-              value={headerSearch}
-              onChange={e => setHeaderSearch(e.target.value)}
-              aria-label="Search university, school, college"
-            />
-            <button type="submit" className="header-search-btn">Search</button>
-          </form>
+          {!isMobileView && (
+            <form className="header-search-form d-none d-lg-flex" onSubmit={runSearch}>
+              <select
+                className="header-search-type"
+                value={headerType}
+                onChange={e => setHeaderType(e.target.value)}
+                aria-label="Search category type"
+              >
+                <option value="all">All</option>
+                <option value="university">University</option>
+                <option value="college">College</option>
+                <option value="school">School</option>
+                <option value="other">Other</option>
+              </select>
+              <input
+                className="header-search-input"
+                type="search"
+                placeholder="Search university, school, college..."
+                value={headerSearch}
+                onChange={e => setHeaderSearch(e.target.value)}
+                aria-label="Search university, school, college"
+              />
+              <button type="submit" className="header-search-btn">Search</button>
+            </form>
+          )}
 
         <div ref={menuRef} className={`header-links${menuOpen ? " open" : ""}`}>
-          <form className="header-search-form header-search-form-mobile d-lg-none" onSubmit={runSearch}>
-            <span className="header-search-mobile-label">Find Fast</span>
-            <input
-              className="header-search-input"
-              type="search"
-              placeholder="Search..."
-              value={headerSearch}
-              onChange={e => setHeaderSearch(e.target.value)}
-              aria-label="Search university, school, college"
-            />
-            <select
-              className="header-search-type"
-              value={headerType}
-              onChange={e => setHeaderType(e.target.value)}
-              aria-label="Search category type"
-            >
-              <option value="all">All</option>
-              <option value="university">University</option>
-              <option value="college">College</option>
-              <option value="school">School</option>
-              <option value="other">Other</option>
-            </select>
-            <div className="header-search-mobile-actions">
-              <button type="submit" className="header-search-btn">Search</button>
-              <button type="button" className="header-search-clear-btn" onClick={clearSearch}>Clear</button>
-            </div>
-          </form>
+          {isMobileView && (
+            <form className="header-search-form header-search-form-mobile d-lg-none" onSubmit={runSearch}>
+              <span className="header-search-mobile-label">Find Fast</span>
+              <input
+                className="header-search-input"
+                type="search"
+                placeholder="Search..."
+                value={headerSearch}
+                onChange={e => setHeaderSearch(e.target.value)}
+                aria-label="Search university, school, college"
+              />
+              <select
+                className="header-search-type"
+                value={headerType}
+                onChange={e => setHeaderType(e.target.value)}
+                aria-label="Search category type"
+              >
+                <option value="all">All</option>
+                <option value="university">University</option>
+                <option value="college">College</option>
+                <option value="school">School</option>
+                <option value="other">Other</option>
+              </select>
+              <div className="header-search-mobile-actions">
+                <button type="submit" className="header-search-btn">Search</button>
+                <button type="button" className="header-search-clear-btn" onClick={clearSearch}>Clear</button>
+              </div>
+            </form>
+          )}
           {navLinks.length > 0 ? (
             navLinks.map((link, idx) => {
               const rawUrl = String(link?.url || "").trim();
@@ -443,34 +452,40 @@ function Navbar() {
               "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
             }}
           >
-            <div ref={alertMarqueeRef} className="site-alert-marquee">
-              <span ref={alertMeasureRef} className="site-alert-measure" style={alertTextStyle}>
+            {isMobileView ? (
+              <div className="site-alert-mobile" style={alertTextStyle}>
                 {alertText}
-              </span>
-              <div className="site-alert-track">
-                {(() => {
-                  const AlertTag = alertStyle.variant || "p";
-                  return (
-                    <>
-                      <div className="site-alert-sequence">
-                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
-                          <AlertTag key={`alert-a-${idx}`} className="site-alert-item" style={alertTextStyle}>
-                            {alertText}
-                          </AlertTag>
-                        ))}
-                      </div>
-                      <div className="site-alert-sequence" aria-hidden="true">
-                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
-                          <AlertTag key={`alert-b-${idx}`} className="site-alert-item" style={alertTextStyle}>
-                            {alertText}
-                          </AlertTag>
-                        ))}
-                      </div>
-                    </>
-                  );
-                })()}
               </div>
-            </div>
+            ) : (
+              <div ref={alertMarqueeRef} className="site-alert-marquee">
+                <span ref={alertMeasureRef} className="site-alert-measure" style={alertTextStyle}>
+                  {alertText}
+                </span>
+                <div className="site-alert-track">
+                  {(() => {
+                    const AlertTag = alertStyle.variant || "p";
+                    return (
+                      <>
+                        <div className="site-alert-sequence">
+                          {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                            <AlertTag key={`alert-a-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                              {alertText}
+                            </AlertTag>
+                          ))}
+                        </div>
+                        <div className="site-alert-sequence" aria-hidden="true">
+                          {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                            <AlertTag key={`alert-b-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                              {alertText}
+                            </AlertTag>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
