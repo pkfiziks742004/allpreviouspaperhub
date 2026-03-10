@@ -1,4 +1,4 @@
 ﻿User-agent: *
 Allow: /
 
-Sitemap: https://allpreviouspaperhub.in/sitemap.xml
+Sitemap: https://www.allpreviouspaperhub.in/sitemap.xml

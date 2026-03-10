@@ -381,6 +381,11 @@ const clamp = (value, min, max, fallback) => {
 };
 
 const cleanText = (value, maxLen = 200) => String(value || "").trim().slice(0, maxLen);
+const normalizeRatingPopupFrequencyDays = value => {
+  const days = Number(value);
+  if (!Number.isFinite(days)) return defaults.ratingPopupFrequencyDays;
+  return Math.min(365, Math.max(0, Math.round(days)));
+};
 
 const sanitizeSectionTextStyle = (style, fallback) => {
   const safe = style && typeof style === "object" ? style : {};
@@ -736,7 +741,11 @@ const updateSettings = async (req, res) => {
       if (payload.footerRatingNoteLink !== undefined) settings.footerRatingNoteLink = payload.footerRatingNoteLink;
       if (payload.footerRatingNoteBgColor !== undefined) settings.footerRatingNoteBgColor = payload.footerRatingNoteBgColor;
       if (payload.footerRatingNoteTextColor !== undefined) settings.footerRatingNoteTextColor = payload.footerRatingNoteTextColor;
-      if (payload.ratingPopupFrequencyDays !== undefined) settings.ratingPopupFrequencyDays = payload.ratingPopupFrequencyDays;
+      if (payload.ratingPopupFrequencyDays !== undefined) {
+        settings.ratingPopupFrequencyDays = normalizeRatingPopupFrequencyDays(
+          payload.ratingPopupFrequencyDays
+        );
+      }
       if (payload.seoTitle !== undefined) settings.seoTitle = payload.seoTitle;
       if (payload.seoDescription !== undefined) settings.seoDescription = payload.seoDescription;
       if (payload.seoKeywords !== undefined) settings.seoKeywords = payload.seoKeywords;

@@ -82,6 +82,11 @@ export default function Settings() {
   const save = async () => {
     setSaving(true);
     try {
+      const normalizedRatingPopupFrequencyDays = Math.min(
+        365,
+        Math.max(0, Math.round(Number(ratingPopupFrequencyDays) || 0))
+      );
+      setRatingPopupFrequencyDays(normalizedRatingPopupFrequencyDays);
       await axios.put(
         `${API}/api/settings`,
         {
@@ -97,7 +102,7 @@ export default function Settings() {
           homeTitle,
           homeSubtitle,
           ratingEnabled,
-          ratingPopupFrequencyDays,
+          ratingPopupFrequencyDays: normalizedRatingPopupFrequencyDays,
           alertStyle,
           homeTitleStyle,
           homeSubtitleStyle
@@ -234,6 +239,8 @@ export default function Settings() {
           <input
             type="number"
             className="form-control"
+            min="0"
+            max="365"
             value={ratingPopupFrequencyDays}
             onChange={e => setRatingPopupFrequencyDays(Number(e.target.value || 0))}
           />

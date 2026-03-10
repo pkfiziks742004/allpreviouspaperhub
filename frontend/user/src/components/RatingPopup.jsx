@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE } from "../config/api";
+import { clearSiteDataCache, getRatingSummary, getSettings } from "../utils/siteData";
 
 export default function RatingPopup() {
   const [show, setShow] = useState(false);
@@ -21,23 +22,21 @@ export default function RatingPopup() {
   };
 
   const loadRating = useCallback(() => {
-    axios
-      .get(`${API_BASE}/api/site-rating`)
-      .then(res => {
-        setAvg(res.data.avg);
-        setTotal(res.data.total);
+    getRatingSummary({ ttlMs: 30_000 })
+      .then(data => {
+        setAvg(data?.avg || 0);
+        setTotal(data?.total || 0);
       });
   }, []);
 
   const loadSettings = useCallback(() => {
-    axios
-      .get(`${API_BASE}/api/settings`)
-      .then(res => {
-        if (res.data && typeof res.data.ratingEnabled === "boolean") {
-          setRatingEnabled(res.data.ratingEnabled);
+    getSettings({ ttlMs: 45_000 })
+      .then(data => {
+        if (data && typeof data.ratingEnabled === "boolean") {
+          setRatingEnabled(data.ratingEnabled);
         }
-        const days = typeof res.data.ratingPopupFrequencyDays === "number"
-          ? res.data.ratingPopupFrequencyDays
+        const days = typeof data?.ratingPopupFrequencyDays === "number"
+          ? data.ratingPopupFrequencyDays
           : 7;
         setShow(shouldShow(days));
       });
@@ -57,6 +56,7 @@ export default function RatingPopup() {
       `${API_BASE}/api/site-rating`,
       { rating: r }
     );
+    clearSiteDataCache("rating-summary");
 
     localStorage.setItem("rated_at", String(Date.now()));
 

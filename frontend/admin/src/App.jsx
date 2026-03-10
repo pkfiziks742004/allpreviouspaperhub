@@ -82,9 +82,7 @@ function App() {
 
     const applySettings = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/settings`, {
-          params: { _ts: Date.now() }
-        });
+        const res = await axios.get(`${API_BASE}/api/settings`);
         if (res.data && res.data.adminPageTitle) {
           document.title = res.data.adminPageTitle;
           try {

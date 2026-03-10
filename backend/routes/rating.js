@@ -3,28 +3,36 @@ const router = express.Router();
 const Rating = require("../models/rating");
 const { verifyAdmin, verifyPermission } = require("../middleware/auth");
 
+const RATING_CACHE_TTL_MS = Number(process.env.RATING_CACHE_TTL_MS || 30 * 1000);
+let ratingStatsCache = null;
+
+const formatRatingSummary = ({ sum, total }) => ({
+  avg: total > 0 ? (sum / total).toFixed(1) : 0,
+  total
+});
+
+const getCachedRatingSummary = async ({ force = false } = {}) => {
+  const now = Date.now();
+  if (!force && ratingStatsCache && now - ratingStatsCache.at < RATING_CACHE_TTL_MS) {
+    return formatRatingSummary(ratingStatsCache);
+  }
+
+  const ratings = await Rating.find();
+  const sum = ratings.reduce((acc, item) => acc + Number(item.rating || 0), 0);
+  const total = ratings.length;
+  ratingStatsCache = { sum, total, at: now };
+  return formatRatingSummary(ratingStatsCache);
+};
+
+const invalidateRatingCache = () => {
+  ratingStatsCache = null;
+};
+
 // Get average rating
 router.get("/", async (req, res) => {
   try {
-    const ratings = await Rating.find();
-
-    if (ratings.length === 0) {
-      return res.json({
-        avg: 0,
-        total: 0
-      });
-    }
-
-    let sum = 0;
-
-    ratings.forEach(r => {
-      sum += r.rating;
-    });
-
-    res.json({
-      avg: (sum / ratings.length).toFixed(1),
-      total: ratings.length
-    });
+    const summary = await getCachedRatingSummary();
+    res.json(summary);
   } catch (err) {
     res.status(500).json(err.message);
   }
@@ -45,6 +53,13 @@ router.post("/", async (req, res) => {
     });
 
     await rating.save();
+    if (ratingStatsCache) {
+      ratingStatsCache = {
+        sum: ratingStatsCache.sum + ratingValue,
+        total: ratingStatsCache.total + 1,
+        at: Date.now()
+      };
+    }
 
     res.json("Thanks for rating!");
   } catch (err) {
@@ -67,6 +82,7 @@ router.get("/admin", verifyAdmin, verifyPermission("ratings"), async (req, res) 
 router.delete("/:id", verifyAdmin, verifyPermission("ratings"), async (req, res) => {
   try {
     await Rating.findByIdAndDelete(req.params.id);
+    invalidateRatingCache();
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json(err.message);

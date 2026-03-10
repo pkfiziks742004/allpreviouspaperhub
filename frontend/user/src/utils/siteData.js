@@ -33,6 +33,8 @@ const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } =
 };
 
 export const getSettings = options => fetchCached("settings", `${API_BASE}/api/settings`, options);
+export const getRatingSummary = options =>
+  fetchCached("rating-summary", `${API_BASE}/api/site-rating`, options);
 export const getUniversities = options => fetchCached("universities", `${API_BASE}/api/universities`, options);
 export const getCourses = options => fetchCached("courses", `${API_BASE}/api/courses`, options);
 export const getSemesters = options => fetchCached("semesters", `${API_BASE}/api/semesters`, options);

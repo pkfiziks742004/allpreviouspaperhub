@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
-import { API_BASE, resolveApiUrl } from "../config/api";
-import { getSettings } from "../utils/siteData";
+import { resolveApiUrl } from "../config/api";
+import { getRatingSummary, getSettings } from "../utils/siteData";
 
 export default function Footer() {
   const [avg, setAvg] = useState(0);
@@ -96,9 +95,9 @@ export default function Footer() {
 
   useEffect(() => {
     if (!ratingEnabled) return;
-    axios
-      .get(`${API_BASE}/api/site-rating`)
-      .then(res => setAvg(res.data.avg));
+    getRatingSummary({ ttlMs: 30_000 })
+      .then(data => setAvg(data?.avg || 0))
+      .catch(() => setAvg(0));
   }, [ratingEnabled]);
 
   const textStyle = {
