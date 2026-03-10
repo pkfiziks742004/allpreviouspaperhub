@@ -120,7 +120,11 @@ export default function Banner() {
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
 
   const resolveBannerUrl = url =>
-    resolveImageUrl(url, { width: isMobileView ? 960 : 1600, fit: "limit" });
+    resolveImageUrl(url, {
+      width: isMobileView ? 840 : 1280,
+      fit: "limit",
+      quality: "auto:eco"
+    });
   const resolveBadgeUrl = url =>
     resolveImageUrl(url, { width: 96, height: 96, fit: "limit" });
 

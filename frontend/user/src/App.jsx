@@ -69,6 +69,20 @@ function App() {
   });
 
   useEffect(() => {
+    const loadDeferredStyles = () => {
+      import("./deferred.css").catch(() => {});
+    };
+
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(loadDeferredStyles, { timeout: 2000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timer = window.setTimeout(loadDeferredStyles, 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const inject = async () => {
       try {
         const res = await axios.get(`${API_BASE}/api/ads-settings`);

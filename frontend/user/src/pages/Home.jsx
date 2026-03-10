@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveImageUrl } from "../config/api";
@@ -6,12 +6,13 @@ import { getSettings, getUniversities } from "../utils/siteData";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
-import Footer from "../components/Footer";
-import RatingPopup from "../components/RatingPopup";
-import AdSlot from "../components/AdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
+
+const Footer = lazy(() => import("../components/Footer"));
+const RatingPopup = lazy(() => import("../components/RatingPopup"));
+const AdSlot = lazy(() => import("../components/AdSlot"));
 
 export default function Home() {
   const location = useLocation();
@@ -197,18 +198,34 @@ export default function Home() {
     textDecoration: style && style.underline ? "underline" : "none"
   });
 
+  const renderDeferredFallback = className => (
+    <div className={className} style={{ minHeight: "96px" }} />
+  );
+
   return (
     <div className="page-shell">
-      <RatingPopup />
+      <Suspense fallback={null}>
+        <RatingPopup />
+      </Suspense>
 
       <Navbar />
       <div className="page-content">
       <Banner />
 
       <div className="container mt-5">
-        <AdSlot className="mb-3" label="Sponsored" />
+        <Suspense fallback={renderDeferredFallback("mb-3")}>
+          <AdSlot className="mb-3" label="Sponsored" />
+        </Suspense>
         {loading ? (
-          <div className="text-center text-muted py-5">Loading...</div>
+          <div className="home-loading-shell">
+            <div className="home-loading-title shimmer-block" />
+            <div className="home-loading-subtitle shimmer-block" />
+            <div className="home-loading-panel">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={`home-skeleton-${idx}`} className="home-loading-card shimmer-block" />
+              ))}
+            </div>
+          </div>
         ) : (
           <>
         {notices.length > 0 && (
@@ -365,12 +382,16 @@ export default function Home() {
 
           </>
         )}
-        <AdSlot className="mt-3" label="Sponsored" />
+        <Suspense fallback={renderDeferredFallback("mt-3")}>
+          <AdSlot className="mt-3" label="Sponsored" />
+        </Suspense>
       </div>
       </div>
 
       <div className="footer-top-gap" />
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </div>
   );
 }
