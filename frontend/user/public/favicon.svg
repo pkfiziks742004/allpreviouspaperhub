@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="All Previous Paper Hub">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b3b66" />
+      <stop offset="100%" stop-color="#164e63" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)" />
+  <path d="M14 48L25 16h7l11 32h-6.5l-2.2-7H22.6l-2.2 7H14zm10.1-12h8.6L28.4 22h-.2l-4.1 14z" fill="url(#accent)" />
+  <path d="M43 16h7.5c6.2 0 10.5 3.8 10.5 9.8 0 4.7-2.8 8.2-7.1 9.3L61 48h-7.8l-6.1-12.1H50V48h-7V16zm7 14.5h1.8c3 0 4.4-1.6 4.4-4 0-2.5-1.5-4-4.4-4H50v8z" fill="#f8fafc" />
+</svg>
