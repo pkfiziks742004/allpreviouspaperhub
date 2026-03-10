@@ -4,7 +4,7 @@ import axios from "axios";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { API_BASE, resolveApiUrl } from "../config/api";
+import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
 
 const ensureMeta = (key, value, attr = "name") => {
   let tag = document.querySelector(`meta[${attr}='${key}']`);
@@ -36,6 +36,7 @@ export default function CustomPage() {
   const resolveUrl = url => {
     return resolveApiUrl(url);
   };
+  const resolveBannerUrl = url => resolveImageUrl(url, { width: 1600, fit: "limit" });
 
   useEffect(() => {
     setNotFound(false);
@@ -84,7 +85,7 @@ export default function CustomPage() {
         >
         {page?.bannerUrl && (
           <div className="custom-page-banner">
-            <img src={resolveUrl(page.bannerUrl)} alt={page.title || "Banner"} />
+            <img src={resolveBannerUrl(page.bannerUrl)} alt={page.title || "Banner"} />
           </div>
         )}
 

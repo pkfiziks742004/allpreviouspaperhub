@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { API_BASE, resolveApiUrl } from "../config/api";
+import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
 
@@ -44,6 +44,8 @@ export default function AboutUs() {
   const [loading, setLoading] = useState(true);
 
   const resolveUrl = url => resolveApiUrl(url);
+  const resolveBannerUrl = url => resolveImageUrl(url, { width: 1600, fit: "limit" });
+  const resolveAuthorUrl = url => resolveImageUrl(url, { width: 176, height: 176, fit: "limit" });
   const normalizeContentHtml = html => {
     const source = String(html || "");
     if (!source) return "";
@@ -134,7 +136,7 @@ export default function AboutUs() {
             <div className="container">
               {managedAbout?.bannerUrl && (
                 <div className="custom-page-banner mb-4">
-                  <img src={resolveUrl(managedAbout.bannerUrl)} alt={managedAbout.title || "About banner"} />
+                  <img src={resolveBannerUrl(managedAbout.bannerUrl)} alt={managedAbout.title || "About banner"} />
                 </div>
               )}
               <div className="about-hero mb-4">
@@ -151,9 +153,11 @@ export default function AboutUs() {
                 <div className="about-author-card mb-4">
                   {managedAbout?.extra?.author?.image ? (
                     <img
-                      src={resolveUrl(managedAbout.extra.author.image)}
+                      src={resolveAuthorUrl(managedAbout.extra.author.image)}
                       alt={managedAbout?.extra?.author?.name || "Author"}
                       className="about-author-image"
+                      width="88"
+                      height="88"
                     />
                   ) : null}
                   <div className="about-author-meta">

@@ -3,6 +3,8 @@ import axios from "axios";
 import { API_BASE } from "../config/api";
 import { clearSiteDataCache, getRatingSummary, getSettings } from "../utils/siteData";
 
+const RATING_POPUP_DELAY_MS = 3500;
+
 export default function RatingPopup() {
   const [show, setShow] = useState(false);
   const [avg, setAvg] = useState(0);
@@ -30,6 +32,7 @@ export default function RatingPopup() {
   }, []);
 
   const loadSettings = useCallback(() => {
+    let popupTimer = null;
     getSettings({ ttlMs: 45_000 })
       .then(data => {
         if (data && typeof data.ratingEnabled === "boolean") {
@@ -38,12 +41,25 @@ export default function RatingPopup() {
         const days = typeof data?.ratingPopupFrequencyDays === "number"
           ? data.ratingPopupFrequencyDays
           : 7;
-        setShow(shouldShow(days));
+        const eligible = shouldShow(days);
+        if (!eligible) {
+          setShow(false);
+          return;
+        }
+        popupTimer = window.setTimeout(() => {
+          setShow(true);
+        }, RATING_POPUP_DELAY_MS);
       });
+    return () => {
+      if (popupTimer) {
+        window.clearTimeout(popupTimer);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    loadSettings();
+    const cleanup = loadSettings();
+    return cleanup;
   }, [loadSettings]);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import { API_BASE, resolveApiUrl } from "../config/api";
+import { API_BASE, resolveImageUrl } from "../config/api";
 import { getSettings, getUniversities } from "../utils/siteData";
 
 import Navbar from "../components/Navbar";
@@ -135,9 +135,8 @@ export default function Home() {
     ? filteredUniversities
     : filteredUniversities.filter(uni => !assignedUniversityIds.has(String(uni._id || "")));
 
-  const resolveUrl = url => {
-    return resolveApiUrl(url);
-  };
+  const resolveLogoUrl = url =>
+    resolveImageUrl(url, { width: 112, height: 112, fit: "limit" });
 
   const buildCardStyle = key => {
     const style = (cardStyles && cardStyles[key]) || {};
@@ -248,9 +247,11 @@ export default function Home() {
                   <div className="card-body">
                     {u.logoUrl ? (
                       <img
-                        src={resolveUrl(u.logoUrl)}
+                        src={resolveLogoUrl(u.logoUrl)}
                         alt={u.name}
                         className="card-logo"
+                        width="56"
+                        height="56"
                         loading="lazy"
                         decoding="async"
                       />
@@ -332,9 +333,11 @@ export default function Home() {
                         <div className="card-body">
                           {u.logoUrl ? (
                             <img
-                              src={resolveUrl(u.logoUrl)}
+                              src={resolveLogoUrl(u.logoUrl)}
                               alt={u.name}
                               className="card-logo"
+                              width="56"
+                              height="56"
                               loading="lazy"
                               decoding="async"
                             />

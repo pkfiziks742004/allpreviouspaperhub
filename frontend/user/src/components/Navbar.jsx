@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { API_BASE, resolveApiUrl } from "../config/api";
+import { resolveImageUrl } from "../config/api";
 import { getSettings } from "../utils/siteData";
 
 function Navbar() {
@@ -43,9 +43,7 @@ function Navbar() {
   const [headerType, setHeaderType] = useState("all");
   const [alertRepeatCount, setAlertRepeatCount] = useState(2);
 
-  const resolveUrl = url => {
-    return resolveApiUrl(url);
-  };
+  const resolveLogoUrl = url => resolveImageUrl(url, { width: 280, fit: "limit" });
 
   const parseColorToRgb = color => {
     const value = String(color || "").trim();
@@ -296,11 +294,13 @@ function Navbar() {
             {logoUrl ? (
               <span className="user-brand-logo-wrap">
                 <img
-                  src={resolveUrl(logoUrl)}
+                  src={resolveLogoUrl(logoUrl)}
                   alt={siteName}
                   className="user-navbar-logo"
                   style={{ "--logo-height": `${logoHeight}px` }}
+                  height={Math.max(24, Number(logoHeight || 32))}
                   loading="eager"
+                  fetchPriority="high"
                   decoding="async"
                 />
               </span>

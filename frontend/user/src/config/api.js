@@ -16,3 +16,35 @@ export const resolveApiUrl = url => {
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `${API_BASE}${url}`;
 };
+
+const CLOUDINARY_UPLOAD_SEGMENT = "/image/upload/";
+
+export const resolveImageUrl = (url, options = {}) => {
+  const resolved = resolveApiUrl(url);
+  if (!resolved || !resolved.includes("res.cloudinary.com") || !resolved.includes(CLOUDINARY_UPLOAD_SEGMENT)) {
+    return resolved;
+  }
+
+  const {
+    width,
+    height,
+    fit = "limit",
+    quality = "auto",
+    format = "auto",
+    dpr = "auto"
+  } = options;
+
+  const transforms = [`f_${format}`, `q_${quality}`, `dpr_${dpr}`];
+  if (Number.isFinite(Number(width)) && Number(width) > 0) {
+    transforms.push(`w_${Math.round(Number(width))}`);
+  }
+  if (Number.isFinite(Number(height)) && Number(height) > 0) {
+    transforms.push(`h_${Math.round(Number(height))}`);
+  }
+  if (transforms.length > 0) {
+    transforms.push(`c_${fit}`);
+  }
+
+  const marker = `${CLOUDINARY_UPLOAD_SEGMENT}${transforms.join(",")}/`;
+  return resolved.replace(CLOUDINARY_UPLOAD_SEGMENT, marker);
+};

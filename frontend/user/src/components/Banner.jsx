@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Carousel } from "react-bootstrap";
-import { API_BASE, resolveApiUrl } from "../config/api";
+import { resolveImageUrl } from "../config/api";
 import { getSettings } from "../utils/siteData";
 
 const BADGE_SHAPE_SET = new Set([
@@ -119,9 +119,10 @@ export default function Banner() {
   const bannerImageRefs = useRef({});
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
 
-  const resolveUrl = url => {
-    return resolveApiUrl(url);
-  };
+  const resolveBannerUrl = url =>
+    resolveImageUrl(url, { width: isMobileView ? 960 : 1600, fit: "limit" });
+  const resolveBadgeUrl = url =>
+    resolveImageUrl(url, { width: 96, height: 96, fit: "limit" });
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 })
@@ -268,9 +269,11 @@ export default function Banner() {
             bannerImageRefs.current[index] = el;
           }}
           className="d-block w-100 banner-img"
-          src={resolveUrl(item.imageUrl)}
+          src={resolveBannerUrl(item.imageUrl)}
           alt={`Banner ${index + 1}`}
-          loading="lazy"
+          loading={index === 0 ? "eager" : "lazy"}
+          fetchPriority={index === 0 ? "high" : "auto"}
+          decoding={index === 0 ? "sync" : "async"}
           style={{ objectFit: item.fitMode || "cover" }}
           onLoad={event => {
             const img = event.currentTarget;
@@ -322,7 +325,7 @@ export default function Banner() {
           >
             {item.badgeUseImage && item.badgeImageUrl ? (
               <img
-                src={resolveUrl(item.badgeImageUrl)}
+                src={resolveBadgeUrl(item.badgeImageUrl)}
                 alt="badge"
                 style={{
                   width: `${Math.max(

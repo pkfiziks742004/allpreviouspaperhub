@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { resolveApiUrl } from "../config/api";
+import { resolveApiUrl, resolveImageUrl } from "../config/api";
 import { getRatingSummary, getSettings } from "../utils/siteData";
 
 export default function Footer() {
@@ -45,6 +45,8 @@ export default function Footer() {
   const resolveUrl = url => {
     return resolveApiUrl(url);
   };
+  const resolveFooterLogoUrl = url => resolveImageUrl(url, { width: 240, fit: "limit" });
+  const resolveFooterIconUrl = url => resolveImageUrl(url, { width: 72, height: 72, fit: "limit" });
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 })
@@ -152,9 +154,10 @@ export default function Footer() {
               {footerLogoUrl && (
                 <div className="footer-logo">
                   <img
-                    src={resolveUrl(footerLogoUrl)}
+                    src={resolveFooterLogoUrl(footerLogoUrl)}
                     alt="Footer Logo"
                     style={{ height: `${footerLogoHeight}px`, width: "auto" }}
+                    height={Math.max(24, Number(footerLogoHeight || 32))}
                     loading="lazy"
                     decoding="async"
                   />
@@ -205,13 +208,15 @@ export default function Footer() {
                     >
                       {icon.imageUrl && (
                         <img
-                          src={resolveUrl(icon.imageUrl)}
+                          src={resolveFooterIconUrl(icon.imageUrl)}
                           alt="icon"
                           style={{
                             height: `${Math.max(14, footerSocialIconSize - 8)}px`,
                             width: `${Math.max(14, footerSocialIconSize - 8)}px`,
                             objectFit: "contain"
                           }}
+                          width={Math.max(14, footerSocialIconSize - 8)}
+                          height={Math.max(14, footerSocialIconSize - 8)}
                           loading="lazy"
                           decoding="async"
                         />
