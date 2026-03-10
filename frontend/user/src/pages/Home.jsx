@@ -262,9 +262,9 @@ export default function Home() {
   const getHomeCardTitleClass = name => {
     const text = String(name || "").trim();
     const length = text.length;
-    if (length >= 28) return "home-card-title home-card-title--xs";
-    if (length >= 22) return "home-card-title home-card-title--sm";
-    if (length >= 16) return "home-card-title home-card-title--md";
+    if (length >= 34) return "home-card-title home-card-title--xs";
+    if (length >= 26) return "home-card-title home-card-title--sm";
+    if (length >= 18) return "home-card-title home-card-title--md";
     return "home-card-title home-card-title--lg";
   };
 
