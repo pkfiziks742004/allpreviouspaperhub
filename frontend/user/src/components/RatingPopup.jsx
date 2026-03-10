@@ -3,7 +3,7 @@ import { API_BASE } from "../config/api";
 import { clearSiteDataCache, getRatingSummary, getSettings } from "../utils/siteData";
 import { postJson } from "../utils/http";
 
-const RATING_POPUP_DELAY_MS = 3500;
+const RATING_POPUP_DELAY_MS = 7000;
 
 export default function RatingPopup() {
   const [show, setShow] = useState(false);
@@ -102,7 +102,7 @@ export default function RatingPopup() {
         className="bg-white p-4 rounded text-center shadow"
         style={{ minWidth: "320px", maxWidth: "560px", width: "90%" }}
       >
-        <h4>Rate Our Website</h4>
+        <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>Rate Our Website</div>
 
         <div className="mt-2">
           {[1, 2, 3, 4, 5].map(s => (

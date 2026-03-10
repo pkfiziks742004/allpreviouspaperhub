@@ -31,6 +31,7 @@ export default function Home() {
   const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [notices, setNotices] = useState([]);
+  const [deferredUiReady, setDeferredUiReady] = useState(false);
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -82,10 +83,31 @@ export default function Home() {
   }, [loadSettings, loadUniversities]);
 
   useEffect(() => {
-    getJson(`${API_BASE}/api/signals/notices`)
-      .then(data => setNotices(Array.isArray(data) ? data : []))
-      .catch(() => setNotices([]));
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(() => setDeferredUiReady(true), { timeout: 2500 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+
+    const timer = window.setTimeout(() => setDeferredUiReady(true), 1800);
+    return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!deferredUiReady) return undefined;
+
+    let active = true;
+    getJson(`${API_BASE}/api/signals/notices`)
+      .then(data => {
+        if (active) setNotices(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (active) setNotices([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [deferredUiReady]);
 
   const renderText = (text, style, fallbackTag) => {
     const Tag = (style && style.variant) || fallbackTag || "p";
@@ -203,18 +225,22 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      <Suspense fallback={null}>
-        <RatingPopup />
-      </Suspense>
+      {deferredUiReady && (
+        <Suspense fallback={null}>
+          <RatingPopup />
+        </Suspense>
+      )}
 
       <Navbar />
       <div className="page-content">
       <Banner />
 
       <div className="container mt-5">
-        <Suspense fallback={renderDeferredFallback("mb-3")}>
-          <AdSlot className="mb-3" label="Sponsored" />
-        </Suspense>
+        {deferredUiReady && (
+          <Suspense fallback={renderDeferredFallback("mb-3")}>
+            <AdSlot className="mb-3" label="Sponsored" />
+          </Suspense>
+        )}
         {loading ? (
           <div className="home-loading-shell">
             <div className="home-loading-title shimmer-block" />
@@ -381,16 +407,20 @@ export default function Home() {
 
           </>
         )}
-        <Suspense fallback={renderDeferredFallback("mt-3")}>
-          <AdSlot className="mt-3" label="Sponsored" />
-        </Suspense>
+        {deferredUiReady && (
+          <Suspense fallback={renderDeferredFallback("mt-3")}>
+            <AdSlot className="mt-3" label="Sponsored" />
+          </Suspense>
+        )}
       </div>
       </div>
 
       <div className="footer-top-gap" />
-      <Suspense fallback={null}>
-        <Footer />
-      </Suspense>
+      {deferredUiReady && (
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
+      )}
     </div>
   );
 }

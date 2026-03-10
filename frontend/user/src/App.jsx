@@ -19,6 +19,18 @@ const DEFAULT_SITE_TITLE = "All Previous Paper Hub";
 const DEFAULT_SEO_DESCRIPTION =
   "All Previous Paper Hub - Previous year papers, notes, syllabus, and exam resources.";
 
+const scheduleDeferred = (task, timeout = 1500) => {
+  if (typeof window === "undefined") return () => {};
+
+  if ("requestIdleCallback" in window) {
+    const id = window.requestIdleCallback(task, { timeout });
+    return () => window.cancelIdleCallback?.(id);
+  }
+
+  const timer = window.setTimeout(task, timeout);
+  return () => window.clearTimeout(timer);
+};
+
 const normalizeExternalScriptSrc = src => {
   const value = String(src || "").trim();
   if (!value) return value;
@@ -98,9 +110,12 @@ function App() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     const inject = async () => {
       try {
         const data = await getJson(`${API_BASE}/api/ads-settings`);
+        if (cancelled) return;
         setAdsSettings({
           enabled: !!data?.enabled,
           headScript: data?.headScript || "",
@@ -125,7 +140,11 @@ function App() {
       }
     };
 
-    inject();
+    const cleanup = scheduleDeferred(inject, 2500);
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
   }, []);
 
   useEffect(() => {
@@ -213,23 +232,27 @@ function App() {
           ensureMeta("og:url", data.canonicalUrl, "property");
         }
 
-        if (data?.analyticsHeadScript) {
-          injectSnippetOnce(
-            data.analyticsHeadScript,
-            document.head,
-            "analytics-head",
-            "data-analytics-snippet"
-          );
-        }
+        const injectAnalytics = () => {
+          if (data?.analyticsHeadScript) {
+            injectSnippetOnce(
+              data.analyticsHeadScript,
+              document.head,
+              "analytics-head",
+              "data-analytics-snippet"
+            );
+          }
 
-        if (data?.analyticsBodyScript) {
-          injectSnippetOnce(
-            data.analyticsBodyScript,
-            document.body,
-            "analytics-body",
-            "data-analytics-snippet"
-          );
-        }
+          if (data?.analyticsBodyScript) {
+            injectSnippetOnce(
+              data.analyticsBodyScript,
+              document.body,
+              "analytics-body",
+              "data-analytics-snippet"
+            );
+          }
+        };
+
+        scheduleDeferred(injectAnalytics, 4000);
       } catch (e) {
         // ignore
       }
