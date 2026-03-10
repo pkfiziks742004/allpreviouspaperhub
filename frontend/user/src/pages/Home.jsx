@@ -180,9 +180,14 @@ export default function Home() {
       .flatMap(section => (section.itemIds || section.courseIds || []).map(id => String(id || "")))
       .filter(Boolean)
   );
+  const sectionFilteredUniversities = filteredUniversities.filter(
+    uni => !assignedUniversityIds.has(String(uni._id || ""))
+  );
   const visibleUniversities = isSearchMode
     ? filteredUniversities
-    : filteredUniversities.filter(uni => !assignedUniversityIds.has(String(uni._id || "")));
+    : sectionFilteredUniversities.length > 0
+      ? sectionFilteredUniversities
+      : filteredUniversities;
   const displayedUniversities =
     isMobileView && !expandedMobileCards && !isSearchMode
       ? visibleUniversities.slice(0, 6)
