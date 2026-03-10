@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveImageUrl } from "../config/api";
 import { getSettings, getUniversities } from "../utils/siteData";
@@ -6,13 +6,12 @@ import { getJson } from "../utils/http";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
+import Footer from "../components/Footer";
+import RatingPopup from "../components/RatingPopup";
+import AdSlot from "../components/AdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
-
-const Footer = lazy(() => import("../components/Footer"));
-const RatingPopup = lazy(() => import("../components/RatingPopup"));
-const AdSlot = lazy(() => import("../components/AdSlot"));
 
 export default function Home() {
   const location = useLocation();
@@ -261,22 +260,14 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      {deferredUiReady && (
-        <Suspense fallback={null}>
-          <RatingPopup />
-        </Suspense>
-      )}
+      {deferredUiReady && <RatingPopup />}
 
       <Navbar />
       <div className="page-content">
       <Banner />
 
       <div className="container mt-5">
-        {deferredUiReady && (
-          <Suspense fallback={renderDeferredFallback("mb-3")}>
-            <AdSlot className="mb-3" label="Sponsored" />
-          </Suspense>
-        )}
+        {deferredUiReady && <AdSlot className="mb-3" label="Sponsored" />}
         {loading ? (
           <div className="home-loading-shell">
             <div className="home-loading-title shimmer-block" />
@@ -474,20 +465,12 @@ export default function Home() {
 
           </>
         )}
-        {deferredUiReady && (
-          <Suspense fallback={renderDeferredFallback("mt-3")}>
-            <AdSlot className="mt-3" label="Sponsored" />
-          </Suspense>
-        )}
+        {deferredUiReady && <AdSlot className="mt-3" label="Sponsored" />}
       </div>
       </div>
 
       <div className="footer-top-gap" />
-      {deferredUiReady && (
-        <Suspense fallback={null}>
-          <Footer />
-        </Suspense>
-      )}
+      {deferredUiReady && <Footer />}
     </div>
   );
 }

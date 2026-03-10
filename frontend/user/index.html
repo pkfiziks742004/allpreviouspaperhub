@@ -68,6 +68,45 @@
         } catch (e) {}
       })();
     </script>
+    <script>
+      (function () {
+        var retryKey = "user_frontend_chunk_retry";
+
+        function hasChunkFailure(message) {
+          var text = String(message || "");
+          return (
+            text.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+            text.indexOf("Importing a module script failed") !== -1 ||
+            text.indexOf("Unable to preload CSS") !== -1
+          );
+        }
+
+        function recoverFromChunkFailure() {
+          try {
+            if (sessionStorage.getItem(retryKey) === "1") return;
+            sessionStorage.setItem(retryKey, "1");
+            var url = new URL(window.location.href);
+            url.searchParams.set("_fresh", String(Date.now()));
+            window.location.replace(url.toString());
+          } catch (e) {
+            window.location.reload();
+          }
+        }
+
+        window.addEventListener("vite:preloadError", function (event) {
+          recoverFromChunkFailure();
+          if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+          }
+        });
+
+        window.addEventListener("unhandledrejection", function (event) {
+          if (hasChunkFailure(event && event.reason && event.reason.message ? event.reason.message : event && event.reason)) {
+            recoverFromChunkFailure();
+          }
+        });
+      })();
+    </script>
     <title>All Previous Paper Hub</title>
   </head>
   <body>
