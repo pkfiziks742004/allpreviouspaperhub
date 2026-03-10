@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import axios from "axios";
 import { API_BASE } from "../config/api";
 import { clearSiteDataCache, getRatingSummary, getSettings } from "../utils/siteData";
+import { postJson } from "../utils/http";
 
 const RATING_POPUP_DELAY_MS = 3500;
 
@@ -68,7 +68,7 @@ export default function RatingPopup() {
 
   const rate = async r => {
     setMyRating(r);
-    await axios.post(
+    await postJson(
       `${API_BASE}/api/site-rating`,
       { rating: r }
     );

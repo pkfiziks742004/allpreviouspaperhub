@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -9,6 +8,7 @@ import { toRouteSegment } from "../utils/slugs";
 import { markPaperFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSemesters, getSettings, getUniversities } from "../utils/siteData";
+import { getJson, ping, postJson } from "../utils/http";
 
 export default function Papers(){
 
@@ -67,8 +67,8 @@ export default function Papers(){
         return;
       }
 
-      const res = await axios.get(`${API_BASE}/api/papers/semester/${semester._id}`);
-      setPapers(res.data || []);
+      const res = await getJson(`${API_BASE}/api/papers/semester/${semester._id}`);
+      setPapers(res || []);
     };
 
     load().catch(() => {
@@ -136,7 +136,7 @@ export default function Papers(){
     if (trackedSearchRef.current.toLowerCase() === term.toLowerCase()) return;
 
     const timer = setTimeout(() => {
-      axios.post(`${API_BASE}/api/signals/search`, { term, source: "papers" }).catch(() => {});
+      postJson(`${API_BASE}/api/signals/search`, { term, source: "papers" }).catch(() => {});
       trackedSearchRef.current = term;
     }, 700);
 
@@ -255,7 +255,7 @@ export default function Papers(){
                     const targetPath = buildPaperPath(p);
                     const paperRouteSlug = toRouteSegment(p.title, "paper");
                     markPaperFlow(universitySlug, courseSlug, semesterSlug, paperRouteSlug);
-                    axios.get(`${API_BASE}/api/papers/download/${p._id}`).catch(() => {});
+                    ping(`${API_BASE}/api/papers/download/${p._id}`).catch(() => {});
                     navigate(targetPath);
                   }}
                   onMouseEnter={e => {

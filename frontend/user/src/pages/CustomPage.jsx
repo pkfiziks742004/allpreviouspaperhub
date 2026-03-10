@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
+import { getJson } from "../utils/http";
 
 const ensureMeta = (key, value, attr = "name") => {
   let tag = document.querySelector(`meta[${attr}='${key}']`);
@@ -45,18 +45,17 @@ export default function CustomPage() {
       setNotFound(true);
       return;
     }
-    axios
-      .get(`${API_BASE}/api/pages/slug/${slug}`)
-      .then(res => {
-        setPage(res.data);
-        const seoTitle = String(res.data?.seoTitle || res.data?.title || "All Previous Paper Hub").trim();
+    getJson(`${API_BASE}/api/pages/slug/${slug}`)
+      .then(data => {
+        setPage(data);
+        const seoTitle = String(data?.seoTitle || data?.title || "All Previous Paper Hub").trim();
         const seoDescription = String(
-          res.data?.seoDescription || `${res.data?.title || "Page"} - All Previous Paper Hub`
+          data?.seoDescription || `${data?.title || "Page"} - All Previous Paper Hub`
         ).trim();
-        const seoKeywords = String(res.data?.seoKeywords || "").trim();
-        const seoImage = resolveUrl(res.data?.seoImage || "");
+        const seoKeywords = String(data?.seoKeywords || "").trim();
+        const seoImage = resolveUrl(data?.seoImage || "");
         const canonical = String(
-          res.data?.canonicalUrl || `${window.location.origin}/page/${slug}`
+          data?.canonicalUrl || `${window.location.origin}/page/${slug}`
         ).trim();
 
         document.title = seoTitle;

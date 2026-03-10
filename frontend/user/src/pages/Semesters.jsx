@@ -1,5 +1,4 @@
 import { useNavigate, useParams, Link } from "react-router-dom";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -9,6 +8,7 @@ import { toRouteSegment } from "../utils/slugs";
 import { markSemesterFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
+import { getJson } from "../utils/http";
 
 export default function Semesters(){
 
@@ -55,8 +55,8 @@ export default function Semesters(){
         return;
       }
 
-      const semRes = await axios.get(`${API_BASE}/api/semesters/${course._id}`);
-      setList(semRes.data || []);
+      const semRes = await getJson(`${API_BASE}/api/semesters/${course._id}`);
+      setList(semRes || []);
     };
 
     load().catch(() => {

@@ -1,8 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveImageUrl } from "../config/api";
 import { getSettings, getUniversities } from "../utils/siteData";
+import { getJson } from "../utils/http";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
@@ -82,9 +82,8 @@ export default function Home() {
   }, [loadSettings, loadUniversities]);
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/api/signals/notices`)
-      .then(res => setNotices(Array.isArray(res.data) ? res.data : []))
+    getJson(`${API_BASE}/api/signals/notices`)
+      .then(data => setNotices(Array.isArray(data) ? data : []))
       .catch(() => setNotices([]));
   }, []);
 
@@ -238,13 +237,13 @@ export default function Home() {
           </div>
         )}
 
-        {renderText(homeTitle, homeTitleStyle, "h2")}
+        {renderText(homeTitle, homeTitleStyle, "h1")}
 
         {renderText(homeSubtitle, homeSubtitleStyle, "p")}
 
         <div className="home-section section-panel mt-4" style={{ background: sectionPanelBgColor || "#ffffff" }}>
           <div className="section-header">
-            <h4 className="section-title" style={sectionTitleStyle(universitiesTitleStyle)}>{universitiesSectionTitle}</h4>
+            <h2 className="section-title" style={sectionTitleStyle(universitiesTitleStyle)}>{universitiesSectionTitle}</h2>
             <div className="section-subtitle">{universitiesSectionSubtitle}</div>
           </div>
 
@@ -319,9 +318,9 @@ export default function Home() {
               style={{ background: sectionPanelBgColor || "#ffffff" }}
             >
               {section.title && (
-                <h4 className="section-title" style={sectionTitleStyle(section.titleStyle || {})}>
+                <h2 className="section-title" style={sectionTitleStyle(section.titleStyle || {})}>
                   {section.title}
-                </h4>
+                </h2>
               )}
               {section.description && (
                 <p className="section-subtitle" style={sectionDescriptionStyle(section.descriptionStyle || {})}>

@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
-import axios from "axios";
 
 import { API_BASE, resolveApiUrl } from "./config/api";
 import { AdsProvider } from "./context/AdsContext";
 import { getSettings } from "./utils/siteData";
+import { getJson } from "./utils/http";
 
 const Home = lazy(() => import("./pages/Home"));
 const Courses = lazy(() => import("./pages/Courses"));
@@ -18,6 +18,18 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DEFAULT_SITE_TITLE = "All Previous Paper Hub";
 const DEFAULT_SEO_DESCRIPTION =
   "All Previous Paper Hub - Previous year papers, notes, syllabus, and exam resources.";
+
+const normalizeExternalScriptSrc = src => {
+  const value = String(src || "").trim();
+  if (!value) return value;
+
+  const gtagMatch = value.match(/https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=([A-Za-z0-9_-]+)/i);
+  if (gtagMatch) {
+    return `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gtagMatch[1])}`;
+  }
+
+  return value;
+};
 
 const injectSnippetOnce = (snippet, target, key, attrName = "data-snippet") => {
   const value = String(snippet || "").trim();
@@ -42,7 +54,10 @@ const injectSnippetOnce = (snippet, target, key, attrName = "data-snippet") => {
       const oldScript = node;
       const script = document.createElement("script");
       Array.from(oldScript.attributes).forEach(attr => {
-        script.setAttribute(attr.name, attr.value);
+        script.setAttribute(
+          attr.name,
+          attr.name.toLowerCase() === "src" ? normalizeExternalScriptSrc(attr.value) : attr.value
+        );
       });
       script.text = oldScript.text || oldScript.textContent || "";
       script.setAttribute(attrName, `${key}-${idx}`);
@@ -70,10 +85,7 @@ function App() {
 
   useEffect(() => {
     const loadDeferredStyles = () => {
-      Promise.all([
-        import("bootstrap/dist/css/bootstrap.min.css"),
-        import("./deferred.css")
-      ]).catch(() => {});
+      import("./deferred.css").catch(() => {});
     };
 
     if ("requestIdleCallback" in window) {
@@ -88,21 +100,21 @@ function App() {
   useEffect(() => {
     const inject = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/ads-settings`);
+        const data = await getJson(`${API_BASE}/api/ads-settings`);
         setAdsSettings({
-          enabled: !!res.data?.enabled,
-          headScript: res.data?.headScript || "",
-          bodyScript: res.data?.bodyScript || "",
-          adsTxt: res.data?.adsTxt || ""
+          enabled: !!data?.enabled,
+          headScript: data?.headScript || "",
+          bodyScript: data?.bodyScript || "",
+          adsTxt: data?.adsTxt || ""
         });
-        if (!res.data || !res.data.enabled) return;
+        if (!data || !data.enabled) return;
 
-        if (res.data.headScript) {
-          injectSnippetOnce(res.data.headScript, document.head, "ads-head", "data-ads-snippet");
+        if (data.headScript) {
+          injectSnippetOnce(data.headScript, document.head, "ads-head", "data-ads-snippet");
         }
 
-        if (res.data.bodyScript) {
-          const snippet = String(res.data.bodyScript || "");
+        if (data.bodyScript) {
+          const snippet = String(data.bodyScript || "");
           const hasAdUnitMarkup = snippet.includes("<ins") || snippet.includes("adsbygoogle");
           if (!hasAdUnitMarkup) {
             injectSnippetOnce(snippet, document.body, "ads-body", "data-ads-snippet");

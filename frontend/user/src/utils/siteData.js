@@ -1,5 +1,5 @@
-import axios from "axios";
 import { API_BASE } from "../config/api";
+import { getJson } from "./http";
 
 const cache = new Map();
 const inflight = new Map();
@@ -17,10 +17,8 @@ const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } =
     return inflight.get(key);
   }
 
-  const request = axios
-    .get(url, { timeout: 12_000 })
-    .then(res => {
-      const value = res.data;
+  const request = getJson(url, { timeoutMs: 12_000 })
+    .then(value => {
       cache.set(key, { value, at: Date.now() });
       return value;
     })

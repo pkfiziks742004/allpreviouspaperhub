@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { API_BASE } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
+import { getArrayBuffer, getBlob, getJson } from "../utils/http";
 
 const defaultPaperOpenViewer = {
   pageBgColor: "#0f172a",
@@ -50,12 +50,12 @@ export default function PaperOpen() {
     const loadPaper = async () => {
       try {
         const [paperRes, settings] = await Promise.all([
-          axios.get(
+          getJson(
             `${API_BASE}/api/papers/resolve-route/${encodeURIComponent(universitySlug)}/${encodeURIComponent(courseSlug)}/${encodeURIComponent(semesterSlug)}/${encodeURIComponent(paperSlug)}`
           ),
           getSettings({ ttlMs: 45_000 }).catch(() => ({}))
         ]);
-        const resolvedPaper = paperRes?.data || null;
+        const resolvedPaper = paperRes || null;
 
         setPaper(resolvedPaper);
         setPaperOpenViewer({
@@ -115,12 +115,11 @@ export default function PaperOpen() {
     const loadViewerBlob = async () => {
       try {
         setViewerLoading(true);
-        const res = await axios.get(`${API_BASE}/api/papers/open-file/${paper._id}`, {
-          responseType: "arraybuffer",
-          timeout: 20000
+        const res = await getArrayBuffer(`${API_BASE}/api/papers/open-file/${paper._id}`, {
+          timeoutMs: 20000
         });
         if (!active) return;
-        const blob = new Blob([res.data], { type: "application/pdf" });
+        const blob = new Blob([res], { type: "application/pdf" });
         objectUrl = URL.createObjectURL(blob);
         setPdfBlobUrl(objectUrl);
       } catch (e) {
@@ -154,10 +153,7 @@ export default function PaperOpen() {
     if (!paper?._id || downloading) return;
     try {
       setDownloading(true);
-      const res = await axios.get(`${API_BASE}/api/papers/download-file/${paper._id}`, {
-        responseType: "blob"
-      });
-      const blob = new Blob([res.data], { type: "application/pdf" });
+      const blob = await getBlob(`${API_BASE}/api/papers/download-file/${paper._id}`);
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;

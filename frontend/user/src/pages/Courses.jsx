@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -8,6 +7,7 @@ import { toRouteSegment } from "../utils/slugs";
 import { markCourseFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
+import { postJson } from "../utils/http";
 
 export default function Courses(){
   const { universitySlug } = useParams();
@@ -117,7 +117,7 @@ export default function Courses(){
     if (trackedSearchRef.current.toLowerCase() === term.toLowerCase()) return;
 
     const timer = setTimeout(() => {
-      axios.post(`${API_BASE}/api/signals/search`, { term, source: "courses" }).catch(() => {});
+      postJson(`${API_BASE}/api/signals/search`, { term, source: "courses" }).catch(() => {});
       trackedSearchRef.current = term;
     }, 700);
 

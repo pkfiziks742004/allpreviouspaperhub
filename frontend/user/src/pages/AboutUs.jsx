@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
+import { getJson } from "../utils/http";
 
 const FALLBACK_SEO = {
   title: "About Us | Study Portal",
@@ -69,10 +69,10 @@ export default function AboutUs() {
       try {
         const [settingsRes, aboutRes] = await Promise.all([
           getSettings({ ttlMs: 45_000 }),
-          axios.get(`${API_BASE}/api/pages/slug/about`).catch(() => ({ data: null }))
+          getJson(`${API_BASE}/api/pages/slug/about`).catch(() => null)
         ]);
         const settings = settingsRes || {};
-        const about = aboutRes.data || null;
+        const about = aboutRes || null;
         if (!mounted) return;
         setManagedAbout(about);
         const context = { page: "about" };
