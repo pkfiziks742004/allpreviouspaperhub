@@ -5,8 +5,8 @@ import { API_BASE, resolveApiUrl } from "./config/api";
 import { AdsProvider } from "./context/AdsContext";
 import { getSettings } from "./utils/siteData";
 import { getJson } from "./utils/http";
+import Home from "./pages/Home";
 
-const Home = lazy(() => import("./pages/Home"));
 const Courses = lazy(() => import("./pages/Courses"));
 const Semesters = lazy(() => import("./pages/Semesters"));
 const Papers = lazy(() => import("./pages/Papers"));
