@@ -36,6 +36,7 @@ export default function Home() {
   const [notices, setNotices] = useState([]);
   const [deferredUiReady, setDeferredUiReady] = useState(false);
   const [expandedMobileCards, setExpandedMobileCards] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -126,19 +127,13 @@ export default function Home() {
   useEffect(() => {
     if (!isMobileView) {
       setExpandedMobileCards(true);
+      setExpandedSections({});
       return undefined;
     }
 
     setExpandedMobileCards(false);
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(() => {
-        setExpandedMobileCards(true);
-      }, { timeout: 3200 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-
-    const timer = window.setTimeout(() => setExpandedMobileCards(true), 2500);
-    return () => window.clearTimeout(timer);
+    setExpandedSections({});
+    return undefined;
   }, [isMobileView]);
 
   const renderText = (text, style, fallbackTag) => {
@@ -356,6 +351,17 @@ export default function Home() {
               </div>
             )}
           </div>
+          {isMobileView && !isSearchMode && visibleUniversities.length > 6 && (
+            <div className="home-section-action">
+              <button
+                type="button"
+                className="btn btn-outline-primary btn-sm"
+                onClick={() => setExpandedMobileCards(value => !value)}
+              >
+                {expandedMobileCards ? "Show less" : `Show all (${visibleUniversities.length})`}
+              </button>
+            </div>
+          )}
 
         </div>
 
@@ -368,7 +374,7 @@ export default function Home() {
             .filter(u => filteredUniversities.some(row => String(row._id) === String(u?._id || "")))
             .filter(Boolean);
           const displayedSectionUniversities =
-            isMobileView && !expandedMobileCards
+            isMobileView && !expandedSections[idx]
               ? sectionUniversities.slice(0, 4)
               : sectionUniversities;
 
@@ -439,6 +445,22 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              {isMobileView && sectionUniversities.length > 4 && isActive && !isComingSoon && (
+                <div className="home-section-action">
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() =>
+                      setExpandedSections(prev => ({
+                        ...prev,
+                        [idx]: !prev[idx]
+                      }))
+                    }
+                  >
+                    {expandedSections[idx] ? "Show less" : `Show all (${sectionUniversities.length})`}
+                  </button>
                 </div>
               )}
             </div>

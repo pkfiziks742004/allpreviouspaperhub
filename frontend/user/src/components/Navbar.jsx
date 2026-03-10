@@ -367,7 +367,7 @@ function Navbar() {
           )}
 
         <div ref={menuRef} className={`header-links${menuOpen ? " open" : ""}`}>
-          {isMobileView && (
+          {isMobileView && menuOpen && (
             <form className="header-search-form header-search-form-mobile d-lg-none" onSubmit={runSearch}>
               <span className="header-search-mobile-label">Find Fast</span>
               <input

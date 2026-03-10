@@ -1237,6 +1237,12 @@ img {
   gap: 6px;
 }
 
+.home-section-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
 .home-loading-shell {
   display: flex;
   flex-direction: column;
