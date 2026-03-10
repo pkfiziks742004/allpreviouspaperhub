@@ -873,13 +873,12 @@ img {
 
 .cards-grid {
   display: grid;
-  gap: 18px;
+  gap: 22px;
   align-items: stretch;
 }
 
 .cards-grid-4-6 {
-  /* Desktop default: 6 cards per row */
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 17vw, 214px), 1fr));
   justify-content: stretch;
 }
 
@@ -896,40 +895,69 @@ img {
 }
 
 .home-card {
+  position: relative;
   width: 100%;
-  min-height: clamp(330px, 25vw, 390px);
-  aspect-ratio: 0.82 / 1;
-  border-radius: 22px;
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  min-height: clamp(340px, 24vw, 392px);
+  aspect-ratio: 0.84 / 1;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 220, 232, 0.9);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98)),
-    radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 36%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(245, 248, 251, 0.98)),
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 34%),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.08), transparent 28%);
   box-shadow:
-    0 18px 30px rgba(15, 23, 42, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 22px 38px rgba(15, 23, 42, 0.08),
+    0 8px 16px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(14, 165, 233, 0.24);
+  box-shadow:
+    0 28px 48px rgba(15, 23, 42, 0.12),
+    0 10px 18px rgba(14, 165, 233, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+}
+
+.home-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 88px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  pointer-events: none;
 }
 
 .home-card-body {
   min-height: 100%;
-  padding: clamp(20px, 1.8vw, 26px) clamp(16px, 1.4vw, 22px);
+  padding: clamp(22px, 1.8vw, 28px) clamp(16px, 1.45vw, 22px) clamp(18px, 1.4vw, 24px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   align-items: start;
   justify-items: center;
-  gap: 16px;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .home-card-logo-slot {
-  width: clamp(96px, 62%, 138px);
-  min-height: clamp(88px, 7vw, 108px);
-  padding: clamp(10px, 1vw, 12px);
+  width: clamp(104px, 66%, 146px);
+  min-height: clamp(96px, 7.6vw, 116px);
+  padding: clamp(12px, 1vw, 14px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.95)),
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 55%);
+  border: 1px solid rgba(220, 228, 238, 0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    0 10px 18px rgba(15, 23, 42, 0.04);
 }
 
 .home-card-content {
@@ -939,17 +967,16 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
 }
 
 .home-card-title {
-  width: 100%;
-  max-width: 100%;
+  width: min(100%, 13ch);
   margin: 0;
   color: #0f172a;
   min-height: 2.45em;
   line-height: 1.14;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   font-weight: 800 !important;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -957,7 +984,8 @@ img {
   overflow: hidden;
   text-overflow: ellipsis;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  text-align: center;
 }
 
 .home-card-title--lg {
@@ -977,51 +1005,66 @@ img {
 }
 
 .home-card-subtitle {
-  width: 100%;
+  width: auto;
   margin: 0;
-  font-size: clamp(0.84rem, 0.84vw, 0.95rem) !important;
-  line-height: 1.15;
-  color: #526072;
-  font-weight: 500;
+  max-width: 100%;
+  font-size: clamp(0.8rem, 0.8vw, 0.92rem) !important;
+  line-height: 1.1;
+  color: #475569;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .home-card-badge {
   margin-top: auto !important;
-  min-width: min(100%, 136px);
+  min-width: min(100%, 144px);
   max-width: 100%;
-  min-height: 34px;
-  padding: 0.48rem 0.96rem;
-  font-size: 0.8rem;
+  min-height: 38px;
+  padding: 0.56rem 1.05rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   align-self: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 10px 18px rgba(245, 158, 11, 0.22);
 }
 
 @media (max-width: 991px) {
+  .cards-grid-4-6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .home-loading-panel {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .home-card {
-    min-height: 300px;
+    min-height: 292px;
     aspect-ratio: auto;
+    border-radius: 24px;
   }
 
   .home-card-body {
-    padding: 18px 14px;
+    padding: 18px 14px 16px;
     gap: 12px;
+  }
+
+  .home-card-logo-slot {
+    width: min(100%, 118px);
+    min-height: 90px;
   }
 
   .home-card-title {
     min-height: 2.5em;
     line-height: 1.12;
+    width: min(100%, 12ch);
   }
 
   .home-card-title--lg { font-size: 1.06rem !important; }
@@ -1118,24 +1161,27 @@ img {
   }
 
   .home-card {
-    min-height: 248px;
+    min-height: 250px;
     aspect-ratio: auto;
+    border-radius: 22px;
   }
 
   .home-card-body {
-    padding: 14px 10px;
+    padding: 14px 10px 12px;
     gap: 10px;
   }
 
   .home-card-logo-slot {
     width: 100%;
-    max-width: 92px;
-    min-height: 72px;
+    max-width: 88px;
+    min-height: 76px;
+    border-radius: 22px;
   }
 
   .home-card-title {
     min-height: 2.6em;
     line-height: 1.14;
+    width: min(100%, 11ch);
   }
 
   .home-card-title--lg { font-size: 0.96rem !important; }
@@ -1150,9 +1196,9 @@ img {
   .home-card-badge {
     width: 100%;
     min-width: 0;
-    min-height: 28px;
+    min-height: 32px;
     font-size: 0.72rem;
-    padding: 0.35rem 0.68rem;
+    padding: 0.42rem 0.72rem;
   }
 
   .cards-grid-item .modern-card {
