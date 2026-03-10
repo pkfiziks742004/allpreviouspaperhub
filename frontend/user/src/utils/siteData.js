@@ -5,7 +5,7 @@ const cache = new Map();
 const inflight = new Map();
 
 const DEFAULT_TTL_MS = 60 * 1000;
-const STORAGE_PREFIX = "site-data-cache:";
+const STORAGE_PREFIX = "site-data-cache:v2:";
 
 const canUseStorage = () => typeof window !== "undefined" && !!window.localStorage;
 

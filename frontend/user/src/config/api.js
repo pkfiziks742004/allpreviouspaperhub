@@ -3,15 +3,11 @@ const protocol = typeof window !== "undefined" ? window.location.protocol || "ht
 const localHosts = new Set(["localhost", "127.0.0.1", "::1"]);
 const defaultPort =
   import.meta.env.VITE_API_PORT || import.meta.env.REACT_APP_API_PORT || "5000";
-
-const productionApiHosts = new Map([
-  ["allpreviouspaperhub.in", "https://api.allpreviouspaperhub.in"],
-  ["www.allpreviouspaperhub.in", "https://api.allpreviouspaperhub.in"]
-]);
+const productionApiBase = "https://api.allpreviouspaperhub.in";
 
 const fallbackBase = localHosts.has(host)
   ? `${protocol}//${host}:${defaultPort}`
-  : productionApiHosts.get(host) || `${protocol}//${host}`;
+  : productionApiBase;
 
 export const API_BASE =
   import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || fallbackBase;
