@@ -218,10 +218,11 @@ export default function Home() {
     };
   };
 
-  const renderName = (text, style, fallbackTag) => {
+  const renderName = (text, style, fallbackTag, className = "") => {
     const Tag = style.variant || fallbackTag || "span";
     return (
       <Tag
+        className={className || undefined}
         style={{
           color: style.color || undefined,
           fontWeight: style.bold ? "700" : "normal",
@@ -304,7 +305,7 @@ export default function Home() {
             {displayedUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
-                  className="card modern-card modern-card--large h-100 text-center"
+                  className="card modern-card modern-card--large home-card h-100 text-center"
                   style={{ cursor: "pointer", ...buildCardStyle("university") }}
                   onClick={() => {
                     if (u.comingSoon) return;
@@ -313,26 +314,30 @@ export default function Home() {
                     navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
                   }}
                 >
-                  <div className="card-body">
-                    {u.logoUrl ? (
-                      <img
-                        src={resolveLogoUrl(u.logoUrl)}
-                        alt={u.name}
-                        className="card-logo"
-                        width="56"
-                        height="56"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <div className="card-logo-fallback">
-                        {(u.name || "").slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    {renderName(u.name, universityNameStyle, "h5")}
-                    <div className="card-subtitle" style={buildTextStyle("university")}>{u.type || "University"}</div>
+                  <div className="card-body home-card-body">
+                    <div className="home-card-logo-slot">
+                      {u.logoUrl ? (
+                        <img
+                          src={resolveLogoUrl(u.logoUrl)}
+                          alt={u.name}
+                          className="card-logo"
+                          width="56"
+                          height="56"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div className="card-logo-fallback">
+                          {(u.name || "").slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="home-card-content">
+                      {renderName(u.name, universityNameStyle, "h5", "home-card-title")}
+                      <div className="card-subtitle home-card-subtitle" style={buildTextStyle("university")}>{u.type || "University"}</div>
+                    </div>
                     {u.comingSoon && (
-                      <div className="badge bg-warning text-dark mt-2">
+                      <div className="badge bg-warning text-dark mt-2 home-card-badge">
                         {u.comingSoonText || "Coming soon"}
                       </div>
                     )}
@@ -405,7 +410,7 @@ export default function Home() {
                   {displayedSectionUniversities.map(u => (
                     <div key={u._id} className="cards-grid-item">
                       <div
-                        className="card modern-card modern-card--large h-100 text-center"
+                        className="card modern-card modern-card--large home-card h-100 text-center"
                         style={{ ...buildCardStyle("section"), cursor: "pointer" }}
                         onClick={() => {
                           if (u.comingSoon) return;
@@ -414,26 +419,30 @@ export default function Home() {
                           navigate(`/${uniSlug}`, { state: { fromUniversityClick: true } });
                         }}
                       >
-                        <div className="card-body">
-                          {u.logoUrl ? (
-                            <img
-                              src={resolveLogoUrl(u.logoUrl)}
-                              alt={u.name}
-                              className="card-logo"
-                              width="56"
-                              height="56"
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          ) : (
-                            <div className="card-logo-fallback">
-                              {(u.name || "").slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                          {renderName(u.name, universityNameStyle, "h5")}
-                          <div className="card-subtitle" style={buildTextStyle("section")}>{u.type || "University"}</div>
+                        <div className="card-body home-card-body">
+                          <div className="home-card-logo-slot">
+                            {u.logoUrl ? (
+                              <img
+                                src={resolveLogoUrl(u.logoUrl)}
+                                alt={u.name}
+                                className="card-logo"
+                                width="56"
+                                height="56"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              <div className="card-logo-fallback">
+                                {(u.name || "").slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                          <div className="home-card-content">
+                            {renderName(u.name, universityNameStyle, "h5", "home-card-title")}
+                            <div className="card-subtitle home-card-subtitle" style={buildTextStyle("section")}>{u.type || "University"}</div>
+                          </div>
                           {u.comingSoon && (
-                            <div className="badge bg-warning text-dark mt-2">
+                            <div className="badge bg-warning text-dark mt-2 home-card-badge">
                               {u.comingSoonText || "Coming soon"}
                             </div>
                           )}
