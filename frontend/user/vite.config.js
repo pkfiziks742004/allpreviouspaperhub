@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => {
   clientEnv.NODE_ENV = mode;
   return {
     plugins: [react({ include: /\.(js|jsx|ts|tsx)$/ })],
+    build: {
+      outDir: "build",
+      emptyOutDir: true
+    },
     envPrefix: ["VITE_", "REACT_APP_"],
     optimizeDeps: {
       esbuildOptions: {
