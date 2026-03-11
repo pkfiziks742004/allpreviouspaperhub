@@ -11,6 +11,8 @@ const fallbackBase = localHosts.has(host)
 
 export const API_BASE =
   import.meta.env.VITE_API_BASE || import.meta.env.REACT_APP_API_BASE || fallbackBase;
+export const PRODUCTION_API_BASE = productionApiBase;
+export const IS_LOCAL_HOST = localHosts.has(host);
 
 export const resolveApiUrl = url => {
   if (!url) return "";

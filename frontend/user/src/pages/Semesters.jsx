@@ -142,6 +142,14 @@ export default function Semesters(){
   const parsedMaxWidth = Number(cardStyle.maxWidth || 0);
   const safeCardMaxWidth = parsedMaxWidth >= 260 ? `${parsedMaxWidth}px` : undefined;
 
+  const getSemesterTitleClass = semesterName => {
+    const text = String(semesterName || "").trim();
+    const length = text.length;
+    if (length >= 28) return "semester-card-title semester-card-title--sm";
+    if (length >= 18) return "semester-card-title semester-card-title--md";
+    return "semester-card-title semester-card-title--lg";
+  };
+
   const getYearLabel = semesterName => {
     const raw = String(semesterName || "").toLowerCase().trim();
     const semesterPattern = /\b(?:sem(?:ester)?|s)\s*[-:/]?\s*(\d{1,2})\b/i;
@@ -250,10 +258,10 @@ export default function Semesters(){
                   <div className="semester-card-head">
                     {(() => {
                       const Tag = semesterNameStyle.variant || "h6";
-                      return <Tag style={cardTextStyle}>{s.name}</Tag>;
+                      return <Tag className={getSemesterTitleClass(s.name)} style={cardTextStyle}>{s.name}</Tag>;
                     })()}
                     {getYearLabel(s.name) && (
-                      <span className="semester-year-chip" style={{ color: cardStyle.textColor || "#334155" }}>
+                      <span className="semester-year-chip semester-year-chip--inline" style={{ color: cardStyle.textColor || "#334155" }}>
                         {getYearLabel(s.name)}
                       </span>
                     )}
@@ -320,10 +328,10 @@ export default function Semesters(){
                         <div className="semester-card-head">
                           {(() => {
                             const Tag = semesterNameStyle.variant || "h6";
-                            return <Tag style={cardTextStyle}>{s.name}</Tag>;
+                            return <Tag className={getSemesterTitleClass(s.name)} style={cardTextStyle}>{s.name}</Tag>;
                           })()}
                           {getYearLabel(s.name) && (
-                            <span className="semester-year-chip" style={{ color: cardStyle.textColor || "#334155" }}>
+                            <span className="semester-year-chip semester-year-chip--inline" style={{ color: cardStyle.textColor || "#334155" }}>
                               {getYearLabel(s.name)}
                             </span>
                           )}

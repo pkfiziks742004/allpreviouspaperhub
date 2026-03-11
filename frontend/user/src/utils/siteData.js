@@ -1,4 +1,4 @@
-import { API_BASE } from "../config/api";
+import { API_BASE, IS_LOCAL_HOST, PRODUCTION_API_BASE } from "../config/api";
 import { getJson } from "./http";
 
 const cache = new Map();
@@ -38,6 +38,19 @@ const writePersistent = (key, value) => {
   }
 };
 
+const isMeaningfulValue = value => {
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === "object") return Object.keys(value).length > 0;
+  return value != null && value !== "";
+};
+
+const shouldUseProductionFallback = (key, value) => {
+  if (!IS_LOCAL_HOST || API_BASE === PRODUCTION_API_BASE) return false;
+  if (key === "universities") return !Array.isArray(value) || value.length === 0;
+  if (key === "settings") return !isMeaningfulValue(value);
+  return false;
+};
+
 const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } = {}) => {
   const now = Date.now();
   const existing = cache.get(key);
@@ -58,7 +71,18 @@ const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } =
   }
 
   const request = getJson(url, { timeoutMs: 12_000 })
-    .then(value => {
+    .catch(error => {
+      if (!IS_LOCAL_HOST || API_BASE === PRODUCTION_API_BASE) {
+        throw error;
+      }
+      const fallbackUrl = url.replace(API_BASE, PRODUCTION_API_BASE);
+      return getJson(fallbackUrl, { timeoutMs: 12_000 });
+    })
+    .then(async value => {
+      if (shouldUseProductionFallback(key, value)) {
+        const fallbackUrl = url.replace(API_BASE, PRODUCTION_API_BASE);
+        value = await getJson(fallbackUrl, { timeoutMs: 12_000 });
+      }
       cache.set(key, { value, at: Date.now() });
       writePersistent(key, value);
       return value;

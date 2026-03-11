@@ -147,11 +147,11 @@ export default function Courses(){
     };
   };
 
-  const renderCourseName = name => {
+  const renderCourseName = (name, className = "") => {
     const Tag = courseNameStyle.variant || "h5";
     return (
       <Tag
-        className={Tag === "h5" ? "card-title" : ""}
+        className={[Tag === "h5" ? "card-title" : "", className].filter(Boolean).join(" ")}
         style={{
           ...buildTextStyle(),
           color: courseNameStyle.color || buildTextStyle().color,
@@ -165,6 +165,14 @@ export default function Courses(){
         {name}
       </Tag>
     );
+  };
+
+  const getCourseTitleClass = name => {
+    const text = String(name || "").trim();
+    const length = text.length;
+    if (length >= 34) return "course-card-title course-card-title--sm";
+    if (length >= 24) return "course-card-title course-card-title--md";
+    return "course-card-title course-card-title--lg";
   };
 
   const sectionTitleStyle = {
@@ -253,31 +261,34 @@ export default function Courses(){
           <h3 className="section-title-sm" style={sectionTitleStyle}>
             {selectedUniversity ? `${selectedUniversity.name} - ${coursesSectionTitle || "Courses"}` : coursesSectionTitle}
           </h3>
-        <input
-  type="text"
-  className="form-control mb-3"
-  placeholder="Search course..."
-  value={search}
-  onChange={(e)=>setSearch(e.target.value)}
-/>
+        <div className="course-search-wrap">
+          <input
+            type="text"
+            className="form-control course-search-input"
+            placeholder="Search course..."
+            value={search}
+            onChange={(e)=>setSearch(e.target.value)}
+          />
+        </div>
 
 
         <div className="cards-grid cards-grid-4-6">
 
-  {baseCourses.map(c => (
+        {baseCourses.map(c => (
 
 
     <div key={c._id} className="cards-grid-item">
 
-      <div className="card modern-card h-100 text-center" style={buildCardStyle()}>
+      <div className="card modern-card course-card course-card--large h-100 text-center" style={buildCardStyle()}>
 
-        <div className="card-body">
-
-          {renderCourseName(c.name)}
+        <div className="card-body course-card-body">
+          <div className="course-card-content">
+            {renderCourseName(c.name, getCourseTitleClass(c.name))}
+          </div>
 
           <button
             type="button"
-            className="btn btn-outline-primary btn-sm mt-3"
+            className="btn btn-outline-primary btn-sm course-card-btn"
             style={courseBtnStyle}
             onClick={() => {
               const targetPath = buildCoursePath(c);
@@ -299,8 +310,7 @@ export default function Courses(){
           >
             {getCourseButtonLabel(c)}
           </button>
-
-        </div>
+          </div>
 
       </div>
 
@@ -334,12 +344,14 @@ export default function Courses(){
               <div className="cards-grid cards-grid-4-6">
                 {block.sectionCourses.map(c => (
                   <div key={`sec-course-${c._id}`} className="cards-grid-item">
-                    <div className="card modern-card h-100 text-center" style={buildCardStyle()}>
-                      <div className="card-body">
-                        {renderCourseName(c.name)}
+                    <div className="card modern-card course-card course-card--large h-100 text-center" style={buildCardStyle()}>
+                      <div className="card-body course-card-body">
+                        <div className="course-card-content">
+                          {renderCourseName(c.name, getCourseTitleClass(c.name))}
+                        </div>
                         <button
                           type="button"
-                          className="btn btn-outline-primary btn-sm mt-3"
+                          className="btn btn-outline-primary btn-sm course-card-btn"
                           style={courseBtnStyle}
                           onClick={() => {
                             const targetPath = buildCoursePath(c);
