@@ -15,6 +15,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const AdsSettings = lazy(() => import("./pages/AdsSettings"));
 const AccountSettings = lazy(() => import("./pages/AccountSettings"));
 const FooterSettings = lazy(() => import("./pages/FooterSettings"));
+const FooterLogoSliderSettings = lazy(() => import("./pages/FooterLogoSliderSettings"));
 const Universities = lazy(() => import("./pages/Universities"));
 const TrafficSettings = lazy(() => import("./pages/TrafficSettings"));
 const HeaderSettings = lazy(() => import("./pages/HeaderSettings"));
@@ -54,6 +55,7 @@ const PROTECTED_ROUTES = [
   { path: "/semester-settings", element: <SemesterSettings /> },
   { path: "/account-settings", element: <AccountSettings /> },
   { path: "/footer-settings", element: <FooterSettings /> },
+  { path: "/footer-logo-slider-settings", element: <FooterLogoSliderSettings /> },
   { path: "/ads-settings", element: <AdsSettings /> },
   { path: "/pages", element: <Pages /> },
   { path: "/about-settings", element: <AboutSettings /> },
@@ -99,7 +101,19 @@ function App() {
           appTitleMeta.setAttribute("content", res.data.adminPageTitle);
         }
         if (res.data && res.data.faviconUrl) {
-          applyFavicon(resolveApiUrl(res.data.faviconUrl));
+          const resolvedFaviconUrl = resolveApiUrl(res.data.faviconUrl);
+          applyFavicon(resolvedFaviconUrl);
+          try {
+            localStorage.setItem("admin_favicon_cache", resolvedFaviconUrl);
+          } catch (e) {
+            // ignore storage errors
+          }
+        } else {
+          try {
+            localStorage.removeItem("admin_favicon_cache");
+          } catch (e) {
+            // ignore storage errors
+          }
         }
       } catch (e) {
         // ignore

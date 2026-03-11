@@ -10,6 +10,7 @@ const {
   uploadFooterLogo,
   uploadFooterBg,
   uploadFooterIcons,
+  uploadFooterLogoSliderItems,
   uploadFavicon,
   uploadOgImage,
   uploadBadgeImage,
@@ -95,6 +96,15 @@ router.post("/footer-bg", verifyAdmin, verifyPermission("footerSettings"), uploa
 
 // Admin: upload footer social icons
 router.post("/footer-icons", verifyAdmin, verifyPermission("footerSettings"), upload.array("footerIcons", 10), uploadFooterIcons);
+
+// Admin: upload footer logo slider items
+router.post(
+  "/footer-slider-items",
+  verifyAdmin,
+  verifyPermission("footerSettings"),
+  upload.array("footerSliderItems", 20),
+  uploadFooterLogoSliderItems
+);
 
 // Admin: upload favicon
 router.post("/favicon", verifyAdmin, verifyPermission("headerSettings"), upload.single("favicon"), uploadFavicon);

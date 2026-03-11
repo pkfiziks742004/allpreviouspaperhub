@@ -155,6 +155,18 @@ const normalizeBannerItem = item => {
   };
 };
 
+const normalizeFooterLogoSliderItem = item => {
+  const imageUrl = String(item?.imageUrl || item?.src || "").trim();
+  if (!imageUrl) return null;
+
+  return {
+    imageUrl,
+    name: String(item?.name || item?.title || item?.label || "").trim().slice(0, 120),
+    linkUrl: String(item?.linkUrl || item?.link || "").trim(),
+    openInNewTab: item?.openInNewTab !== undefined ? !!item.openInNewTab : true
+  };
+};
+
 const defaults = {
   siteName: "Study Portal",
   logoUrl: "",
@@ -227,6 +239,15 @@ const defaults = {
   footerText: "Study Portal",
   footerBgColor: "#212529",
   footerBgImage: "",
+  footerLogoSliderEnabled: false,
+  footerLogoSliderTitle: "Featured Universities & Partners",
+  footerLogoSliderBgColor: "#06141f",
+  footerLogoSliderTextColor: "#e2e8f0",
+  footerLogoSliderTrackBgColor: "rgba(255,255,255,0.06)",
+  footerLogoSliderSpeed: 28,
+  footerLogoSliderLogoHeight: 42,
+  footerLogoSliderPauseOnHover: true,
+  footerLogoSliderItems: [],
   footerLogoUrl: "",
   footerLogoHeight: 32,
   footerLogoAlign: "left",
@@ -524,6 +545,15 @@ const updateSettings = async (req, res) => {
       footerText: req.body.footerText,
       footerBgColor: req.body.footerBgColor,
       footerBgImage: req.body.footerBgImage,
+      footerLogoSliderEnabled: req.body.footerLogoSliderEnabled,
+      footerLogoSliderTitle: req.body.footerLogoSliderTitle,
+      footerLogoSliderBgColor: req.body.footerLogoSliderBgColor,
+      footerLogoSliderTextColor: req.body.footerLogoSliderTextColor,
+      footerLogoSliderTrackBgColor: req.body.footerLogoSliderTrackBgColor,
+      footerLogoSliderSpeed: req.body.footerLogoSliderSpeed,
+      footerLogoSliderLogoHeight: req.body.footerLogoSliderLogoHeight,
+      footerLogoSliderPauseOnHover: req.body.footerLogoSliderPauseOnHover,
+      footerLogoSliderItems: req.body.footerLogoSliderItems,
       footerLogoUrl: req.body.footerLogoUrl,
       footerLogoHeight: req.body.footerLogoHeight,
       footerLogoAlign: req.body.footerLogoAlign,
@@ -607,10 +637,53 @@ const updateSettings = async (req, res) => {
       payload.courseSections !== undefined
         ? sanitizeCourseSections(payload.courseSections)
         : defaults.courseSections;
+    const sanitizedFooterLogoSliderItems =
+      payload.footerLogoSliderItems !== undefined
+        ? (Array.isArray(payload.footerLogoSliderItems)
+            ? payload.footerLogoSliderItems.map(normalizeFooterLogoSliderItem).filter(Boolean)
+            : defaults.footerLogoSliderItems)
+        : defaults.footerLogoSliderItems;
 
     let settings = await Setting.findOne();
     if (!settings) {
-      settings = await Setting.create({ ...defaults, ...payload, courseSections: sanitizedCourseSections });
+      settings = await Setting.create({
+        ...defaults,
+        ...payload,
+        courseSections: sanitizedCourseSections,
+        footerLogoSliderEnabled:
+          typeof payload.footerLogoSliderEnabled === "boolean"
+            ? payload.footerLogoSliderEnabled
+            : defaults.footerLogoSliderEnabled,
+        footerLogoSliderTitle:
+          payload.footerLogoSliderTitle !== undefined
+            ? cleanText(payload.footerLogoSliderTitle, 120)
+            : defaults.footerLogoSliderTitle,
+        footerLogoSliderBgColor:
+          payload.footerLogoSliderBgColor !== undefined
+            ? cleanText(payload.footerLogoSliderBgColor, 40)
+            : defaults.footerLogoSliderBgColor,
+        footerLogoSliderTextColor:
+          payload.footerLogoSliderTextColor !== undefined
+            ? cleanText(payload.footerLogoSliderTextColor, 40)
+            : defaults.footerLogoSliderTextColor,
+        footerLogoSliderTrackBgColor:
+          payload.footerLogoSliderTrackBgColor !== undefined
+            ? cleanText(payload.footerLogoSliderTrackBgColor, 60)
+            : defaults.footerLogoSliderTrackBgColor,
+        footerLogoSliderSpeed:
+          payload.footerLogoSliderSpeed !== undefined
+            ? clamp(payload.footerLogoSliderSpeed, 8, 120, defaults.footerLogoSliderSpeed)
+            : defaults.footerLogoSliderSpeed,
+        footerLogoSliderLogoHeight:
+          payload.footerLogoSliderLogoHeight !== undefined
+            ? clamp(payload.footerLogoSliderLogoHeight, 24, 96, defaults.footerLogoSliderLogoHeight)
+            : defaults.footerLogoSliderLogoHeight,
+        footerLogoSliderPauseOnHover:
+          typeof payload.footerLogoSliderPauseOnHover === "boolean"
+            ? payload.footerLogoSliderPauseOnHover
+            : defaults.footerLogoSliderPauseOnHover,
+        footerLogoSliderItems: sanitizedFooterLogoSliderItems
+      });
     } else {
       const previousSettings = JSON.parse(JSON.stringify(settings || {}));
       const removedFiles = [];
@@ -704,6 +777,51 @@ const updateSettings = async (req, res) => {
       if (payload.footerBgImage !== undefined) {
         queueIfChanged(previousSettings.footerBgImage, payload.footerBgImage);
         settings.footerBgImage = payload.footerBgImage;
+      }
+      if (typeof payload.footerLogoSliderEnabled === "boolean") {
+        settings.footerLogoSliderEnabled = payload.footerLogoSliderEnabled;
+      }
+      if (payload.footerLogoSliderTitle !== undefined) {
+        settings.footerLogoSliderTitle = cleanText(payload.footerLogoSliderTitle, 120);
+      }
+      if (payload.footerLogoSliderBgColor !== undefined) {
+        settings.footerLogoSliderBgColor = cleanText(payload.footerLogoSliderBgColor, 40);
+      }
+      if (payload.footerLogoSliderTextColor !== undefined) {
+        settings.footerLogoSliderTextColor = cleanText(payload.footerLogoSliderTextColor, 40);
+      }
+      if (payload.footerLogoSliderTrackBgColor !== undefined) {
+        settings.footerLogoSliderTrackBgColor = cleanText(payload.footerLogoSliderTrackBgColor, 60);
+      }
+      if (payload.footerLogoSliderSpeed !== undefined) {
+        settings.footerLogoSliderSpeed = clamp(
+          payload.footerLogoSliderSpeed,
+          8,
+          120,
+          defaults.footerLogoSliderSpeed
+        );
+      }
+      if (payload.footerLogoSliderLogoHeight !== undefined) {
+        settings.footerLogoSliderLogoHeight = clamp(
+          payload.footerLogoSliderLogoHeight,
+          24,
+          96,
+          defaults.footerLogoSliderLogoHeight
+        );
+      }
+      if (typeof payload.footerLogoSliderPauseOnHover === "boolean") {
+        settings.footerLogoSliderPauseOnHover = payload.footerLogoSliderPauseOnHover;
+      }
+      if (payload.footerLogoSliderItems !== undefined) {
+        const prevItems = Array.isArray(previousSettings.footerLogoSliderItems)
+          ? previousSettings.footerLogoSliderItems
+          : [];
+        const prevUrls = new Set(prevItems.map(item => item?.imageUrl).filter(Boolean));
+        const nextUrls = new Set(sanitizedFooterLogoSliderItems.map(item => item.imageUrl));
+        prevUrls.forEach(url => {
+          if (!nextUrls.has(url)) removedFiles.push(url);
+        });
+        settings.footerLogoSliderItems = sanitizedFooterLogoSliderItems;
       }
       if (payload.footerLogoUrl !== undefined) {
         queueIfChanged(previousSettings.footerLogoUrl, payload.footerLogoUrl);
@@ -1036,6 +1154,52 @@ const uploadFooterIcons = async (req, res) => {
   }
 };
 
+const uploadFooterLogoSliderItems = async (req, res) => {
+  try {
+    const files = req.files || [];
+    if (files.length === 0) return res.status(400).json("No files");
+
+    const uploadedItems = await Promise.all(
+      files.map(file =>
+        uploadBufferToCloudinary({
+          buffer: file.buffer,
+          mimeType: file.mimetype,
+          folder: "study-portal/settings/footer-logo-slider",
+          resourceType: "image"
+        })
+      )
+    );
+
+    const newItems = uploadedItems
+      .map(item =>
+        normalizeFooterLogoSliderItem({
+          imageUrl: item.secure_url,
+          openInNewTab: true
+        })
+      )
+      .filter(Boolean);
+
+    let settings = await Setting.findOne();
+    if (!settings) {
+      settings = await Setting.create({
+        ...defaults,
+        footerLogoSliderEnabled: true,
+        footerLogoSliderItems: newItems
+      });
+    } else {
+      settings.footerLogoSliderItems = [...(settings.footerLogoSliderItems || []), ...newItems];
+      settings.footerLogoSliderEnabled = true;
+      await settings.save();
+    }
+
+    invalidateSettingsCache();
+    emitSettingsChanged();
+    return res.json(settings);
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
+};
+
 const uploadFavicon = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json("No file");
@@ -1129,6 +1293,7 @@ module.exports = {
   uploadFooterLogo,
   uploadFooterBg,
   uploadFooterIcons,
+  uploadFooterLogoSliderItems,
   uploadFavicon,
   uploadOgImage,
   uploadBadgeImage,

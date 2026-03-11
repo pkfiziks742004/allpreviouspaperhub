@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { resolveApiUrl, resolveImageUrl } from "../config/api";
 import { getRatingSummary, getSettings } from "../utils/siteData";
 
-export default function Footer() {
+export default function Footer({ flushTop = false }) {
   const [avg, setAvg] = useState(0);
   const [footerText, setFooterText] = useState("Study Portal");
   const [ratingEnabled, setRatingEnabled] = useState(true);
@@ -129,7 +129,7 @@ export default function Footer() {
 
   return (
     <footer
-      className="site-footer"
+      className={`site-footer${flushTop ? " site-footer--flush-top" : ""}`}
       style={{
         backgroundColor: footerBgColor,
         backgroundImage: footerBgImage ? `url(${resolveUrl(footerBgImage)})` : undefined,

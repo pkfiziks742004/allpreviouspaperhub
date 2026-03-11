@@ -12,6 +12,44 @@ const defaultTextStyle = {
   variant: "p"
 };
 
+const toTwoDigitHex = value => Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0");
+
+const normalizeColorInputValue = (value, fallback = "#ffffff") => {
+  const raw = String(value || "").trim();
+  const normalizedFallback = /^#([0-9a-f]{6})$/i.test(fallback) ? fallback.toLowerCase() : "#ffffff";
+
+  if (/^#([0-9a-f]{3})$/i.test(raw)) {
+    const [, shortHex] = raw.match(/^#([0-9a-f]{3})$/i);
+    return `#${shortHex
+      .split("")
+      .map(char => `${char}${char}`)
+      .join("")
+      .toLowerCase()}`;
+  }
+
+  if (/^#([0-9a-f]{6})$/i.test(raw)) {
+    return raw.toLowerCase();
+  }
+
+  if (/^#([0-9a-f]{8})$/i.test(raw)) {
+    return `#${raw.slice(1, 7).toLowerCase()}`;
+  }
+
+  const rgbaMatch = raw.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbaMatch) {
+    const [red, green, blue] = rgbaMatch[1]
+      .split(",")
+      .slice(0, 3)
+      .map(channel => Number.parseFloat(channel.trim()));
+
+    if ([red, green, blue].every(channel => Number.isFinite(channel))) {
+      return `#${toTwoDigitHex(red)}${toTwoDigitHex(green)}${toTwoDigitHex(blue)}`;
+    }
+  }
+
+  return normalizedFallback;
+};
+
 export default function FooterSettings() {
   const [footerText, setFooterText] = useState("");
   const [footerStyle, setFooterStyle] = useState({ ...defaultTextStyle, color: "#ffffff", align: "center" });
@@ -285,7 +323,7 @@ export default function FooterSettings() {
           <input
             type="color"
             className="form-control form-control-color"
-            value={footerStyle.color || "#ffffff"}
+            value={normalizeColorInputValue(footerStyle.color, "#ffffff")}
             onChange={e => setFooterStyle({ ...footerStyle, color: e.target.value })}
           />
         </div>
@@ -393,7 +431,7 @@ export default function FooterSettings() {
                   <input
                     type="color"
                     className="form-control form-control-color"
-                    value={footerNamePart1Color}
+                    value={normalizeColorInputValue(footerNamePart1Color, "#ffffff")}
                     onChange={e => setFooterNamePart1Color(e.target.value)}
                   />
                 </div>
@@ -413,7 +451,7 @@ export default function FooterSettings() {
                   <input
                     type="color"
                     className="form-control form-control-color"
-                    value={footerNamePart2Color}
+                    value={normalizeColorInputValue(footerNamePart2Color, "#fbbf24")}
                     onChange={e => setFooterNamePart2Color(e.target.value)}
                   />
                 </div>
@@ -427,7 +465,7 @@ export default function FooterSettings() {
           <input
             type="color"
             className="form-control form-control-color"
-            value={footerBgColor}
+            value={normalizeColorInputValue(footerBgColor, "#212529")}
             onChange={e => setFooterBgColor(e.target.value)}
           />
         </div>
@@ -650,7 +688,7 @@ export default function FooterSettings() {
               <input
                 type="color"
                 className="form-control form-control-color"
-                value={footerSocialIconBgColor}
+                value={normalizeColorInputValue(footerSocialIconBgColor, "#ffffff")}
                 onChange={e => setFooterSocialIconBgColor(e.target.value)}
               />
             </div>
@@ -659,7 +697,7 @@ export default function FooterSettings() {
               <input
                 type="color"
                 className="form-control form-control-color"
-                value={footerSocialIconBorderColor}
+                value={normalizeColorInputValue(footerSocialIconBorderColor, "#ffffff")}
                 onChange={e => setFooterSocialIconBorderColor(e.target.value)}
               />
             </div>
@@ -757,7 +795,7 @@ export default function FooterSettings() {
               <input
                 type="color"
                 className="form-control form-control-color"
-                value={footerRatingNoteTextColor}
+                value={normalizeColorInputValue(footerRatingNoteTextColor, "#ffffff")}
                 onChange={e => setFooterRatingNoteTextColor(e.target.value)}
               />
             </div>
@@ -790,7 +828,7 @@ export default function FooterSettings() {
               <input
                 type="color"
                 className="form-control form-control-color"
-                value={footerContactTextStyle.color || "#ffffff"}
+                value={normalizeColorInputValue(footerContactTextStyle.color, "#ffffff")}
                 onChange={e => setFooterContactTextStyle({ ...footerContactTextStyle, color: e.target.value })}
               />
             </div>
@@ -854,20 +892,20 @@ export default function FooterSettings() {
           <div className="mb-3">
             <label className="form-label">Copyright Background Color</label>
             <input
-              type="color"
-              className="form-control form-control-color"
-              value={copyrightColor}
-              onChange={e => setCopyrightColor(e.target.value)}
-            />
+                type="color"
+                className="form-control form-control-color"
+                value={normalizeColorInputValue(copyrightColor, "#f8f9fa")}
+                onChange={e => setCopyrightColor(e.target.value)}
+              />
           </div>
           <div className="mb-3">
             <label className="form-label">Copyright Text Color</label>
             <input
-              type="color"
-              className="form-control form-control-color"
-              value={copyrightTextColor}
-              onChange={e => setCopyrightTextColor(e.target.value)}
-            />
+                type="color"
+                className="form-control form-control-color"
+                value={normalizeColorInputValue(copyrightTextColor, "#000000")}
+                onChange={e => setCopyrightTextColor(e.target.value)}
+              />
           </div>
           <div className="mb-3">
             <label className="form-label">Copyright Height (px)</label>

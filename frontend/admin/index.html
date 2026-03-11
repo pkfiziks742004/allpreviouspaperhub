@@ -6,9 +6,9 @@
     <meta id="dynamic-mobile-title" name="apple-mobile-web-app-title" content="Admin Panel All Previous Paper Hub" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Admin panel" />
-    <link id="dynamic-favicon" rel="icon" href="/favicon.ico" />
-    <link id="dynamic-shortcut-icon" rel="shortcut icon" href="/favicon.ico" />
-    <link id="dynamic-apple-touch-icon" rel="apple-touch-icon" href="/favicon.ico" />
+    <link id="dynamic-favicon" rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link id="dynamic-shortcut-icon" rel="shortcut icon" href="/favicon.svg" />
+    <link id="dynamic-apple-touch-icon" rel="apple-touch-icon" href="/favicon.svg" />
     <script>
       (function () {
         try {
@@ -17,6 +17,18 @@
             document.title = cachedTitle.trim();
             var mobileTitle = document.getElementById("dynamic-mobile-title");
             if (mobileTitle) mobileTitle.setAttribute("content", cachedTitle.trim());
+          }
+
+          var cachedFavicon = localStorage.getItem("admin_favicon_cache");
+          if (cachedFavicon && cachedFavicon.trim()) {
+            var links = [
+              document.getElementById("dynamic-favicon"),
+              document.getElementById("dynamic-shortcut-icon"),
+              document.getElementById("dynamic-apple-touch-icon")
+            ];
+            links.forEach(function (link) {
+              if (link) link.setAttribute("href", cachedFavicon.trim());
+            });
           }
         } catch (e) {}
       })();

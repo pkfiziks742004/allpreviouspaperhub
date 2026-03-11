@@ -6,6 +6,7 @@ import { getJson } from "../utils/http";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
+import FooterLogoSlider from "../components/FooterLogoSlider";
 import Footer from "../components/Footer";
 import RatingPopup from "../components/RatingPopup";
 import AdSlot from "../components/AdSlot";
@@ -332,8 +333,9 @@ export default function Home() {
             {displayedUniversities.map(u => (
               <div key={u._id} className="cards-grid-item">
                 <div
-                  className="card modern-card modern-card--large home-card h-100 text-center"
-                  style={{ cursor: "pointer", ...buildCardStyle("university") }}
+                  className={`card modern-card modern-card--large home-card h-100 text-center${u.comingSoon ? " card-state-coming-soon" : ""}`}
+                  style={{ cursor: u.comingSoon ? "not-allowed" : "pointer", ...buildCardStyle("university") }}
+                  aria-disabled={u.comingSoon ? "true" : undefined}
                   onClick={() => {
                     if (u.comingSoon) return;
                     const uniSlug = toRouteSegment(u.name, "university");
@@ -439,8 +441,9 @@ export default function Home() {
                   {displayedSectionUniversities.map(u => (
                     <div key={u._id} className="cards-grid-item">
                       <div
-                        className="card modern-card modern-card--large home-card h-100 text-center"
-                        style={{ ...buildCardStyle("section"), cursor: "pointer" }}
+                        className={`card modern-card modern-card--large home-card h-100 text-center${u.comingSoon ? " card-state-coming-soon" : ""}`}
+                        style={{ ...buildCardStyle("section"), cursor: u.comingSoon ? "not-allowed" : "pointer" }}
+                        aria-disabled={u.comingSoon ? "true" : undefined}
                         onClick={() => {
                           if (u.comingSoon) return;
                           const uniSlug = toRouteSegment(u.name, "university");
@@ -507,8 +510,13 @@ export default function Home() {
       </div>
       </div>
 
-      <div className="footer-top-gap" />
-      {deferredUiReady && <Footer />}
+      {deferredUiReady && (
+        <div className="mt-4">
+          <FooterLogoSlider flush />
+        </div>
+      )}
+
+      {deferredUiReady && <Footer flushTop />}
     </div>
   );
 }

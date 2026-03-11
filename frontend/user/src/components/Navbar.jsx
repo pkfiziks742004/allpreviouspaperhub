@@ -187,7 +187,7 @@ function Navbar() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (isMobileView || !alertEnabled || !alertText) {
+    if (!alertEnabled || !alertText) {
       setAlertRepeatCount(2);
       return;
     }
@@ -211,7 +211,7 @@ function Navbar() {
     computeRepeatCount();
     window.addEventListener("resize", computeRepeatCount);
     return () => window.removeEventListener("resize", computeRepeatCount);
-  }, [alertEnabled, alertText, alertFontSize, alertStyle, alertMarqueeGap, isMobileView]);
+  }, [alertEnabled, alertText, alertFontSize, alertStyle, alertMarqueeGap]);
 
   const nameStyle = {
     color: siteNameStyle.color || "#ffffff",
@@ -452,40 +452,34 @@ function Navbar() {
               "--alert-marquee-direction": alertMarqueeDirection === "ltr" ? "reverse" : "normal"
             }}
           >
-            {isMobileView ? (
-              <div className="site-alert-mobile" style={alertTextStyle}>
+            <div ref={alertMarqueeRef} className="site-alert-marquee">
+              <span ref={alertMeasureRef} className="site-alert-measure" style={alertTextStyle}>
                 {alertText}
+              </span>
+              <div className="site-alert-track">
+                {(() => {
+                  const AlertTag = alertStyle.variant || "p";
+                  return (
+                    <>
+                      <div className="site-alert-sequence">
+                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                          <AlertTag key={`alert-a-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                            {alertText}
+                          </AlertTag>
+                        ))}
+                      </div>
+                      <div className="site-alert-sequence" aria-hidden="true">
+                        {Array.from({ length: alertRepeatCount }).map((_, idx) => (
+                          <AlertTag key={`alert-b-${idx}`} className="site-alert-item" style={alertTextStyle}>
+                            {alertText}
+                          </AlertTag>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
-            ) : (
-              <div ref={alertMarqueeRef} className="site-alert-marquee">
-                <span ref={alertMeasureRef} className="site-alert-measure" style={alertTextStyle}>
-                  {alertText}
-                </span>
-                <div className="site-alert-track">
-                  {(() => {
-                    const AlertTag = alertStyle.variant || "p";
-                    return (
-                      <>
-                        <div className="site-alert-sequence">
-                          {Array.from({ length: alertRepeatCount }).map((_, idx) => (
-                            <AlertTag key={`alert-a-${idx}`} className="site-alert-item" style={alertTextStyle}>
-                              {alertText}
-                            </AlertTag>
-                          ))}
-                        </div>
-                        <div className="site-alert-sequence" aria-hidden="true">
-                          {Array.from({ length: alertRepeatCount }).map((_, idx) => (
-                            <AlertTag key={`alert-b-${idx}`} className="site-alert-item" style={alertTextStyle}>
-                              {alertText}
-                            </AlertTag>
-                          ))}
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         )}
       </div>

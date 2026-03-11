@@ -74,6 +74,7 @@ const NAV_GROUPS = [
       { key: "questionPaperSettings", to: "/question-paper-settings", icon: MdEvent, label: "Question Paper Settings" },
       { key: "semesterSettings", to: "/semester-settings", icon: MdEvent, label: "Semester Settings" },
       { key: "footerSettings", to: "/footer-settings", icon: MdInfo, label: "Footer Settings" },
+      { key: "footerSettings", to: "/footer-logo-slider-settings", icon: MdImage, label: "Footer Logo Slider" },
       { key: "pages", to: "/pages", icon: MdArticle, label: "Pages" },
       { key: "pages", to: "/about-settings", icon: MdArticle, label: "About Settings" },
       { key: "pages", to: "/privacy-policy-settings", icon: MdArticle, label: "Privacy Policy Settings" },
@@ -105,6 +106,7 @@ function getPageTitle(pathname) {
   if (pathname.includes("/course-settings")) return "Course Settings";
   if (pathname.includes("/question-paper-settings")) return "Question Paper Settings";
   if (pathname.includes("/semester-settings")) return "Semester Settings";
+  if (pathname.includes("/footer-logo-slider-settings")) return "Footer Logo Slider";
   if (pathname.includes("/footer-settings")) return "Footer Settings";
   if (pathname.includes("/course-sections")) return "Course Sections";
   if (pathname.includes("/card-settings")) return "Card Settings";

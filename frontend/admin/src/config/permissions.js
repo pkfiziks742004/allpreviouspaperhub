@@ -39,6 +39,7 @@ export const PATH_PERMISSION_MAP = [
   { pathPrefix: "/course-settings", key: "courseSettings" },
   { pathPrefix: "/question-paper-settings", key: "questionPaperSettings" },
   { pathPrefix: "/semester-settings", key: "semesterSettings" },
+  { pathPrefix: "/footer-logo-slider-settings", key: "footerSettings" },
   { pathPrefix: "/footer-settings", key: "footerSettings" },
   { pathPrefix: "/pages", key: "pages" },
   { pathPrefix: "/about-settings", key: "pages" },

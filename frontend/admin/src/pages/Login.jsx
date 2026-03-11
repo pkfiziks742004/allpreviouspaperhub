@@ -28,7 +28,12 @@ export default function Login(){
       nav(role === "sub_admin" ? "/sub-admin/dashboard" : "/admin/dashboard");
 
     }catch(err){
-      alert(err?.response?.data || "Invalid Login");
+      const message =
+        err?.response?.data ||
+        (err?.request
+          ? "Backend server se connection nahi ho pa raha. Ensure karo ki backend localhost:5000 par chal raha ho."
+          : "Invalid Login");
+      alert(message);
     }
   };
 
