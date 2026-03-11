@@ -9,6 +9,7 @@ import { markPaperFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSemesters, getSettings, getUniversities } from "../utils/siteData";
 import { getJson, ping, postJson } from "../utils/http";
+import { getPapersDisplayLabel } from "../utils/entityTypeLabels";
 
 export default function Papers(){
 
@@ -114,9 +115,9 @@ export default function Papers(){
         context,
         fallback: {
           title:
-            selectedSemester?.name && selectedCourse?.name
-              ? `${selectedSemester.name} Papers | ${selectedCourse.name}`
-              : "Question Papers",
+            selectedUniversity?.name && selectedSemester?.name
+              ? `${selectedUniversity.name} ${selectedSemester.name} ${getPapersDisplayLabel(selectedUniversity?.type)}`
+              : getPapersDisplayLabel(selectedUniversity?.type),
           canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}/${semesterSlug || ""}`
         }
       });
@@ -182,6 +183,21 @@ export default function Papers(){
     textAlign: questionPapersTitleStyle.align || "left",
     fontSize: questionPapersTitleStyle.size ? `${questionPapersTitleStyle.size}px` : undefined
   };
+  const papersDisplayLabel = getPapersDisplayLabel(selectedUniversity?.type);
+  const semesterContainsCourseName =
+    selectedCourse?.name &&
+    selectedSemester?.name &&
+    String(selectedSemester.name).toLowerCase().includes(String(selectedCourse.name).toLowerCase());
+  const papersHeading = [
+    selectedUniversity?.name,
+    semesterContainsCourseName ? null : selectedCourse?.name,
+    selectedSemester?.name,
+    papersDisplayLabel
+  ]
+    .filter(Boolean)
+    .join(" - ");
+  const paperSearchPlaceholder =
+    papersDisplayLabel === "Exam Papers" ? "Search exam paper..." : "Search question paper...";
 
   const hasGradient = questionPaperCardStyle.gradientStart && questionPaperCardStyle.gradientEnd;
   const cardBackground = hasGradient
@@ -213,14 +229,14 @@ export default function Papers(){
         <AdSlot className="mb-3" label="Sponsored" />
 
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
-          <h3 style={titleStyle}>{questionPapersSectionTitle}</h3>
+          <h3 style={titleStyle}>{papersHeading}</h3>
 
           <div className="papers-search-panel mb-3">
             <div className="papers-filters">
               <div className="papers-filter-item">
                 <input
                   type="text"
-                  placeholder="Search Paper..."
+                  placeholder={paperSearchPlaceholder}
                   className="form-control papers-filter-input"
                   value={search}
                   onChange={e => setSearch(e.target.value)}

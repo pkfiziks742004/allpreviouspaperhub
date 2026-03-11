@@ -192,6 +192,13 @@
   opacity: 0.95;
 }
 
+.footer-col ul,
+.footer-col .list-unstyled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .footer-col li {
   margin-bottom: 8px;
 }

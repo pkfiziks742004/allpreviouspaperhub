@@ -160,6 +160,22 @@ export default function Home() {
     return "other";
   };
 
+  const prioritizeAvailableUniversities = list => {
+    const available = [];
+    const comingSoon = [];
+
+    (list || []).forEach(item => {
+      if (item?.comingSoon) {
+        comingSoon.push(item);
+        return;
+      }
+
+      available.push(item);
+    });
+
+    return [...available, ...comingSoon];
+  };
+
   const filteredUniversities = universities.filter(u => {
     const matchesText =
       !searchQuery ||
@@ -182,11 +198,13 @@ export default function Home() {
   const sectionFilteredUniversities = filteredUniversities.filter(
     uni => !assignedUniversityIds.has(String(uni._id || ""))
   );
-  const visibleUniversities = isSearchMode
+  const visibleUniversities = prioritizeAvailableUniversities(
+    isSearchMode
     ? filteredUniversities
     : sectionFilteredUniversities.length > 0
       ? sectionFilteredUniversities
-      : filteredUniversities;
+      : filteredUniversities
+  );
   const displayedUniversities =
     isMobileView && !expandedMobileCards && !isSearchMode
       ? visibleUniversities.slice(0, 6)
@@ -379,10 +397,12 @@ export default function Home() {
           const sectionType = String(section?.sectionType || "").toLowerCase() || "course";
           if (sectionType !== "university") return null;
 
-          const sectionUniversities = ((section.itemIds || section.courseIds || []))
-            .map(id => universities.find(u => String(u._id) === String(id)))
-            .filter(u => filteredUniversities.some(row => String(row._id) === String(u?._id || "")))
-            .filter(Boolean);
+          const sectionUniversities = prioritizeAvailableUniversities(
+            ((section.itemIds || section.courseIds || []))
+              .map(id => universities.find(u => String(u._id) === String(id)))
+              .filter(u => filteredUniversities.some(row => String(row._id) === String(u?._id || "")))
+              .filter(Boolean)
+          );
           const displayedSectionUniversities =
             isMobileView && !expandedSections[idx]
               ? sectionUniversities.slice(0, 4)

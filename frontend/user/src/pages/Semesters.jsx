@@ -9,6 +9,7 @@ import { markSemesterFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 import { getJson } from "../utils/http";
+import { getSemestersDisplayLabel } from "../utils/entityTypeLabels";
 
 export default function Semesters(){
 
@@ -99,8 +100,8 @@ export default function Semesters(){
         fallback: {
           title:
             selectedUniversity?.name && selectedCourse?.name
-              ? `${selectedCourse.name} | ${selectedUniversity.name}`
-              : "Semesters",
+              ? `${selectedUniversity.name} ${selectedCourse.name} ${getSemestersDisplayLabel(selectedUniversity?.type)}`
+              : getSemestersDisplayLabel(selectedUniversity?.type),
           canonicalPath: `/${universitySlug || ""}/${courseSlug || ""}`
         }
       });
@@ -114,6 +115,14 @@ export default function Semesters(){
     textAlign: titleStyle.align || "left",
     fontSize: titleStyle.size ? `${titleStyle.size}px` : undefined
   };
+  const semestersDisplayLabel = getSemestersDisplayLabel(selectedUniversity?.type);
+  const semestersHeading = [
+    selectedUniversity?.name,
+    selectedCourse?.name,
+    semestersDisplayLabel
+  ]
+    .filter(Boolean)
+    .join(" - ");
 
   const cardTextStyle = {
     color: semesterNameStyle.color || cardStyle.textColor || "#0f172a",
@@ -238,7 +247,7 @@ export default function Semesters(){
         <AdSlot className="mb-3" label="Sponsored" />
 
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
-          <h3 style={titleTextStyle}>{title}</h3>
+          <h3 style={titleTextStyle}>{semestersHeading}</h3>
 
         <div className="cards-grid cards-grid-4-6 semesters-grid">
 

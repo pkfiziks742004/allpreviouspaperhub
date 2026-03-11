@@ -8,6 +8,7 @@ import { markCourseFlow } from "../utils/navigationFlow";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 import { postJson } from "../utils/http";
+import { getCoursesDisplayLabel, getEntityTypeKey } from "../utils/entityTypeLabels";
 
 export default function Courses(){
   const { universitySlug } = useParams();
@@ -34,6 +35,17 @@ export default function Courses(){
   const [selectedUniversity, setSelectedUniversity] = useState(null);
   const [universitiesLoaded, setUniversitiesLoaded] = useState(false);
   const trackedSearchRef = useRef("");
+
+  const courseCollectionLabel = getCoursesDisplayLabel(selectedUniversity?.type);
+  const coursesHeading = selectedUniversity?.name
+    ? `${selectedUniversity.name} - ${courseCollectionLabel}`
+    : courseCollectionLabel;
+  const courseSearchPlaceholder =
+    courseCollectionLabel === "Subjects"
+      ? "Search subject..."
+      : courseCollectionLabel === "Exam Papers"
+        ? "Search exam paper..."
+        : "Search course...";
 
 
   useEffect(()=>{
@@ -104,12 +116,12 @@ export default function Courses(){
         pageKey: "courses",
         context,
         fallback: {
-          title: selectedUniversity?.name ? `${selectedUniversity.name} Courses` : "Courses",
+          title: selectedUniversity?.name ? `${selectedUniversity.name} ${courseCollectionLabel}` : courseCollectionLabel,
           canonicalPath: `/${universitySlug || ""}`
         }
       });
     }
-  }, [selectedUniversity, settingsSnapshot, universitySlug]);
+  }, [courseCollectionLabel, selectedUniversity, settingsSnapshot, universitySlug]);
 
   useEffect(() => {
     const term = search.trim();
@@ -193,21 +205,12 @@ export default function Courses(){
     borderColor: courseButtonStyle.bgColor || undefined
   };
 
-  const getTypeKey = type => {
-    const t = String(type || "").toLowerCase();
-    if (t.includes("entrance")) return "entranceExam";
-    if (t.includes("school")) return "school";
-    if (t.includes("college")) return "college";
-    if (t.includes("university")) return "university";
-    return "other";
-  };
-
   const getCourseButtonLabel = course => {
     if (course && course.buttonLabel && String(course.buttonLabel).trim()) {
       return course.buttonLabel;
     }
     const uni = universities.find(u => String(u._id) === String(course.universityId));
-    const key = getTypeKey(uni && uni.type);
+    const key = getEntityTypeKey(uni && uni.type);
     return (typeActionLabels && typeActionLabels[key]) || "View Semesters";
   };
 
@@ -259,13 +262,13 @@ export default function Courses(){
 
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
           <h3 className="section-title-sm" style={sectionTitleStyle}>
-            {selectedUniversity ? `${selectedUniversity.name} - ${coursesSectionTitle || "Courses"}` : coursesSectionTitle}
+            {coursesHeading}
           </h3>
         <div className="course-search-wrap">
           <input
             type="text"
             className="form-control course-search-input"
-            placeholder="Search course..."
+            placeholder={courseSearchPlaceholder}
             value={search}
             onChange={(e)=>setSearch(e.target.value)}
           />
