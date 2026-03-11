@@ -1935,3 +1935,216 @@ img {
     height: 12px;
   }
 }
+ .papers-search-panel {
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.papers-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 252, 0.92));
+  border: 1px solid rgba(189, 206, 224, 0.7);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.papers-filter-item {
+  min-width: 0;
+}
+
+.papers-filter-input.form-control {
+  width: 100%;
+  min-height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(186, 198, 212, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  color: #10233f;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0 18px;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.papers-filter-input.form-control::placeholder {
+  color: #6c7a90;
+}
+
+.papers-filter-input.form-control:focus {
+  border-color: rgba(16, 132, 185, 0.65);
+  box-shadow: 0 0 0 4px rgba(28, 148, 217, 0.12), inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  outline: none;
+}
+
+.papers-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.paper-row-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(200, 212, 224, 0.72);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 252, 0.94));
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.paper-row-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(92, 124, 158, 0.38);
+  box-shadow: 0 24px 42px rgba(15, 23, 42, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.paper-row-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paper-row-title {
+  min-width: 0;
+  color: #12233f;
+  font-size: clamp(1rem, 1.12vw, 1.14rem);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.paper-row-title > * {
+  display: block;
+  min-width: 0;
+}
+
+.paper-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.paper-row-year,
+.paper-row-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(218, 232, 244, 0.65);
+  color: #39506e;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.paper-open-btn.btn {
+  min-width: 190px;
+  min-height: 48px;
+  padding: 0.78rem 1.15rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #1976d2, #265ce5);
+  color: #fff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  box-shadow: 0 14px 28px rgba(38, 92, 229, 0.22);
+}
+
+.paper-open-btn.btn:hover,
+.paper-open-btn.btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 30px rgba(38, 92, 229, 0.28);
+}
+
+.papers-empty-state {
+  border-radius: 22px;
+  padding: 28px 24px;
+  text-align: center;
+  color: #52627a;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba(175, 190, 207, 0.85);
+}
+
+@media (max-width: 991px) {
+  .papers-filters {
+    grid-template-columns: minmax(0, 1fr) 150px;
+  }
+
+  .paper-row-card {
+    gap: 16px;
+    padding: 16px 16px;
+  }
+
+  .paper-open-btn.btn {
+    min-width: 170px;
+  }
+}
+
+@media (max-width: 767px) {
+  .papers-filters {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .papers-filter-year {
+    width: 100%;
+  }
+
+  .papers-filter-input.form-control {
+    min-height: 50px;
+    border-radius: 16px;
+    font-size: 0.96rem;
+    padding: 0 15px;
+  }
+
+  .paper-row-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px 14px;
+    border-radius: 20px;
+  }
+
+  .paper-row-main {
+    gap: 9px;
+  }
+
+  .paper-row-title {
+    font-size: 0.96rem;
+  }
+
+  .paper-row-meta {
+    gap: 8px;
+  }
+
+  .paper-row-year,
+  .paper-row-count {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .paper-open-btn.btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    font-size: 0.92rem;
+    padding: 0.72rem 1rem;
+  }
+
+  .papers-empty-state {
+    padding: 22px 18px;
+    border-radius: 18px;
+    font-size: 0.94rem;
+  }
+}

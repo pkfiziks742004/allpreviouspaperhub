@@ -214,7 +214,7 @@ export default function Papers(){
                 <input
                   type="text"
                   placeholder="Search Paper..."
-                  className="form-control"
+                  className="form-control papers-filter-input"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
@@ -224,7 +224,7 @@ export default function Papers(){
                 <input
                   type="number"
                   placeholder="Year"
-                  className="form-control"
+                  className="form-control papers-filter-input"
                   maxLength={4}
                   value={yearFilter}
                   onChange={e => setYearFilter(String(e.target.value || "").slice(0, 4))}
@@ -237,14 +237,20 @@ export default function Papers(){
             {filteredPapers.map(p => (
               <div
                 key={p._id}
-                className="card shadow-sm paper-row-card mb-2"
+                className="paper-row-card mb-2"
                 style={{
                   background: cardBackground,
                   minHeight: questionPaperCardStyle.minHeight ? `${questionPaperCardStyle.minHeight}px` : undefined
                 }}
               >
-                <div className="paper-row-title">
-                  {renderPaperTitle(p)}
+                <div className="paper-row-main">
+                  <div className="paper-row-title">
+                    {renderPaperTitle(p)}
+                  </div>
+
+                  <div className="paper-row-meta">
+                    <span className="paper-row-year">{p.year}</span>
+                  </div>
                 </div>
 
                 <button
@@ -269,7 +275,7 @@ export default function Papers(){
                     e.currentTarget.style.borderColor = questionPaperButtonStyle.bgColor || "";
                   }}
                 >
-                  Open Paper ({p.downloads || 0})
+                  Open Paper
                 </button>
               </div>
             ))}
