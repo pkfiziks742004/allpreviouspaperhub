@@ -28,6 +28,7 @@ export default function Papers(){
   const [questionPaperButtonStyle, setQuestionPaperButtonStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [settingsSnapshot, setSettingsSnapshot] = useState(null);
+  const [visiblePaperCount, setVisiblePaperCount] = useState(6);
   const trackedSearchRef = useRef("");
 
   useEffect(()=>{
@@ -143,12 +144,18 @@ export default function Papers(){
     return () => clearTimeout(timer);
   }, [search]);
 
+  useEffect(() => {
+    setVisiblePaperCount(6);
+  }, [papers, search, yearFilter]);
+
 
   // 🔍 Filtered Papers
   const filteredPapers = papers.filter(p =>
     p.title.toLowerCase().includes(search.toLowerCase()) &&
     (yearFilter === "" || String(p.year) === String(yearFilter))
   );
+
+  const visiblePapers = filteredPapers.slice(0, visiblePaperCount);
 
   const renderPaperTitle = p => {
     const Tag = paperNameStyle.variant || "span";
@@ -163,7 +170,7 @@ export default function Papers(){
           width: "100%"
         }}
       >
-        {p.title} ({p.year})
+        {p.title}
       </Tag>
     );
   };
@@ -234,7 +241,7 @@ export default function Papers(){
           </div>
 
           <div className="papers-list-panel">
-            {filteredPapers.map(p => (
+            {visiblePapers.map(p => (
               <div
                 key={p._id}
                 className="paper-row-card mb-2"
@@ -279,6 +286,17 @@ export default function Papers(){
                 </button>
               </div>
             ))}
+            {visiblePaperCount < filteredPapers.length && (
+              <div className="papers-load-more-wrap">
+                <button
+                  type="button"
+                  className="btn papers-load-more-btn"
+                  onClick={() => setVisiblePaperCount(prev => prev + 6)}
+                >
+                  Load More Papers
+                </button>
+              </div>
+            )}
             {filteredPapers.length === 0 && (
               <div className="papers-empty-state">
                 Koi paper match nahi mila. Search ya year filter change karke dekhein.
