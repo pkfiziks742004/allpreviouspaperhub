@@ -22,6 +22,8 @@
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <link rel="dns-prefetch" href="//api.allpreviouspaperhub.in" />
     <link rel="preconnect" href="https://api.allpreviouspaperhub.in" crossorigin />
+    <link rel="dns-prefetch" href="//res.cloudinary.com" />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="canonical" href="https://www.allpreviouspaperhub.in/" />
     <script type="application/ld+json">
       {
@@ -41,6 +43,38 @@
     <link id="dynamic-apple-touch-icon" rel="apple-touch-icon" href="/favicon.svg" />
     <script>
       (function () {
+        var bootstrapDataKey = "__APP_BOOTSTRAP_DATA__";
+        var bootstrapPromisesKey = "__APP_BOOTSTRAP_PROMISES__";
+        var host = window.location.hostname || "localhost";
+        var protocol = window.location.protocol || "http:";
+        var localHosts = { localhost: true, "127.0.0.1": true, "::1": true };
+        var apiBase = localHosts[host] ? protocol + "//" + host + ":5000" : "https://api.allpreviouspaperhub.in";
+
+        window[bootstrapDataKey] = window[bootstrapDataKey] || {};
+        window[bootstrapPromisesKey] = window[bootstrapPromisesKey] || {};
+
+        function prime(key, url) {
+          if (window[bootstrapPromisesKey][key]) return;
+          window[bootstrapPromisesKey][key] = fetch(url, { mode: "cors" })
+            .then(function (response) {
+              if (!response.ok) return null;
+              return response.json();
+            })
+            .then(function (data) {
+              if (data != null) {
+                window[bootstrapDataKey][key] = data;
+              }
+
+              return data;
+            })
+            .catch(function () {
+              return null;
+            });
+        }
+
+        prime("settings", apiBase + "/api/settings");
+        prime("universities", apiBase + "/api/universities");
+
         try {
           var cachedTitle = localStorage.getItem("user_page_title_cache");
           var cachedDescription = localStorage.getItem("user_seo_description_cache");

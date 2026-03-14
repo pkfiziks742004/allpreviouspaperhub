@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { resolveImageUrl } from "../config/api";
-import { getSettings } from "../utils/siteData";
+import { getSettings, peekSettings } from "../utils/siteData";
 import { useDeviceProfile } from "../utils/useDeviceProfile";
 const SIMPLE_BADGE_SHAPES = new Set(["custom", "pill", "square", "rounded-square", "soft-rounded"]);
+
+const initialSettings = peekSettings() || {};
+const initialBannerItems = Array.isArray(initialSettings.bannerItems) && initialSettings.bannerItems.length > 0
+  ? initialSettings.bannerItems
+  : (Array.isArray(initialSettings.bannerImages) ? initialSettings.bannerImages.map(src => ({ imageUrl: src })) : []);
 
 const getSimpleBadgeShapeStyle = (shape, radius) => {
   if (shape === "pill") return { borderRadius: "999px" };
@@ -12,12 +17,54 @@ const getSimpleBadgeShapeStyle = (shape, radius) => {
   return { borderRadius: `${Number(radius || 8)}px` };
 };
 
+const normalizeBannerItems = rawItems =>
+  (rawItems || [])
+    .map(item => {
+      const imageUrl = String(item?.imageUrl || item?.src || item || "").trim();
+      if (!imageUrl) return null;
+      return {
+        imageUrl,
+        linkUrl: String(item?.linkUrl || "").trim(),
+        openInNewTab: !!item?.openInNewTab,
+        fitMode: ["cover", "contain", "fill"].includes(String(item?.fitMode || "").toLowerCase())
+          ? String(item.fitMode).toLowerCase()
+          : "cover",
+        badgeEnabled: item?.badgeEnabled !== undefined ? !!item.badgeEnabled : !!String(item?.badgeText || "").trim(),
+        badgeText: String(item?.badgeText || "").trim(),
+        badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
+        badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
+        mobileBadgeTop: Number.isFinite(Number(item?.mobileBadgeTop)) ? Number(item.mobileBadgeTop) : 12,
+        mobileBadgeLeft: Number.isFinite(Number(item?.mobileBadgeLeft)) ? Number(item.mobileBadgeLeft) : 12,
+        badgeBgColor: item?.badgeBgColor || "#ef4444",
+        badgeTextColor: item?.badgeTextColor || "#ffffff",
+        badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
+        badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
+        badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
+        badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
+        badgeShape: String(item?.badgeShape || "custom").toLowerCase().trim() || "custom",
+        badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
+        badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0,
+        badgeUseImage: !!item?.badgeUseImage,
+        badgeImageUrl: String(item?.badgeImageUrl || "").trim(),
+        badgeImageSize: Number.isFinite(Number(item?.badgeImageSize)) ? Number(item.badgeImageSize) : 18,
+        badgeBorderWidth: Number.isFinite(Number(item?.badgeBorderWidth)) ? Number(item.badgeBorderWidth) : 0,
+        badgeBorderColor: item?.badgeBorderColor || "#ffffff",
+        badgeOutlineWidth: Number.isFinite(Number(item?.badgeOutlineWidth)) ? Number(item.badgeOutlineWidth) : 0,
+        badgeOutlineColor: item?.badgeOutlineColor || "#1e293b",
+        badgeShadowX: Number.isFinite(Number(item?.badgeShadowX)) ? Number(item.badgeShadowX) : 0,
+        badgeShadowY: Number.isFinite(Number(item?.badgeShadowY)) ? Number(item.badgeShadowY) : 6,
+        badgeShadowBlur: Number.isFinite(Number(item?.badgeShadowBlur)) ? Number(item.badgeShadowBlur) : 14,
+        badgeShadowColor: item?.badgeShadowColor || "#0f172a66"
+      };
+    })
+    .filter(Boolean);
+
 export default function Banner() {
   const deviceProfile = useDeviceProfile();
-  const [items, setItems] = useState([]);
-  const [ready, setReady] = useState(false);
-  const [bannerMargin, setBannerMargin] = useState(0);
-  const [bannerRadius, setBannerRadius] = useState(0);
+  const [items, setItems] = useState(() => normalizeBannerItems(initialBannerItems));
+  const [ready, setReady] = useState(initialBannerItems.length > 0);
+  const [bannerMargin, setBannerMargin] = useState(Number(initialSettings.bannerMargin || 0));
+  const [bannerRadius, setBannerRadius] = useState(Number(initialSettings.bannerRadius || 0));
   const [badgeScaleMap, setBadgeScaleMap] = useState({});
   const [activeIndex, setActiveIndex] = useState(0);
   const [badgeShapeHelpers, setBadgeShapeHelpers] = useState(null);
@@ -42,56 +89,18 @@ export default function Banner() {
     });
 
   useEffect(() => {
+    if (!initialBannerItems.length) return;
+    setItems(normalizeBannerItems(initialBannerItems));
+  }, []);
+
+  useEffect(() => {
     getSettings({ ttlMs: 45_000 })
       .then(data => {
         const rawItems =
           Array.isArray(data?.bannerItems) && data.bannerItems.length > 0
             ? data.bannerItems
             : (Array.isArray(data?.bannerImages) ? data.bannerImages.map(src => ({ imageUrl: src })) : []);
-        const normalized = rawItems
-          .map(item => {
-            const imageUrl = String(item?.imageUrl || item?.src || item || "").trim();
-            if (!imageUrl) return null;
-            return {
-              imageUrl,
-              linkUrl: String(item?.linkUrl || "").trim(),
-              openInNewTab: !!item?.openInNewTab,
-              fitMode: ["cover", "contain", "fill"].includes(String(item?.fitMode || "").toLowerCase())
-                ? String(item.fitMode).toLowerCase()
-                : "cover",
-              badgeEnabled: item?.badgeEnabled !== undefined ? !!item.badgeEnabled : !!String(item?.badgeText || "").trim(),
-              badgeText: String(item?.badgeText || "").trim(),
-              badgeTop: Number.isFinite(Number(item?.badgeTop)) ? Number(item.badgeTop) : 16,
-              badgeLeft: Number.isFinite(Number(item?.badgeLeft)) ? Number(item.badgeLeft) : 16,
-              mobileBadgeTop: Number.isFinite(Number(item?.mobileBadgeTop))
-                ? Number(item.mobileBadgeTop)
-                : 12,
-              mobileBadgeLeft: Number.isFinite(Number(item?.mobileBadgeLeft))
-                ? Number(item.mobileBadgeLeft)
-                : 12,
-              badgeBgColor: item?.badgeBgColor || "#ef4444",
-              badgeTextColor: item?.badgeTextColor || "#ffffff",
-              badgeFontSize: Number.isFinite(Number(item?.badgeFontSize)) ? Number(item.badgeFontSize) : 14,
-              badgeRadius: Number.isFinite(Number(item?.badgeRadius)) ? Number(item.badgeRadius) : 8,
-              badgePaddingX: Number.isFinite(Number(item?.badgePaddingX)) ? Number(item.badgePaddingX) : 10,
-              badgePaddingY: Number.isFinite(Number(item?.badgePaddingY)) ? Number(item.badgePaddingY) : 6,
-              badgeShape: String(item?.badgeShape || "custom").toLowerCase().trim() || "custom",
-              badgeWidth: Number.isFinite(Number(item?.badgeWidth)) ? Number(item.badgeWidth) : 0,
-              badgeHeight: Number.isFinite(Number(item?.badgeHeight)) ? Number(item.badgeHeight) : 0,
-              badgeUseImage: !!item?.badgeUseImage,
-              badgeImageUrl: String(item?.badgeImageUrl || "").trim(),
-              badgeImageSize: Number.isFinite(Number(item?.badgeImageSize)) ? Number(item.badgeImageSize) : 18,
-              badgeBorderWidth: Number.isFinite(Number(item?.badgeBorderWidth)) ? Number(item.badgeBorderWidth) : 0,
-              badgeBorderColor: item?.badgeBorderColor || "#ffffff",
-              badgeOutlineWidth: Number.isFinite(Number(item?.badgeOutlineWidth)) ? Number(item.badgeOutlineWidth) : 0,
-              badgeOutlineColor: item?.badgeOutlineColor || "#1e293b",
-              badgeShadowX: Number.isFinite(Number(item?.badgeShadowX)) ? Number(item.badgeShadowX) : 0,
-              badgeShadowY: Number.isFinite(Number(item?.badgeShadowY)) ? Number(item.badgeShadowY) : 6,
-              badgeShadowBlur: Number.isFinite(Number(item?.badgeShadowBlur)) ? Number(item.badgeShadowBlur) : 14,
-              badgeShadowColor: item?.badgeShadowColor || "#0f172a66"
-            };
-          })
-          .filter(Boolean);
+        const normalized = normalizeBannerItems(rawItems);
         setItems(normalized);
         if (data && data.bannerMargin !== undefined) {
           setBannerMargin(Number(data.bannerMargin || 0));
@@ -158,7 +167,15 @@ export default function Banner() {
     return () => window.clearInterval(timer);
   }, [isMobileView, items.length]);
 
-  if (!ready || items.length === 0) return null;
+  if (!ready && items.length === 0) {
+    return (
+      <div className="banner-shell" style={{ margin: "0 auto", width: "100%" }}>
+        <div className="banner-frame" style={{ borderRadius: `${bannerRadius}px`, overflow: "hidden" }} />
+      </div>
+    );
+  }
+
+  if (items.length === 0) return null;
 
   const bannerShellStyle =
     safeMargin > 0

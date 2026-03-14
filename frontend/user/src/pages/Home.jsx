@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_BASE, resolveImageUrl } from "../config/api";
-import { getSettings, getUniversities } from "../utils/siteData";
+import { getSettings, getUniversities, peekSettings, peekUniversities } from "../utils/siteData";
 import { getJson } from "../utils/http";
 
 import Navbar from "../components/Navbar";
@@ -16,23 +16,35 @@ import { useDeferredUiReady } from "../utils/deferredUi";
 import { useDeviceProfile } from "../utils/useDeviceProfile";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
+const initialSettings = peekSettings() || {};
+const initialUniversities = peekUniversities() || [];
+const hasInitialSettings = Object.keys(initialSettings).length > 0;
+const hasInitialUniversities = Array.isArray(initialUniversities) && initialUniversities.length > 0;
+const DEFAULT_HOME_TITLE = initialSettings.homeTitle || "Welcome to All Previous Paper Hub";
+const DEFAULT_HOME_SUBTITLE =
+  initialSettings.homeSubtitle || "Download question papers, notes, and syllabus in one place.";
+const DEFAULT_UNIVERSITIES_TITLE =
+  initialSettings.universitiesSectionTitle || "Universities / Colleges / Schools / Entrance Exam";
+const DEFAULT_UNIVERSITIES_SUBTITLE =
+  initialSettings.universitiesSectionSubtitle || "Select a card to view its courses.";
+
 export default function Home() {
   const deviceProfile = useDeviceProfile();
   const location = useLocation();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [universities, setUniversities] = useState([]);
-  const [homeTitle, setHomeTitle] = useState("");
-  const [homeSubtitle, setHomeSubtitle] = useState("");
-  const [homeTitleStyle, setHomeTitleStyle] = useState({});
-  const [homeSubtitleStyle, setHomeSubtitleStyle] = useState({});
-  const [courseSections, setCourseSections] = useState([]);
-  const [cardStyles, setCardStyles] = useState({});
-  const [universityNameStyle, setUniversityNameStyle] = useState({});
-  const [universitiesSectionTitle, setUniversitiesSectionTitle] = useState("");
-  const [universitiesSectionSubtitle, setUniversitiesSectionSubtitle] = useState("");
-  const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState({});
-  const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
+  const [loading, setLoading] = useState(!(hasInitialSettings && hasInitialUniversities));
+  const [universities, setUniversities] = useState(initialUniversities);
+  const [homeTitle, setHomeTitle] = useState(DEFAULT_HOME_TITLE);
+  const [homeSubtitle, setHomeSubtitle] = useState(DEFAULT_HOME_SUBTITLE);
+  const [homeTitleStyle, setHomeTitleStyle] = useState(initialSettings.homeTitleStyle || {});
+  const [homeSubtitleStyle, setHomeSubtitleStyle] = useState(initialSettings.homeSubtitleStyle || {});
+  const [courseSections, setCourseSections] = useState(Array.isArray(initialSettings.courseSections) ? initialSettings.courseSections : []);
+  const [cardStyles, setCardStyles] = useState(initialSettings.cardStyles || {});
+  const [universityNameStyle, setUniversityNameStyle] = useState(initialSettings.universityNameStyle || {});
+  const [universitiesSectionTitle, setUniversitiesSectionTitle] = useState(DEFAULT_UNIVERSITIES_TITLE);
+  const [universitiesSectionSubtitle, setUniversitiesSectionSubtitle] = useState(DEFAULT_UNIVERSITIES_SUBTITLE);
+  const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState(initialSettings.universitiesTitleStyle || {});
+  const [sectionPanelBgColor, setSectionPanelBgColor] = useState(initialSettings.sectionPanelBgColor || "#ffffff");
   const [notices, setNotices] = useState([]);
   const [expandedMobileCards, setExpandedMobileCards] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
@@ -287,10 +299,17 @@ export default function Home() {
           enabled={deferredUiReady}
           timeoutMs={isConstrainedMobile ? 1800 : isMobileView ? 900 : 0}
         />
+        {renderText(homeTitle, homeTitleStyle, "h1")}
+
+        {renderText(homeSubtitle, homeSubtitleStyle, "p")}
         {loading ? (
           <div className="home-loading-shell">
-            <div className="home-loading-title shimmer-block" />
-            <div className="home-loading-subtitle shimmer-block" />
+            <div className="section-header">
+              <h2 className="section-title" style={sectionTitleStyle(universitiesTitleStyle)}>
+                {universitiesSectionTitle}
+              </h2>
+              <div className="section-subtitle">{universitiesSectionSubtitle}</div>
+            </div>
             <div className="home-loading-panel">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div key={`home-skeleton-${idx}`} className="home-loading-card shimmer-block" />
@@ -308,11 +327,6 @@ export default function Home() {
             ))}
           </div>
         )}
-
-        {renderText(homeTitle, homeTitleStyle, "h1")}
-
-        {renderText(homeSubtitle, homeSubtitleStyle, "p")}
-
         <div className="home-section section-panel mt-4" style={{ background: sectionPanelBgColor || "#ffffff" }}>
           <div className="section-header">
             <h2 className="section-title" style={sectionTitleStyle(universitiesTitleStyle)}>{universitiesSectionTitle}</h2>

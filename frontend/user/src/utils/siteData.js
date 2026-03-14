@@ -6,8 +6,25 @@ const inflight = new Map();
 
 const DEFAULT_TTL_MS = 60 * 1000;
 const STORAGE_PREFIX = "site-data-cache:v2:";
+const BOOTSTRAP_DATA_KEY = "__APP_BOOTSTRAP_DATA__";
+const BOOTSTRAP_PROMISES_KEY = "__APP_BOOTSTRAP_PROMISES__";
 
 const canUseStorage = () => typeof window !== "undefined" && !!window.localStorage;
+const canUseWindow = () => typeof window !== "undefined";
+
+const readBootstrapValue = key => {
+  if (!canUseWindow()) return null;
+  const source = window[BOOTSTRAP_DATA_KEY];
+  if (!source || typeof source !== "object") return null;
+  return key in source ? source[key] : null;
+};
+
+const readBootstrapPromise = key => {
+  if (!canUseWindow()) return null;
+  const source = window[BOOTSTRAP_PROMISES_KEY];
+  if (!source || typeof source !== "object") return null;
+  return source[key] instanceof Promise ? source[key] : null;
+};
 
 const readPersistent = key => {
   if (!canUseStorage()) return null;
@@ -51,6 +68,12 @@ const shouldUseProductionFallback = (key, value) => {
   return false;
 };
 
+const storeResolvedValue = (key, value) => {
+  cache.set(key, { value, at: Date.now() });
+  writePersistent(key, value);
+  return value;
+};
+
 const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } = {}) => {
   const now = Date.now();
   const existing = cache.get(key);
@@ -64,28 +87,44 @@ const fetchCached = async (key, url, { ttlMs = DEFAULT_TTL_MS, force = false } =
       cache.set(key, persistent);
       return persistent.value;
     }
+
+    const bootstrapValue = readBootstrapValue(key);
+    if (isMeaningfulValue(bootstrapValue) || Array.isArray(bootstrapValue)) {
+      return storeResolvedValue(key, bootstrapValue);
+    }
   }
 
   if (inflight.has(key)) {
     return inflight.get(key);
   }
 
-  const request = getJson(url, { timeoutMs: 12_000 })
-    .catch(error => {
+  const loadFromNetwork = () =>
+    getJson(url, { timeoutMs: 12_000 }).catch(error => {
       if (!IS_LOCAL_HOST || API_BASE === PRODUCTION_API_BASE) {
         throw error;
       }
       const fallbackUrl = url.replace(API_BASE, PRODUCTION_API_BASE);
       return getJson(fallbackUrl, { timeoutMs: 12_000 });
-    })
+    });
+
+  const bootstrapPromise = !force ? readBootstrapPromise(key) : null;
+
+  const request = Promise.resolve(
+    bootstrapPromise
+      ? bootstrapPromise.then(value => {
+          if (isMeaningfulValue(value) || Array.isArray(value)) {
+            return value;
+          }
+          return loadFromNetwork();
+        })
+      : loadFromNetwork()
+  )
     .then(async value => {
       if (shouldUseProductionFallback(key, value)) {
         const fallbackUrl = url.replace(API_BASE, PRODUCTION_API_BASE);
         value = await getJson(fallbackUrl, { timeoutMs: 12_000 });
       }
-      cache.set(key, { value, at: Date.now() });
-      writePersistent(key, value);
-      return value;
+      return storeResolvedValue(key, value);
     })
     .finally(() => {
       inflight.delete(key);
@@ -102,6 +141,20 @@ export const getUniversities = options => fetchCached("universities", `${API_BAS
 export const getCourses = options => fetchCached("courses", `${API_BASE}/api/courses`, options);
 export const getSemesters = options => fetchCached("semesters", `${API_BASE}/api/semesters`, options);
 export const getPapers = options => fetchCached("papers", `${API_BASE}/api/papers`, options);
+export const peekCachedValue = key => {
+  const existing = cache.get(key);
+  if (existing) return existing.value;
+
+  const bootstrapValue = readBootstrapValue(key);
+  if (isMeaningfulValue(bootstrapValue) || Array.isArray(bootstrapValue)) {
+    return bootstrapValue;
+  }
+
+  const persistent = readPersistent(key);
+  return persistent?.value ?? null;
+};
+export const peekSettings = () => peekCachedValue("settings");
+export const peekUniversities = () => peekCachedValue("universities");
 
 export const clearSiteDataCache = key => {
   if (!key) {

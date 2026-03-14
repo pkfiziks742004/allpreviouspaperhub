@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { resolveImageUrl } from "../config/api";
-import { getSettings } from "../utils/siteData";
+import { getSettings, peekSettings } from "../utils/siteData";
 import { useDeviceProfile } from "../utils/useDeviceProfile";
+
+const initialSettings = peekSettings() || {};
 
 function Navbar() {
   const deviceProfile = useDeviceProfile();
@@ -13,34 +15,33 @@ function Navbar() {
   const toggleRef = useRef(null);
   const alertMarqueeRef = useRef(null);
   const alertMeasureRef = useRef(null);
-  const [siteName, setSiteName] = useState("Study Portal");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [logoHeight, setLogoHeight] = useState(32);
-  const [headerHeight, setHeaderHeight] = useState(56);
-  const [headerColor, setHeaderColor] = useState("#0d6efd");
-  const [headerLinks, setHeaderLinks] = useState([]);
-  const [headerLinkColor, setHeaderLinkColor] = useState("#ffffff");
-  const [headerLinkHoverColor, setHeaderLinkHoverColor] = useState("#fbbf24");
-  const [headerMenuIconColor, setHeaderMenuIconColor] = useState("#ffffff");
-  const [headerMenuBgColor, setHeaderMenuBgColor] = useState("#0f172a");
-  const [headerMenuTextColor, setHeaderMenuTextColor] = useState("#f8fafc");
-  const [alertEnabled, setAlertEnabled] = useState(false);
-  const [alertText, setAlertText] = useState("");
-  const [alertColor, setAlertColor] = useState("#fff3cd");
-  const [alertHeight, setAlertHeight] = useState(32);
-  const [alertFontSize, setAlertFontSize] = useState(14);
-  const [alertMarqueeDirection, setAlertMarqueeDirection] = useState("rtl");
-  const [alertMarqueeSpeed, setAlertMarqueeSpeed] = useState(18);
-  const [alertMarqueeGap, setAlertMarqueeGap] = useState(2);
-  const [alertStyle, setAlertStyle] = useState({});
-  const [siteNameStyle, setSiteNameStyle] = useState({});
-  const [useSplitColor, setUseSplitColor] = useState(false);
-  const [siteNamePart1, setSiteNamePart1] = useState("");
-  const [siteNamePart1Color, setSiteNamePart1Color] = useState("#ffffff");
-  const [siteNamePart2, setSiteNamePart2] = useState("");
-  const [siteNamePart2Color, setSiteNamePart2Color] = useState("#fbbf24");
+  const [siteName, setSiteName] = useState(initialSettings.siteName || "All Previous Paper Hub");
+  const [logoUrl, setLogoUrl] = useState(initialSettings.logoUrl || "");
+  const [logoHeight, setLogoHeight] = useState(initialSettings.logoHeight || 32);
+  const [headerHeight, setHeaderHeight] = useState(initialSettings.headerHeight || 56);
+  const [headerColor, setHeaderColor] = useState(initialSettings.headerColor || "#0d6efd");
+  const [headerLinks, setHeaderLinks] = useState(Array.isArray(initialSettings.headerLinks) ? initialSettings.headerLinks : []);
+  const [headerLinkColor, setHeaderLinkColor] = useState(initialSettings.headerLinkColor || "#ffffff");
+  const [headerLinkHoverColor, setHeaderLinkHoverColor] = useState(initialSettings.headerLinkHoverColor || "#fbbf24");
+  const [headerMenuIconColor, setHeaderMenuIconColor] = useState(initialSettings.headerMenuIconColor || "#ffffff");
+  const [headerMenuBgColor, setHeaderMenuBgColor] = useState(initialSettings.headerMenuBgColor || "#0f172a");
+  const [headerMenuTextColor, setHeaderMenuTextColor] = useState(initialSettings.headerMenuTextColor || initialSettings.headerLinkColor || "#f8fafc");
+  const [alertEnabled, setAlertEnabled] = useState(!!initialSettings.alertEnabled);
+  const [alertText, setAlertText] = useState(initialSettings.alertText || "");
+  const [alertColor, setAlertColor] = useState(initialSettings.alertColor || "#fff3cd");
+  const [alertHeight, setAlertHeight] = useState(initialSettings.alertHeight || 32);
+  const [alertFontSize, setAlertFontSize] = useState(initialSettings.alertFontSize || 14);
+  const [alertMarqueeDirection, setAlertMarqueeDirection] = useState(initialSettings.alertMarqueeDirection === "ltr" ? "ltr" : "rtl");
+  const [alertMarqueeSpeed, setAlertMarqueeSpeed] = useState(Number(initialSettings.alertMarqueeSpeed || 18));
+  const [alertMarqueeGap, setAlertMarqueeGap] = useState(Number(initialSettings.alertMarqueeGap || 2));
+  const [alertStyle, setAlertStyle] = useState(initialSettings.alertStyle || {});
+  const [siteNameStyle, setSiteNameStyle] = useState(initialSettings.siteNameStyle || {});
+  const [useSplitColor, setUseSplitColor] = useState(!!initialSettings.useSplitColor);
+  const [siteNamePart1, setSiteNamePart1] = useState(initialSettings.siteNamePart1 || "");
+  const [siteNamePart1Color, setSiteNamePart1Color] = useState(initialSettings.siteNamePart1Color || "#ffffff");
+  const [siteNamePart2, setSiteNamePart2] = useState(initialSettings.siteNamePart2 || "");
+  const [siteNamePart2Color, setSiteNamePart2Color] = useState(initialSettings.siteNamePart2Color || "#fbbf24");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [ready, setReady] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [headerType, setHeaderType] = useState("all");
   const [alertRepeatCount, setAlertRepeatCount] = useState(2);
@@ -129,9 +130,8 @@ function Navbar() {
         setSiteNamePart1Color(data.siteNamePart1Color || "#ffffff");
         setSiteNamePart2(data.siteNamePart2 || "");
         setSiteNamePart2Color(data.siteNamePart2Color || "#fbbf24");
-        setReady(true);
       })
-      .catch(() => setReady(false));
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -235,10 +235,6 @@ function Navbar() {
     margin: 0,
     fontSize: alertFontSize ? `${alertFontSize}px` : undefined
   };
-
-  if (!ready) {
-    return <div className="site-header-spacer" />;
-  }
 
   const runSearch = event => {
     event.preventDefault();
