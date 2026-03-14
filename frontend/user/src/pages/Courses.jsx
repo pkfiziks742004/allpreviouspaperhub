@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import DeferredFooter from "../components/DeferredFooter";
@@ -40,6 +40,7 @@ export default function Courses(){
   const [showAllBaseCourses, setShowAllBaseCourses] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
   const isMobileView = deviceProfile.isMobile;
+  const deferredSearch = useDeferredValue(search);
 
   const courseCollectionLabel = getCoursesDisplayLabel(selectedUniversity?.type);
   const coursesHeading = selectedUniversity?.name
@@ -150,7 +151,7 @@ export default function Courses(){
 
     setShowAllBaseCourses(false);
     setExpandedSections({});
-  }, [isMobileView, search, universitySlug]);
+  }, [deferredSearch, isMobileView, universitySlug]);
 
   const buildCardStyle = () => {
     const style = (cardStyles && cardStyles.course) || {};
@@ -249,7 +250,7 @@ export default function Courses(){
 
   const visibleCourses = courses
     .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
-    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+    .filter(c => c.name.toLowerCase().includes(deferredSearch.toLowerCase()));
   const baseCourses = visibleCourses.filter(c => !assignedCourseIds.has(String(c._id || "")));
   const displayedBaseCourses =
     isMobileView && !showAllBaseCourses
@@ -268,7 +269,7 @@ export default function Courses(){
         .map(id => courses.find(c => String(c._id) === String(id)))
         .filter(Boolean)
         .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
-        .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+        .filter(c => c.name.toLowerCase().includes(deferredSearch.toLowerCase()));
       return { section, sectionCourses };
     })
     .filter(block => (block.sectionCourses || []).length > 0 || block.section?.comingSoon);

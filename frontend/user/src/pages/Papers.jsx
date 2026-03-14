@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import DeferredFooter from "../components/DeferredFooter";
 import DeferredAdSlot from "../components/DeferredAdSlot";
@@ -31,6 +31,8 @@ export default function Papers(){
   const [settingsSnapshot, setSettingsSnapshot] = useState(null);
   const [visiblePaperCount, setVisiblePaperCount] = useState(6);
   const trackedSearchRef = useRef("");
+  const deferredSearch = useDeferredValue(search);
+  const deferredYearFilter = useDeferredValue(yearFilter);
 
   useEffect(()=>{
     const load = async () => {
@@ -147,13 +149,13 @@ export default function Papers(){
 
   useEffect(() => {
     setVisiblePaperCount(6);
-  }, [papers, search, yearFilter]);
+  }, [deferredSearch, deferredYearFilter, papers]);
 
 
   // 🔍 Filtered Papers
   const filteredPapers = papers.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase()) &&
-    (yearFilter === "" || String(p.year) === String(yearFilter))
+    p.title.toLowerCase().includes(deferredSearch.toLowerCase()) &&
+    (deferredYearFilter === "" || String(p.year) === String(deferredYearFilter))
   );
 
   const visiblePapers = filteredPapers.slice(0, visiblePaperCount);
