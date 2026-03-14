@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import DeferredFooter from "../components/DeferredFooter";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { markCourseFlow } from "../utils/navigationFlow";
@@ -379,7 +379,7 @@ export default function Courses(){
       </div>
       </div>
       <div className="footer-top-gap" />
-      <Footer />
+      <DeferredFooter />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 
 import { API_BASE, resolveApiUrl } from "./config/api";
 import { AdsProvider } from "./context/AdsContext";
+import { scheduleDeferred } from "./utils/deferredUi";
 import { getSettings } from "./utils/siteData";
 import { getJson } from "./utils/http";
 import Home from "./pages/Home";
@@ -18,18 +19,6 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DEFAULT_SITE_TITLE = "All Previous Paper Hub";
 const DEFAULT_SEO_DESCRIPTION =
   "All Previous Paper Hub - Previous year papers, notes, syllabus, and exam resources.";
-
-const scheduleDeferred = (task, timeout = 1500) => {
-  if (typeof window === "undefined") return () => {};
-
-  if ("requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(task, { timeout });
-    return () => window.cancelIdleCallback?.(id);
-  }
-
-  const timer = window.setTimeout(task, timeout);
-  return () => window.clearTimeout(timer);
-};
 
 const normalizeExternalScriptSrc = src => {
   const value = String(src || "").trim();

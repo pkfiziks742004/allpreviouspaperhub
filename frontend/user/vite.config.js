@@ -11,7 +11,17 @@ export default defineConfig(({ mode }) => {
     plugins: [react({ include: /\.(js|jsx|ts|tsx)$/ })],
     build: {
       outDir: "build",
-      emptyOutDir: true
+      emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return undefined;
+            if (id.includes("react-router")) return "router";
+            if (id.includes("react") || id.includes("scheduler")) return "react-vendor";
+            return undefined;
+          }
+        }
+      }
     },
     envPrefix: ["VITE_", "REACT_APP_"],
     optimizeDeps: {

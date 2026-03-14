@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import DeferredFooter from "../components/DeferredFooter";
 import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getSettings } from "../utils/siteData";
@@ -287,7 +287,7 @@ export default function AboutUs() {
         )}
       </div>
       <div className="footer-top-gap" />
-      <Footer />
+      <DeferredFooter />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import AdSlot from "../components/AdSlot";
+import DeferredFooter from "../components/DeferredFooter";
+import DeferredAdSlot from "../components/DeferredAdSlot";
 import { API_BASE } from "../config/api";
 import { toRouteSegment } from "../utils/slugs";
 import { markPaperFlow } from "../utils/navigationFlow";
@@ -226,7 +226,7 @@ export default function Papers(){
 
       <div className="page-content">
       <div className="container mt-4">
-        <AdSlot className="mb-3" label="Sponsored" />
+        <DeferredAdSlot className="mb-3" label="Sponsored" />
 
         <div className="home-section section-panel" style={{ background: sectionPanelBgColor || "#ffffff" }}>
           <h3 style={titleStyle}>{papersHeading}</h3>
@@ -320,12 +320,12 @@ export default function Papers(){
             )}
           </div>
         </div>
-        <AdSlot className="mt-3" label="Sponsored" />
+        <DeferredAdSlot className="mt-3" label="Sponsored" />
 
       </div>
       </div>
       <div className="footer-top-gap" />
-      <Footer />
+      <DeferredFooter />
     </div>
   );
 }

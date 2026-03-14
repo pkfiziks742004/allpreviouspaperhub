@@ -6,12 +6,13 @@ import { getJson } from "../utils/http";
 
 import Navbar from "../components/Navbar";
 import Banner from "../components/Banner";
-import FooterLogoSlider from "../components/FooterLogoSlider";
-import Footer from "../components/Footer";
-import RatingPopup from "../components/RatingPopup";
-import AdSlot from "../components/AdSlot";
+import DeferredFooterLogoSlider from "../components/DeferredFooterLogoSlider";
+import DeferredFooter from "../components/DeferredFooter";
+import DeferredRatingPopup from "../components/DeferredRatingPopup";
+import DeferredAdSlot from "../components/DeferredAdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
+import { useDeferredUiReady } from "../utils/deferredUi";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Home() {
@@ -34,9 +35,9 @@ export default function Home() {
   const [universitiesTitleStyle, setUniversitiesTitleStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [notices, setNotices] = useState([]);
-  const [deferredUiReady, setDeferredUiReady] = useState(false);
   const [expandedMobileCards, setExpandedMobileCards] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
+  const deferredUiReady = useDeferredUiReady(1800);
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -95,16 +96,6 @@ export default function Home() {
     updateViewport();
     window.addEventListener("resize", updateViewport);
     return () => window.removeEventListener("resize", updateViewport);
-  }, []);
-
-  useEffect(() => {
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(() => setDeferredUiReady(true), { timeout: 2500 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-
-    const timer = window.setTimeout(() => setDeferredUiReady(true), 1800);
-    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -274,10 +265,6 @@ export default function Home() {
     textDecoration: style && style.underline ? "underline" : "none"
   });
 
-  const renderDeferredFallback = className => (
-    <div className={className} style={{ minHeight: "96px" }} />
-  );
-
   const getHomeCardTitleClass = name => {
     const text = String(name || "").trim();
     const length = text.length;
@@ -289,14 +276,19 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      {deferredUiReady && <RatingPopup />}
+      <DeferredRatingPopup enabled={deferredUiReady} timeoutMs={0} />
 
       <Navbar />
       <div className="page-content">
       <Banner />
 
       <div className="container mt-5">
-        {deferredUiReady && <AdSlot className="mb-3" label="Sponsored" />}
+        <DeferredAdSlot
+          className="mb-3"
+          label="Sponsored"
+          enabled={deferredUiReady}
+          timeoutMs={0}
+        />
         {loading ? (
           <div className="home-loading-shell">
             <div className="home-loading-title shimmer-block" />
@@ -506,17 +498,20 @@ export default function Home() {
 
           </>
         )}
-        {deferredUiReady && <AdSlot className="mt-3" label="Sponsored" />}
+        <DeferredAdSlot
+          className="mt-3"
+          label="Sponsored"
+          enabled={deferredUiReady}
+          timeoutMs={0}
+        />
       </div>
       </div>
 
-      {deferredUiReady && (
-        <div className="mt-4">
-          <FooterLogoSlider flush />
-        </div>
-      )}
+      <div className="mt-4">
+        <DeferredFooterLogoSlider flush enabled={deferredUiReady} timeoutMs={0} />
+      </div>
 
-      {deferredUiReady && <Footer flushTop />}
+      <DeferredFooter flushTop enabled={deferredUiReady} timeoutMs={0} />
     </div>
   );
 }

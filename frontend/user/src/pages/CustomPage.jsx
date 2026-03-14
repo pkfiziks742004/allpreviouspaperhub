@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import DeferredFooter from "../components/DeferredFooter";
 import { API_BASE, resolveApiUrl, resolveImageUrl } from "../config/api";
 import { getJson } from "../utils/http";
 
@@ -105,7 +105,7 @@ export default function CustomPage() {
       </div>
       </div>
       <div className="footer-top-gap" />
-      <Footer />
+      <DeferredFooter />
     </div>
   );
 }
