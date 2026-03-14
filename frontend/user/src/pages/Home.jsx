@@ -13,15 +13,14 @@ import DeferredAdSlot from "../components/DeferredAdSlot";
 import { toRouteSegment } from "../utils/slugs";
 import { markUniversityFlow } from "../utils/navigationFlow";
 import { useDeferredUiReady } from "../utils/deferredUi";
+import { useDeviceProfile } from "../utils/useDeviceProfile";
 import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 
 export default function Home() {
+  const deviceProfile = useDeviceProfile();
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [isMobileView, setIsMobileView] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 767 : false
-  );
   const [universities, setUniversities] = useState([]);
   const [homeTitle, setHomeTitle] = useState("");
   const [homeSubtitle, setHomeSubtitle] = useState("");
@@ -37,7 +36,11 @@ export default function Home() {
   const [notices, setNotices] = useState([]);
   const [expandedMobileCards, setExpandedMobileCards] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
-  const deferredUiReady = useDeferredUiReady(1800);
+  const isMobileView = deviceProfile.isMobile;
+  const isConstrainedMobile = deviceProfile.isMobile && deviceProfile.isConstrained;
+  const deferredUiReady = useDeferredUiReady(
+    isConstrainedMobile ? 2800 : isMobileView ? 2200 : 1800
+  );
 
   const loadUniversities = useCallback(() => {
     return getUniversities({ ttlMs: 45_000 }).then(data => {
@@ -87,16 +90,6 @@ export default function Home() {
       setLoading(false);
     });
   }, [loadSettings, loadUniversities]);
-
-  useEffect(() => {
-    const updateViewport = () => {
-      setIsMobileView(window.innerWidth <= 767);
-    };
-
-    updateViewport();
-    window.addEventListener("resize", updateViewport);
-    return () => window.removeEventListener("resize", updateViewport);
-  }, []);
 
   useEffect(() => {
     if (!deferredUiReady) return undefined;
@@ -203,7 +196,12 @@ export default function Home() {
       : visibleUniversities;
 
   const resolveLogoUrl = url =>
-    resolveImageUrl(url, { width: 112, height: 112, fit: "limit" });
+    resolveImageUrl(url, {
+      width: isConstrainedMobile ? 72 : isMobileView ? 84 : 112,
+      height: isConstrainedMobile ? 72 : isMobileView ? 84 : 112,
+      fit: "limit",
+      quality: isConstrainedMobile ? "auto:low" : "auto"
+    });
 
   const buildCardStyle = key => {
     const style = (cardStyles && cardStyles[key]) || {};
@@ -276,7 +274,7 @@ export default function Home() {
 
   return (
     <div className="page-shell">
-      <DeferredRatingPopup enabled={deferredUiReady} timeoutMs={0} />
+      <DeferredRatingPopup enabled={!isConstrainedMobile && deferredUiReady} timeoutMs={0} />
 
       <Navbar />
       <div className="page-content">
@@ -287,7 +285,7 @@ export default function Home() {
           className="mb-3"
           label="Sponsored"
           enabled={deferredUiReady}
-          timeoutMs={0}
+          timeoutMs={isConstrainedMobile ? 1800 : isMobileView ? 900 : 0}
         />
         {loading ? (
           <div className="home-loading-shell">
@@ -502,16 +500,20 @@ export default function Home() {
           className="mt-3"
           label="Sponsored"
           enabled={deferredUiReady}
-          timeoutMs={0}
+          timeoutMs={isConstrainedMobile ? 2200 : isMobileView ? 1200 : 0}
         />
       </div>
       </div>
 
       <div className="mt-4">
-        <DeferredFooterLogoSlider flush enabled={deferredUiReady} timeoutMs={0} />
+        <DeferredFooterLogoSlider
+          flush
+          enabled={!isConstrainedMobile && deferredUiReady}
+          timeoutMs={isMobileView ? 1800 : 0}
+        />
       </div>
 
-      <DeferredFooter flushTop enabled={deferredUiReady} timeoutMs={0} />
+      <DeferredFooter flushTop enabled={deferredUiReady} timeoutMs={isMobileView ? 600 : 0} />
     </div>
   );
 }

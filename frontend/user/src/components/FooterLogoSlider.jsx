@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { resolveImageUrl } from "../config/api";
 import { getSettings } from "../utils/siteData";
+import { useDeviceProfile } from "../utils/useDeviceProfile";
 
 export default function FooterLogoSlider({ flush = false }) {
+  const deviceProfile = useDeviceProfile();
   const [ready, setReady] = useState(false);
   const [footerLogoSliderEnabled, setFooterLogoSliderEnabled] = useState(false);
   const [footerLogoSliderBgColor, setFooterLogoSliderBgColor] = useState("#06141f");
@@ -14,7 +16,12 @@ export default function FooterLogoSlider({ flush = false }) {
   const [footerLogoSliderItems, setFooterLogoSliderItems] = useState([]);
 
   const resolveFooterSliderLogoUrl = url =>
-    resolveImageUrl(url, { width: 320, height: 120, fit: "limit" });
+    resolveImageUrl(url, {
+      width: deviceProfile.isMobile ? 220 : 320,
+      height: deviceProfile.isMobile ? 84 : 120,
+      fit: "limit",
+      quality: deviceProfile.isConstrained ? "auto:low" : "auto"
+    });
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 })
@@ -43,7 +50,11 @@ export default function FooterLogoSlider({ flush = false }) {
       return [];
     }
 
-    const minimumTrackItems = 14;
+    const minimumTrackItems = deviceProfile.isConstrained
+      ? 6
+      : deviceProfile.isMobile
+        ? 8
+        : 14;
     const copiesNeeded =
       activeFooterLogoSliderItems.length === 1
         ? minimumTrackItems
@@ -56,7 +67,7 @@ export default function FooterLogoSlider({ flush = false }) {
         __marqueeKey: `${idx}-${item?._id || item?.id || item?.imageUrl || "logo"}`
       };
     });
-  }, [activeFooterLogoSliderItems]);
+  }, [activeFooterLogoSliderItems, deviceProfile.isConstrained, deviceProfile.isMobile]);
 
   const renderFooterLogoSliderItem = (item, idx, groupIndex) => {
     const content = (

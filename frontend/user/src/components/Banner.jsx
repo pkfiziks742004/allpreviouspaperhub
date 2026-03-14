@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { resolveImageUrl } from "../config/api";
 import { getSettings } from "../utils/siteData";
+import { useDeviceProfile } from "../utils/useDeviceProfile";
 const SIMPLE_BADGE_SHAPES = new Set(["custom", "pill", "square", "rounded-square", "soft-rounded"]);
 
 const getSimpleBadgeShapeStyle = (shape, radius) => {
@@ -12,26 +13,33 @@ const getSimpleBadgeShapeStyle = (shape, radius) => {
 };
 
 export default function Banner() {
+  const deviceProfile = useDeviceProfile();
   const [items, setItems] = useState([]);
   const [ready, setReady] = useState(false);
   const [bannerMargin, setBannerMargin] = useState(0);
   const [bannerRadius, setBannerRadius] = useState(0);
-  const [isMobileView, setIsMobileView] = useState(false);
   const [badgeScaleMap, setBadgeScaleMap] = useState({});
   const [activeIndex, setActiveIndex] = useState(0);
   const [badgeShapeHelpers, setBadgeShapeHelpers] = useState(null);
   const bannerImageRefs = useRef({});
+  const isMobileView = deviceProfile.isMobile;
+  const isConstrainedMobile = deviceProfile.isMobile && deviceProfile.isConstrained;
   const safeMargin = Math.max(0, Number(bannerMargin || 0));
   const mobileStaticItem = items[0] || null;
 
   const resolveBannerUrl = url =>
     resolveImageUrl(url, {
-      width: isMobileView ? 680 : 1280,
+      width: isConstrainedMobile ? 480 : isMobileView ? 640 : 1280,
       fit: "limit",
-      quality: isMobileView ? "auto:low" : "auto:eco"
+      quality: isConstrainedMobile ? "auto:low" : isMobileView ? "auto:eco" : "auto:eco"
     });
   const resolveBadgeUrl = url =>
-    resolveImageUrl(url, { width: 96, height: 96, fit: "limit" });
+    resolveImageUrl(url, {
+      width: isMobileView ? 72 : 96,
+      height: isMobileView ? 72 : 96,
+      fit: "limit",
+      quality: isConstrainedMobile ? "auto:low" : "auto"
+    });
 
   useEffect(() => {
     getSettings({ ttlMs: 45_000 })
@@ -96,15 +104,6 @@ export default function Banner() {
         setItems([]);
       })
       .finally(() => setReady(true));
-  }, []);
-
-  useEffect(() => {
-    const setViewportMode = () => {
-      setIsMobileView(window.innerWidth <= 576);
-    };
-    setViewportMode();
-    window.addEventListener("resize", setViewportMode);
-    return () => window.removeEventListener("resize", setViewportMode);
   }, []);
 
   useEffect(() => {
@@ -211,7 +210,7 @@ export default function Banner() {
           alt={`Banner ${index + 1}`}
           loading={index === 0 ? "eager" : "lazy"}
           fetchPriority={index === 0 ? "high" : "auto"}
-          decoding={index === 0 ? "sync" : "async"}
+          decoding={index === 0 && !isMobileView ? "sync" : "async"}
           style={{ objectFit: item.fitMode || "cover" }}
           onLoad={event => {
             const img = event.currentTarget;

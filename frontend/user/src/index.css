@@ -1654,6 +1654,25 @@ img {
 
 /* Phone: 2 cards per row */
 @media (max-width: 767px) {
+  .site-header {
+    backdrop-filter: none;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+  }
+
+  .modern-card::before,
+  .modern-card::after,
+  .footer-panel::before {
+    display: none;
+  }
+
+  .modern-card,
+  .home-card,
+  .section-panel,
+  .paper-row-card,
+  .footer-panel {
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  }
+
   .cards-grid-4-6 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
