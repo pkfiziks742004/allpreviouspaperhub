@@ -9,8 +9,10 @@ import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 import { postJson } from "../utils/http";
 import { getCoursesDisplayLabel, getEntityTypeKey } from "../utils/entityTypeLabels";
+import { useDeviceProfile } from "../utils/useDeviceProfile";
 
 export default function Courses(){
+  const deviceProfile = useDeviceProfile();
   const { universitySlug } = useParams();
   const navigate = useNavigate();
 
@@ -35,6 +37,9 @@ export default function Courses(){
   const [selectedUniversity, setSelectedUniversity] = useState(null);
   const [universitiesLoaded, setUniversitiesLoaded] = useState(false);
   const trackedSearchRef = useRef("");
+  const [showAllBaseCourses, setShowAllBaseCourses] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
+  const isMobileView = deviceProfile.isMobile;
 
   const courseCollectionLabel = getCoursesDisplayLabel(selectedUniversity?.type);
   const coursesHeading = selectedUniversity?.name
@@ -136,6 +141,17 @@ export default function Courses(){
     return () => clearTimeout(timer);
   }, [search]);
 
+  useEffect(() => {
+    if (!isMobileView) {
+      setShowAllBaseCourses(true);
+      setExpandedSections({});
+      return;
+    }
+
+    setShowAllBaseCourses(false);
+    setExpandedSections({});
+  }, [isMobileView, search, universitySlug]);
+
   const buildCardStyle = () => {
     const style = (cardStyles && cardStyles.course) || {};
     const hasGradient = style.gradientStart && style.gradientEnd;
@@ -235,6 +251,10 @@ export default function Courses(){
     .filter(c => !selectedUniversity || String(c.universityId || "") === String(selectedUniversity._id || ""))
     .filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
   const baseCourses = visibleCourses.filter(c => !assignedCourseIds.has(String(c._id || "")));
+  const displayedBaseCourses =
+    isMobileView && !showAllBaseCourses
+      ? baseCourses.slice(0, 8)
+      : baseCourses;
 
   const visibleCourseSections = (courseSections || [])
     .filter(section => String(section?.sectionType || "course").toLowerCase() === "course")
@@ -277,7 +297,7 @@ export default function Courses(){
 
         <div className="cards-grid cards-grid-4-6">
 
-        {baseCourses.map(c => (
+        {displayedBaseCourses.map(c => (
 
 
     <div key={c._id} className="cards-grid-item">
@@ -322,6 +342,17 @@ export default function Courses(){
   ))}
 
 </div>
+        {isMobileView && baseCourses.length > 8 && (
+          <div className="home-section-action">
+            <button
+              type="button"
+              className="btn btn-outline-primary btn-sm"
+              onClick={() => setShowAllBaseCourses(value => !value)}
+            >
+              {showAllBaseCourses ? "Show less" : `Show all (${baseCourses.length})`}
+            </button>
+          </div>
+        )}
         </div>
 
         {visibleCourseSections.map((block, idx) => (
@@ -345,7 +376,10 @@ export default function Courses(){
               </div>
             ) : (
               <div className="cards-grid cards-grid-4-6">
-                {block.sectionCourses.map(c => (
+                {(isMobileView && !expandedSections[idx]
+                  ? block.sectionCourses.slice(0, 6)
+                  : block.sectionCourses
+                ).map(c => (
                   <div key={`sec-course-${c._id}`} className="cards-grid-item">
                     <div className="card modern-card course-card course-card--large h-100 text-center" style={buildCardStyle()}>
                       <div className="card-body course-card-body">
@@ -370,6 +404,22 @@ export default function Courses(){
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {isMobileView && block.sectionCourses.length > 6 && block.section?.active !== false && !block.section?.comingSoon && (
+              <div className="home-section-action">
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() =>
+                    setExpandedSections(prev => ({
+                      ...prev,
+                      [idx]: !prev[idx]
+                    }))
+                  }
+                >
+                  {expandedSections[idx] ? "Show less" : `Show all (${block.sectionCourses.length})`}
+                </button>
               </div>
             )}
           </div>

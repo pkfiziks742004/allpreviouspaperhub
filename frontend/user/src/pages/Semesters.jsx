@@ -10,8 +10,10 @@ import { applySeoByPage, applySeoByRoute } from "../utils/seo";
 import { getCourses, getSettings, getUniversities } from "../utils/siteData";
 import { getJson } from "../utils/http";
 import { getSemestersDisplayLabel } from "../utils/entityTypeLabels";
+import { useDeviceProfile } from "../utils/useDeviceProfile";
 
 export default function Semesters(){
+  const deviceProfile = useDeviceProfile();
 
   const { universitySlug, courseSlug } = useParams();
   const navigate = useNavigate();
@@ -26,6 +28,9 @@ export default function Semesters(){
   const [semesterNameStyle, setSemesterNameStyle] = useState({});
   const [sectionPanelBgColor, setSectionPanelBgColor] = useState("#ffffff");
   const [settingsSnapshot, setSettingsSnapshot] = useState(null);
+  const [showAllBaseSemesters, setShowAllBaseSemesters] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
+  const isMobileView = deviceProfile.isMobile;
 
   useEffect(()=>{
     const load = async () => {
@@ -78,6 +83,17 @@ export default function Semesters(){
       setSectionPanelBgColor(data.sectionPanelBgColor || "#ffffff");
     });
   }, []);
+
+  useEffect(() => {
+    if (!isMobileView) {
+      setShowAllBaseSemesters(true);
+      setExpandedSections({});
+      return;
+    }
+
+    setShowAllBaseSemesters(false);
+    setExpandedSections({});
+  }, [courseSlug, isMobileView, universitySlug]);
 
   useEffect(() => {
     if (!settingsSnapshot) return;
@@ -221,6 +237,10 @@ export default function Semesters(){
       .filter(Boolean)
   );
   const baseSemesters = list.filter(sem => !assignedSemesterIds.has(String(sem._id || "")));
+  const displayedBaseSemesters =
+    isMobileView && !showAllBaseSemesters
+      ? baseSemesters.slice(0, 8)
+      : baseSemesters;
 
   const visibleSemesterSections = (courseSections || [])
     .filter(section => String(section?.sectionType || "").toLowerCase() === "semester")
@@ -251,7 +271,7 @@ export default function Semesters(){
 
         <div className="cards-grid cards-grid-4-6 semesters-grid">
 
-          {baseSemesters.map(s=>(
+          {displayedBaseSemesters.map(s=>(
             <div className="cards-grid-item" key={s._id}>
 
                 <div
@@ -305,6 +325,17 @@ export default function Semesters(){
           ))}
 
         </div>
+        {isMobileView && baseSemesters.length > 8 && (
+          <div className="home-section-action">
+            <button
+              type="button"
+              className="btn btn-outline-primary btn-sm"
+              onClick={() => setShowAllBaseSemesters(value => !value)}
+            >
+              {showAllBaseSemesters ? "Show less" : `Show all (${baseSemesters.length})`}
+            </button>
+          </div>
+        )}
         </div>
 
         {visibleSemesterSections.map((block, idx) => (
@@ -322,7 +353,10 @@ export default function Semesters(){
               </div>
             ) : (
               <div className="cards-grid cards-grid-4-6 semesters-grid">
-                {block.sectionSemesters.map(s => (
+                {(isMobileView && !expandedSections[idx]
+                  ? block.sectionSemesters.slice(0, 6)
+                  : block.sectionSemesters
+                ).map(s => (
                   <div className="cards-grid-item" key={`section-sem-${s._id}`}>
                     <div
                       className="card modern-card semester-card h-100"
@@ -360,6 +394,22 @@ export default function Semesters(){
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {isMobileView && block.sectionSemesters.length > 6 && block.section?.active !== false && !block.section?.comingSoon && (
+              <div className="home-section-action">
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={() =>
+                    setExpandedSections(prev => ({
+                      ...prev,
+                      [idx]: !prev[idx]
+                    }))
+                  }
+                >
+                  {expandedSections[idx] ? "Show less" : `Show all (${block.sectionSemesters.length})`}
+                </button>
               </div>
             )}
           </div>
